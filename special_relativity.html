@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Special Relativity Simulator - Side-by-Side View</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- MathJax for rendering LaTeX formulas -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="mathjax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+        canvas {
+            image-rendering: pixelated;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col">
+
+    <!-- Header Navigation -->
+    <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4 shadow-lg">
+        <div class="flex items-center space-x-3">
+            <div class="bg-indigo-600 text-white p-2.5 rounded-xl shadow-md">
+                <i class="fa-solid fa-atom text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
+                    Special Relativity Visualizer
+                </h1>
+                <p class="text-xs text-slate-400">Side-by-Side Comparative Reference Frame Simulator</p>
+            </div>
+        </div>
+
+        <!-- Mode Selection Tabs -->
+        <nav class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs sm:text-sm font-medium">
+            <button id="tab-simultaneity" onclick="switchTab('simultaneity')" class="nav-tab px-4 py-2 rounded-lg transition-all duration-200 text-indigo-400 bg-slate-800 font-semibold shadow">
+                <i class="fa-solid fa-bolt mr-1.5"></i>Simultaneity
+            </button>
+            <button id="tab-dilation" onclick="switchTab('dilation')" class="nav-tab px-4 py-2 rounded-lg text-slate-400 hover:text-slate-200 transition-all duration-200">
+                <i class="fa-solid fa-clock mr-1.5"></i>Time Dilation
+            </button>
+            <button id="tab-contraction" onclick="switchTab('contraction')" class="nav-tab px-4 py-2 rounded-lg text-slate-400 hover:text-slate-200 transition-all duration-200">
+                <i class="fa-solid fa-compress-arrows-alt mr-1.5"></i>Length Contraction
+            </button>
+        </nav>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 max-w-7xl w-full mx-auto">
+        
+        <!-- Simulation Canvas & Control Panel (8 Cols) -->
+        <div class="lg:col-span-8 flex flex-col gap-4">
+            
+            <!-- Canvas Container -->
+            <div class="relative bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col items-center justify-center min-h-[440px]">
+                <!-- HTML5 Canvas (100% overlay-free) -->
+                <canvas id="simCanvas" width="800" height="440" class="w-full h-full object-contain"></canvas>
+            </div>
+
+            <!-- Interactive Physics Control Board -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+                
+                <!-- Dynamic Control Sliders & External Status Badge -->
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                    
+                    <!-- Velocity Slider -->
+                    <div class="md:col-span-7">
+                        <div class="flex justify-between items-center mb-1">
+                            <label for="speed-slider" class="text-xs font-medium text-slate-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-gauge-high text-cyan-400"></i> Relative Velocity ($v/c$):
+                            </label>
+                            <span id="speed-val" class="text-xs font-mono font-bold text-cyan-400">0.80 c</span>
+                        </div>
+                        <input id="speed-slider" type="range" min="0" max="0.99" step="0.01" value="0.80" 
+                            oninput="updateParams()" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-500">
+                    </div>
+
+                    <!-- Live Metrics Display Bar (Integrated directly into control panel) -->
+                    <div class="md:col-span-5 flex items-center justify-end">
+                        <div class="flex items-center gap-3 bg-slate-950 border border-slate-800 px-3.5 py-2 rounded-xl text-xs font-mono w-full justify-around shadow-inner">
+                            <div><span class="text-slate-400">$\beta = v/c$:</span> <span id="metric-beta" class="text-cyan-400 font-bold">0.800</span></div>
+                            <div class="h-3 w-px bg-slate-800"></div>
+                            <div><span class="text-slate-400">$\gamma$:</span> <span id="metric-gamma" class="text-indigo-400 font-bold">1.667</span></div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Presets & Simulation Playback Controls -->
+                <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-800">
+                    <div class="flex items-center gap-2">
+                        <button id="play-btn" onclick="togglePlay()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl text-xs flex items-center gap-2 shadow-lg transition-all">
+                            <i id="play-icon" class="fa-solid fa-play"></i> <span id="play-text">Start Simulation</span>
+                        </button>
+                        <button onclick="resetSim()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-xs flex items-center gap-1.5 transition-all">
+                            <i class="fa-solid fa-rotate-left"></i> Reset
+                        </button>
+                    </div>
+
+                    <!-- Presets & Speed -->
+                    <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-1.5 text-xs">
+                            <span class="text-slate-400 font-medium hidden sm:inline">Presets:</span>
+                            <button onclick="setSpeed(0.5)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-lg transition-all font-mono">0.50c</button>
+                            <button onclick="setSpeed(0.8)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-lg transition-all font-mono">0.80c</button>
+                            <button onclick="setSpeed(0.95)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-lg transition-all font-mono">0.95c</button>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 text-xs">
+                            <select id="sim-speed-select" onchange="updateSimSpeed()" class="bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-slate-300 font-mono">
+                                <option value="0.25">0.25x</option>
+                                <option value="0.5" selected>0.5x</option>
+                                <option value="1.0">1.0x</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Analytical Panel & Physics Formulas (4 Cols) -->
+        <div class="lg:col-span-4 flex flex-col gap-4">
+            
+            <!-- Mathematical Analysis Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex-1 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-200 uppercase tracking-wider mb-3 flex items-center gap-2 border-b border-slate-800 pb-2">
+                        <i class="fa-solid fa-calculator text-indigo-400"></i> Lorentz Transformation
+                    </h2>
+
+                    <div id="theory-math-block" class="space-y-3 text-xs text-slate-300 leading-relaxed font-mono bg-slate-950 p-4 rounded-xl border border-slate-800">
+                        <!-- LaTeX equations populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Explanation / Physics Context -->
+                <div class="mt-4 pt-3 border-t border-slate-800">
+                    <h3 id="panel-title" class="text-xs font-bold text-indigo-400 mb-1">Simultaneity Analysis</h3>
+                    <p id="panel-description" class="text-xs text-slate-400 leading-relaxed">
+                        Side-by-side comparison illustrating how relative motion affects physical measurements across observers.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Summary Card -->
+            <div class="bg-indigo-950/30 border border-indigo-900/40 rounded-2xl p-4 shadow-xl">
+                <div class="flex items-center gap-2 text-xs font-bold text-indigo-300 mb-2">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>Key Takeaway</span>
+                </div>
+                <p id="takeaway-text" class="text-xs text-slate-300 leading-relaxed">
+                    Select a topic above to compare the physics in the Rest Frame $S$ and Moving Frame $S'$.
+                </p>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 border-t border-slate-800 px-6 py-3 text-center text-xs text-slate-500">
+        Special Relativity Side-by-Side Interactive Simulator
+    </footer>
+
+    <!-- JavaScript Simulator Logic -->
+    <script>
+        // Global Simulation State
+        const state = {
+            activeTab: 'simultaneity', // 'simultaneity', 'dilation', 'contraction'
+            v: 0.80,                  // relative speed (beta = v/c)
+            c: 1.0,                   // speed of light unit
+            isRunning: false,
+            time: 0,                  // frame simulation timer
+            simSpeed: 0.5
+        };
+
+        // DOM Element Cache
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const speedSlider = document.getElementById('speed-slider');
+        const speedVal = document.getElementById('speed-val');
+        const metricBeta = document.getElementById('metric-beta');
+        const metricGamma = document.getElementById('metric-gamma');
+
+        // Initialize Simulation
+        window.onload = () => {
+            resizeCanvas();
+            updateParams();
+            renderTab();
+            requestAnimationFrame(simLoop);
+        };
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth || 800;
+            canvas.height = container.clientHeight || 440;
+        }
+
+        window.onresize = resizeCanvas;
+
+        function getGamma(beta) {
+            if (beta >= 0.999) return 22.36;
+            return 1 / Math.sqrt(1 - beta * beta);
+        }
+
+        function setSpeed(val) {
+            speedSlider.value = val;
+            updateParams();
+        }
+
+        function updateParams() {
+            state.v = parseFloat(speedSlider.value);
+            const gamma = getGamma(state.v);
+            
+            speedVal.innerText = `${state.v.toFixed(2)} c`;
+            metricBeta.innerText = state.v.toFixed(3);
+            metricGamma.innerText = gamma.toFixed(3);
+
+            updateMathDisplay();
+        }
+
+        function switchTab(tab) {
+            state.activeTab = tab;
+            
+            document.querySelectorAll('.nav-tab').forEach(btn => {
+                btn.className = 'nav-tab px-4 py-2 rounded-lg text-slate-400 hover:text-slate-200 transition-all duration-200';
+            });
+            const activeBtn = document.getElementById(`tab-${tab}`);
+            if (activeBtn) {
+                activeBtn.className = 'nav-tab px-4 py-2 rounded-lg transition-all duration-200 text-indigo-400 bg-slate-800 font-semibold shadow';
+            }
+
+            resetSim();
+            renderTab();
+        }
+
+        function togglePlay() {
+            state.isRunning = !state.isRunning;
+            const playBtn = document.getElementById('play-btn');
+            const playIcon = document.getElementById('play-icon');
+            const playText = document.getElementById('play-text');
+
+            if (state.isRunning) {
+                playBtn.classList.replace('bg-indigo-600', 'bg-amber-600');
+                playBtn.classList.replace('hover:bg-indigo-500', 'hover:bg-amber-500');
+                playIcon.className = 'fa-solid fa-pause';
+                playText.innerText = 'Pause';
+            } else {
+                playBtn.classList.replace('bg-amber-600', 'bg-indigo-600');
+                playBtn.classList.replace('hover:bg-amber-500', 'hover:bg-indigo-500');
+                playIcon.className = 'fa-solid fa-play';
+                playText.innerText = 'Resume';
+            }
+        }
+
+        function resetSim() {
+            state.isRunning = false;
+            state.time = 0;
+            
+            const playBtn = document.getElementById('play-btn');
+            const playIcon = document.getElementById('play-icon');
+            const playText = document.getElementById('play-text');
+            
+            playBtn.classList.replace('bg-amber-600', 'bg-indigo-600');
+            playBtn.classList.replace('hover:bg-amber-500', 'hover:bg-indigo-500');
+            playIcon.className = 'fa-solid fa-play';
+            playText.innerText = 'Start Simulation';
+
+            updateMathDisplay();
+        }
+
+        function updateSimSpeed() {
+            state.simSpeed = parseFloat(document.getElementById('sim-speed-select').value);
+        }
+
+        function updateMathDisplay() {
+            const mathBlock = document.getElementById('theory-math-block');
+            const panelTitle = document.getElementById('panel-title');
+            const panelDesc = document.getElementById('panel-description');
+            const takeaway = document.getElementById('takeaway-text');
+
+            const gamma = getGamma(state.v).toFixed(3);
+
+            if (state.activeTab === 'simultaneity') {
+                panelTitle.innerText = "Relativity of Simultaneity";
+                panelDesc.innerText = "Events occurring at different places that are simultaneous in Frame S' occur at different times when observed from Frame S.";
+                takeaway.innerText = "Simultaneity is not absolute; it depends directly on the relative velocity of the reference frame.";
+                
+                mathBlock.innerHTML = `
+                    <div>Time Interval Transformation:</div>
+                    $$\\Delta t = \\gamma \\left(\\Delta t' + \\frac{v \\Delta x'}{c^2}\\right)$$
+                    <div>For $\\Delta t' = 0$ (Simultaneous in $S'$):</div>
+                    $$\\Delta t = \\frac{\\gamma v \\Delta x'}{c^2}$$
+                `;
+
+            } else if (state.activeTab === 'dilation') {
+                panelTitle.innerText = "Time Dilation";
+                panelDesc.innerText = "Clocks in relative motion run slower relative to a stationary observer frame. Proper time \\(\\tau_0\\) is measured in the rest clock frame.";
+                takeaway.innerText = "Moving clocks tick slower. The light pulse travels a longer diagonal distance in the rest frame.";
+
+                mathBlock.innerHTML = `
+                    <div>Time Dilation Equation:</div>
+                    $$\\Delta t = \\gamma \\tau_0 = \\frac{\\tau_0}{\\sqrt{1-v^2/c^2}}$$
+                    <div>Current Lorentz Factor $\\gamma$:</div>
+                    $$\\gamma = ${gamma}$$
+                `;
+
+            } else if (state.activeTab === 'contraction') {
+                panelTitle.innerText = "Length Contraction";
+                panelDesc.innerText = "The length of an object measured along its direction of motion is contracted relative to its rest proper length $L_0$.";
+                takeaway.innerText = "Objects shrink along their line of motion by a factor of $1/\\gamma$ relative to an observer at rest.";
+
+                const contracted = (100 / getGamma(state.v)).toFixed(1);
+                mathBlock.innerHTML = `
+                    <div>Contraction Equation:</div>
+                    $$L = \\frac{L_0}{\\gamma} = L_0 \\sqrt{1 - v^2/c^2}$$
+                    <div>Rest Length ($L_0$): $100\\%$</div>
+                    <div>Contracted Length ($L$): $${contracted}\\%$</div>
+                `;
+            }
+
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        function renderTab() {
+            updateMathDisplay();
+        }
+
+        // Main Animation Loop
+        function simLoop(timestamp) {
+            if (state.isRunning) {
+                state.time += 0.016 * state.simSpeed;
+            }
+
+            // Clear Canvas
+            ctx.fillStyle = '#090d16';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Divider Line for Side-by-Side View
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height / 2);
+            ctx.lineTo(canvas.width, canvas.height / 2);
+            ctx.stroke();
+
+            // Render active tab simulation
+            if (state.activeTab === 'simultaneity') {
+                drawSimultaneitySim();
+            } else if (state.activeTab === 'dilation') {
+                drawDilationSim();
+            } else if (state.activeTab === 'contraction') {
+                drawContractionSim();
+            }
+
+            requestAnimationFrame(simLoop);
+        }
+
+        // Helper: Draw Frame Header Labels
+        function drawFrameHeaders(titleTop, titleBottom) {
+            ctx.font = 'bold 12px sans-serif';
+            
+            // Top Frame Tag
+            ctx.fillStyle = '#38bdf8';
+            ctx.fillText(titleTop, 20, 25);
+            
+            // Bottom Frame Tag
+            ctx.fillStyle = '#818cf8';
+            ctx.fillText(titleBottom, 20, canvas.height / 2 + 25);
+        }
+
+        // --- SIMULATION 1: SIMULTANEITY ---
+        function drawSimultaneitySim() {
+            const w = canvas.width;
+            const halfH = canvas.height / 2;
+            const carWidth = 240;
+            const carHeight = 50;
+            const lightSpeed = 140;
+
+            drawFrameHeaders("GROUND FRAME S (Stationary Observer View)", "MOVING TRAIN FRAME S' (Onboard Observer View)");
+
+            // Cycle time for pulse simulation
+            const loopTime = state.time % 3.5;
+            const radius = loopTime * lightSpeed;
+
+            // --- TOP PANEL: Frame S (Train Moves to Right) ---
+            const cyTop = halfH / 2 + 12;
+            const trainX_S = 80 + (state.v * 120 * loopTime);
+
+            // Train Body
+            ctx.fillStyle = '#1e293b';
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 2;
+            ctx.fillRect(trainX_S, cyTop - carHeight/2, carWidth, carHeight);
+            ctx.strokeRect(trainX_S, cyTop - carHeight/2, carWidth, carHeight);
+
+            // Sensors A' and B'
+            const rearS = trainX_S + 15;
+            const frontS = trainX_S + carWidth - 15;
+            
+            ctx.fillStyle = '#ef4444'; ctx.fillRect(rearS - 4, cyTop - 15, 8, 30); // Rear A'
+            ctx.fillStyle = '#10b981'; ctx.fillRect(frontS - 4, cyTop - 15, 8, 30); // Front B'
+            ctx.fillStyle = '#94a3b8'; ctx.font = '11px sans-serif';
+            ctx.fillText("A' (Rear)", rearS - 18, cyTop - 22);
+            ctx.fillText("B' (Front)", frontS - 18, cyTop - 22);
+
+            // Light Source Emission point fixed at rest in S where emission occurred
+            const emissionX_S = 80 + carWidth / 2;
+            
+            ctx.strokeStyle = '#f59e0b';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(emissionX_S, cyTop, radius, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Detection Highlights in Frame S
+            if (emissionX_S - radius <= rearS) {
+                ctx.fillStyle = '#ef4444';
+                ctx.beginPath(); ctx.arc(rearS, cyTop, 10, 0, Math.PI*2); ctx.fill();
+            }
+            if (emissionX_S + radius >= frontS) {
+                ctx.fillStyle = '#10b981';
+                ctx.beginPath(); ctx.arc(frontS, cyTop, 10, 0, Math.PI*2); ctx.fill();
+            }
+
+            // --- BOTTOM PANEL: Frame S' (Train Stationary, Light Expands Centrally) ---
+            const cyBot = halfH + halfH / 2 + 12;
+            const trainX_SPrime = w / 2 - carWidth / 2;
+
+            ctx.fillStyle = '#1e293b';
+            ctx.strokeStyle = '#818cf8';
+            ctx.lineWidth = 2;
+            ctx.fillRect(trainX_SPrime, cyBot - carHeight/2, carWidth, carHeight);
+            ctx.strokeRect(trainX_SPrime, cyBot - carHeight/2, carWidth, carHeight);
+
+            const rearSPrime = trainX_SPrime + 15;
+            const frontSPrime = trainX_SPrime + carWidth - 15;
+            
+            ctx.fillStyle = '#ef4444'; ctx.fillRect(rearSPrime - 4, cyBot - 15, 8, 30);
+            ctx.fillStyle = '#10b981'; ctx.fillRect(frontSPrime - 4, cyBot - 15, 8, 30);
+            ctx.fillStyle = '#94a3b8';
+            ctx.fillText("A' (Rear)", rearSPrime - 18, cyBot - 22);
+            ctx.fillText("B' (Front)", frontSPrime - 18, cyBot - 22);
+
+            // Light expands centered inside train in S'
+            const centerSPrime = trainX_SPrime + carWidth / 2;
+            ctx.strokeStyle = '#f59e0b';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(centerSPrime, cyBot, radius, 0, Math.PI * 2);
+            ctx.stroke();
+
+            if (centerSPrime - radius <= rearSPrime) {
+                ctx.fillStyle = '#ef4444';
+                ctx.beginPath(); ctx.arc(rearSPrime, cyBot, 10, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#10b981';
+                ctx.beginPath(); ctx.arc(frontSPrime, cyBot, 10, 0, Math.PI*2); ctx.fill();
+            }
+        }
+
+        // --- SIMULATION 2: TIME DILATION ---
+        function drawDilationSim() {
+            const w = canvas.width;
+            const halfH = canvas.height / 2;
+            const clockHeight = 110;
+            const gamma = getGamma(state.v);
+
+            drawFrameHeaders("REST FRAME S (Observing Moving Light-Clock)", "REST FRAME S' (Observing Stationary Light-Clock)");
+
+            // --- TOP PANEL: Frame S (Moving Light Clock) ---
+            const topY1 = 55;
+            const botY1 = topY1 + clockHeight;
+            const vx1 = state.v * 100;
+            const clockX1 = 120 + (state.time * vx1) % (w - 240);
+
+            // Mirrors
+            ctx.fillStyle = '#475569';
+            ctx.fillRect(clockX1 - 35, topY1 - 6, 70, 6);
+            ctx.fillRect(clockX1 - 35, botY1, 70, 6);
+
+            // Triangle path visualization
+            ctx.strokeStyle = '#334155';
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            ctx.moveTo(clockX1 - 45, botY1);
+            ctx.lineTo(clockX1, topY1);
+            ctx.lineTo(clockX1 + 45, botY1);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Photon position (Dilated Period)
+            const dilatedPeriod = 2.0 * gamma;
+            const progress1 = (state.time % dilatedPeriod) / dilatedPeriod;
+            let photonY1 = (progress1 < 0.5) 
+                ? botY1 - (progress1 * 2) * clockHeight 
+                : topY1 + ((progress1 - 0.5) * 2) * clockHeight;
+
+            ctx.fillStyle = '#f59e0b';
+            ctx.beginPath(); ctx.arc(clockX1, photonY1, 7, 0, Math.PI * 2); ctx.fill();
+
+            // Readout
+            ctx.fillStyle = '#cbd5e1';
+            ctx.font = 'bold 12px monospace';
+            ctx.fillText(`Stationary Time t = ${state.time.toFixed(2)} s`, w - 240, 25);
+
+            // --- BOTTOM PANEL: Frame S' (Rest Light Clock) ---
+            const topY2 = halfH + 55;
+            const botY2 = topY2 + clockHeight;
+            const clockX2 = w / 2;
+
+            // Mirrors
+            ctx.fillStyle = '#475569';
+            ctx.fillRect(clockX2 - 35, topY2 - 6, 70, 6);
+            ctx.fillRect(clockX2 - 35, botY2, 70, 6);
+
+            // Photon position (Proper Period)
+            const properPeriod = 2.0;
+            const properTime = state.time / gamma;
+            const progress2 = (properTime % properPeriod) / properPeriod;
+            let photonY2 = (progress2 < 0.5) 
+                ? botY2 - (progress2 * 2) * clockHeight 
+                : topY2 + ((progress2 - 0.5) * 2) * clockHeight;
+
+            ctx.fillStyle = '#38bdf8';
+            ctx.beginPath(); ctx.arc(clockX2, photonY2, 7, 0, Math.PI * 2); ctx.fill();
+
+            // Readout
+            ctx.fillStyle = '#cbd5e1';
+            ctx.font = 'bold 12px monospace';
+            ctx.fillText(`Proper Time τ₀ = ${properTime.toFixed(2)} s`, w - 240, halfH + 25);
+        }
+
+        // --- SIMULATION 3: LENGTH CONTRACTION ---
+        function drawContractionSim() {
+            const w = canvas.width;
+            const halfH = canvas.height / 2;
+            const gamma = getGamma(state.v);
+            const L0 = 260; // Proper length
+
+            drawFrameHeaders("REST FRAME S (Observing Moving Object Contraction)", "MOVING FRAME S' (Object at Rest - Proper Length L₀)");
+
+            // --- TOP PANEL: Frame S (Contracted Length) ---
+            const cy1 = halfH / 2 + 12;
+            const contractedL = L0 / gamma;
+            const vX = state.v * 120;
+            const objX1 = (80 + state.time * vX) % (w + 100) - 100;
+
+            // Reference Track Line
+            ctx.strokeStyle = '#334155'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(40, cy1 + 30); ctx.lineTo(w - 40, cy1 + 30); ctx.stroke();
+
+            // Contracted Moving Object
+            ctx.fillStyle = '#4f46e5';
+            ctx.fillRect(objX1, cy1 - 20, contractedL, 40);
+            ctx.strokeStyle = '#818cf8';
+            ctx.strokeRect(objX1, cy1 - 20, contractedL, 40);
+
+            // Labels
+            ctx.fillStyle = '#cbd5e1'; ctx.font = 'bold 12px monospace';
+            ctx.fillText(`Measured Length L = ${contractedL.toFixed(1)} px`, w - 270, 25);
+
+            // --- BOTTOM PANEL: Frame S' (Proper Length) ---
+            const cy2 = halfH + halfH / 2 + 12;
+            const objX2 = w / 2 - L0 / 2;
+
+            // Reference Track Line
+            ctx.strokeStyle = '#334155'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(40, cy2 + 30); ctx.lineTo(w - 40, cy2 + 30); ctx.stroke();
+
+            // Stationary Object at Rest
+            ctx.fillStyle = '#0284c7';
+            ctx.fillRect(objX2, cy2 - 20, L0, 40);
+            ctx.strokeStyle = '#38bdf8';
+            ctx.strokeRect(objX2, cy2 - 20, L0, 40);
+
+            // Ruler markings
+            ctx.fillStyle = '#ffffff'; ctx.font = 'bold 12px monospace';
+            ctx.fillText(`Proper Length L₀ = ${L0.toFixed(1)} px`, w - 270, halfH + 25);
+        }
+    </script>
+</body>
+</html>
