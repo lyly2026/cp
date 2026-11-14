@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Michelson–Morley Interferometer Simulator</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    /* Custom slider styling for sleek dark instrument feel */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 6px;
+      border-radius: 999px;
+      background: #1e293b;
+      border: 1px solid #334155;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      margin-top: -6px;
+      background-color: #f59e0b;
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      border: 2px solid #0f172a;
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
+      transition: transform 0.1s ease, background-color 0.15s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+      background-color: #fbbf24;
+    }
+    input[type="range"]::-moz-range-track {
+      height: 6px;
+      border-radius: 999px;
+      background: #1e293b;
+      border: 1px solid #334155;
+    }
+    input[type="range"]::-moz-range-thumb {
+      background-color: #f59e0b;
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      border: 2px solid #0f172a;
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0b1120;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex flex-col selection:bg-amber-500/30 selection:text-amber-200">
+
+  <!-- Top Header Bar -->
+  <header class="border-b border-slate-800/80 bg-slate-900/90 backdrop-blur-md sticky top-0 z-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+          <!-- Interferometer icon SVG -->
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="9" stroke-opacity="0.4" />
+            <line x1="4" y1="12" x2="20" y2="12" />
+            <line x1="12" y1="4" x2="12" y2="20" />
+            <line x1="9" y1="15" x2="15" y2="9" stroke="#fbbf24" stroke-width="2.5" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-bold tracking-tight text-slate-100 flex items-center gap-2">
+            Michelson–Morley Interferometer
+            <span class="hidden md:inline-block text-[11px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">1887 Mercury Trough</span>
+          </h1>
+          <p class="text-xs text-slate-400">Interactive rotating apparatus &amp; optical fringe-shift simulation</p>
+        </div>
+      </div>
+
+      <!-- Physics Model Mode Toggle -->
+      <div class="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 self-start sm:self-auto" role="group" aria-label="Physics Model Mode">
+        <button
+          id="btnModeAether"
+          type="button"
+          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 flex items-center gap-1.5 bg-amber-500 text-slate-950 shadow-sm"
+        >
+          <span class="w-2 h-2 rounded-full bg-slate-950 animate-pulse"></span>
+          1887 Aether Prediction
+        </button>
+        <button
+          id="btnModeReality"
+          type="button"
+          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 flex items-center gap-1.5 text-slate-400 hover:text-slate-200"
+        >
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          Relativity / Reality (Null)
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-4 sm:py-6 grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+    <!-- Left / Center: Main Rotating Apparatus Canvas (7 cols on lg) -->
+    <section class="lg:col-span-7 flex flex-col gap-4">
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 sm:p-4 shadow-xl flex flex-col">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-mono uppercase tracking-wider text-slate-400">Top-Down Apparatus View</span>
+            <span id="statusBadge" class="text-[11px] font-mono px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">
+              Aether Wind Active
+            </span>
+          </div>
+          <div class="flex items-center gap-3 text-[11px] font-mono text-slate-400">
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span>Arm 1 (Parallel at 0°)</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-400 inline-block"></span>Arm 2 (Perp. at 0°)</span>
+          </div>
+        </div>
+
+        <!-- Responsive Square-ish Canvas Container -->
+        <div id="apparatusContainer" class="relative w-full aspect-square max-h-[540px] mx-auto rounded-xl overflow-hidden bg-slate-950 border border-slate-800/90">
+          <canvas id="apparatusCanvas" class="w-full h-full block cursor-grab active:cursor-grabbing"></canvas>
+          <!-- Subtle corner hint -->
+          <div class="absolute bottom-2.5 left-3 pointer-events-none text-[11px] text-slate-500 font-mono bg-slate-950/75 px-2 py-0.5 rounded border border-slate-800/70">
+            Drag slab or use controls to rotate
+          </div>
+          <div id="windDirectionTag" class="absolute top-2.5 right-3 pointer-events-none text-[11px] text-cyan-300/90 font-mono bg-slate-950/80 px-2.5 py-1 rounded border border-cyan-500/30 flex items-center gap-1.5">
+            <span>Aether Wind</span>
+            <span class="text-sm leading-none">&rarr;</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Explanatory Scientific Context Card -->
+      <div id="explanationCard" class="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 text-xs sm:text-sm text-slate-300 leading-relaxed">
+        <div class="flex items-start gap-3">
+          <div class="mt-0.5 text-amber-400 shrink-0">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div id="explanationText">
+            <strong class="text-amber-300 font-semibold">1887 Aether Prediction Mode:</strong> Light traveling upstream and downstream along the arm aligned with the aether wind takes longer (<span class="font-mono text-xs text-slate-200">t<sub>&parallel;</sub> = 2L&gamma;&sup2;/c</span>) than light traveling across the wind (<span class="font-mono text-xs text-slate-200">t<sub>&perp;</sub> = 2L&gamma;/c</span>). Watch the yellow pulse lag behind the cyan pulse! Rotating the sandstone slab by 90&deg; swaps which arm is slower, shifting the interference fringes in the eyepiece.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Column: Detector Eyepiece + Telemetry + Controls (5 cols on lg) -->
+    <section class="lg:col-span-5 flex flex-col gap-4">
+
+      <!-- Detector Eyepiece & Live Telemetry Card -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-xs font-mono uppercase tracking-wider text-slate-400">Detector Eyepiece &amp; Telemetry</h2>
+          <span class="text-[11px] font-mono text-amber-400/90">&lambda; = 589 nm (Sodium D)</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+          <!-- Circular Interference Fringe Canvas -->
+          <div class="sm:col-span-5 flex flex-col items-center">
+            <div class="relative w-36 h-36 sm:w-40 sm:h-40 rounded-full p-1.5 bg-gradient-to-b from-slate-700 to-slate-900 shadow-inner border border-slate-700">
+              <canvas id="fringeCanvas" class="w-full h-full rounded-full block bg-black"></canvas>
+              <!-- Crosshair overlay -->
+              <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
+                <div class="w-full h-[1px] bg-white/15"></div>
+              </div>
+              <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
+                <div class="h-full w-[1px] bg-white/15"></div>
+              </div>
+            </div>
+            <span class="mt-2 text-[11px] font-mono text-slate-400">Interference Fringes</span>
+          </div>
+
+          <!-- Live Readouts -->
+          <div class="sm:col-span-7 grid grid-cols-2 sm:grid-cols-1 gap-2.5">
+            <div class="bg-slate-950/90 border border-slate-800/90 rounded-xl px-3 py-2 flex items-center justify-between">
+              <span class="text-xs text-slate-400">Slab Angle (&theta;)</span>
+              <span id="readoutAngle" class="font-mono text-sm font-semibold text-slate-100">0.0&deg;</span>
+            </div>
+
+            <div class="bg-slate-950/90 border border-slate-800/90 rounded-xl px-3 py-2 flex items-center justify-between">
+              <span class="text-xs text-slate-400">Fringe Shift (&Delta;N)</span>
+              <span id="readoutShift" class="font-mono text-sm font-semibold text-amber-400">+0.40 fringes</span>
+            </div>
+
+            <div class="bg-slate-950/90 border border-slate-800/90 rounded-xl px-3 py-2 flex items-center justify-between">
+              <span class="text-xs text-slate-400">Time Diff (&Delta;t)</span>
+              <span id="readoutTimeDiff" class="font-mono text-sm font-semibold text-cyan-300">+0.79 fs</span>
+            </div>
+
+            <div class="bg-slate-950/90 border border-slate-800/90 rounded-xl px-3 py-2 flex items-center justify-between">
+              <span class="text-xs text-slate-400">Arm Velocity (v/c)</span>
+              <span id="readoutBeta" class="font-mono text-sm font-semibold text-slate-200">0.150 c</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Controls Panel -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col gap-4">
+        <h2 class="text-xs font-mono uppercase tracking-wider text-slate-400">Apparatus Controls</h2>
+
+        <!-- Rotation Play / Pause & Quick 90° -->
+        <div class="grid grid-cols-2 gap-2.5">
+          <button
+            id="btnPlayPause"
+            type="button"
+            class="px-3.5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs sm:text-sm transition flex items-center justify-center gap-2 shadow-md shadow-amber-500/10"
+          >
+            <svg id="iconPause" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M6 4a1 1 0 011 1v10a1 1 0 11-2 0V5a1 1 0 011-1zm7 0a1 1 0 011 1v10a1 1 0 11-2 0V5a1 1 0 011-1z" clip-rule="evenodd" />
+            </svg>
+            <svg id="iconPlay" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" clip-rule="evenodd" />
+            </svg>
+            <span id="btnPlayPauseLabel">Pause Rotation</span>
+          </button>
+
+          <button
+            id="btnRotate90"
+            type="button"
+            class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-100 font-semibold text-xs sm:text-sm transition flex items-center justify-center gap-2"
+          >
+            <svg class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Rotate +90&deg;
+          </button>
+        </div>
+
+        <!-- Manual Rotation Angle Slider -->
+        <div class="space-y-1.5">
+          <div class="flex justify-between text-xs">
+            <label for="sliderAngle" class="text-slate-300 font-medium">Table Orientation Angle</label>
+            <span id="labelAngleValue" class="font-mono text-amber-400">0&deg;</span>
+          </div>
+          <input id="sliderAngle" type="range" min="0" max="360" step="0.5" value="0" class="w-full" />
+          <div class="flex justify-between text-[10px] font-mono text-slate-500">
+            <span>0&deg;</span>
+            <span>90&deg;</span>
+            <span>180&deg;</span>
+            <span>270&deg;</span>
+            <span>360&deg;</span>
+          </div>
+        </div>
+
+        <!-- Rotation Speed Multiplier -->
+        <div class="space-y-1.5">
+          <div class="flex justify-between text-xs">
+            <label for="sliderRotSpeed" class="text-slate-300 font-medium">Mercury Float Rotation Speed</label>
+            <span id="labelRotSpeed" class="font-mono text-slate-300">1.0&times;</span>
+          </div>
+          <input id="sliderRotSpeed" type="range" min="0.2" max="4.0" step="0.1" value="1.0" class="w-full" />
+        </div>
+
+        <hr class="border-slate-800" />
+
+        <!-- Aether Wind Speed Slider -->
+        <div class="space-y-1.5">
+          <div class="flex justify-between items-center text-xs">
+            <label for="sliderWind" class="text-slate-300 font-medium">Aether Wind Speed (<span class="font-mono">v / c</span>)</label>
+            <div class="flex items-center gap-2">
+              <button
+                id="btnEarthPreset"
+                type="button"
+                class="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/30 transition"
+                title="Set to exaggerated observable preset or Earth's 30 km/s scale"
+              >
+                Earth Orbit (~30 km/s)
+              </button>
+              <span id="labelWind" class="font-mono text-cyan-300 font-semibold">0.15 c</span>
+            </div>
+          </div>
+          <input id="sliderWind" type="range" min="0" max="0.50" step="0.005" value="0.15" class="w-full" />
+          <div class="flex justify-between text-[10px] font-mono text-slate-500 relative">
+            <span>0.00 c (Stationary)</span>
+            <span class="text-cyan-400/80">&uarr; Earth (10<sup>-4</sup>c magnified)</span>
+            <span>0.50 c</span>
+          </div>
+        </div>
+
+        <!-- Show/Hide Aether Wind Particles Toggle -->
+        <div class="flex items-center justify-between pt-1">
+          <div>
+            <span class="text-xs font-medium text-slate-200 block">Show Aether Wind Flow</span>
+            <span class="text-[11px] text-slate-400">Visualize hypothetical medium drift across trough</span>
+          </div>
+          <button
+            id="btnToggleWindParticles"
+            type="button"
+            role="switch"
+            aria-checked="true"
+            class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-cyan-500 transition-colors duration-200 ease-in-out focus:outline-none"
+          >
+            <span
+              id="windToggleKnob"
+              class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-slate-950 shadow ring-0 transition duration-200 ease-in-out translate-x-5"
+            ></span>
+          </button>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // =========================================================================
+      // STATE & CONFIGURATION
+      // =========================================================================
+      const state = {
+        mode: 'aether',          // 'aether' | 'reality'
+        angleDeg: 0,             // Slab rotation angle in degrees [0, 360)
+        targetAngleDeg: null,    // For smooth +90 deg rotation animation
+        isPlaying: true,         // Continuous rotation active
+        rotSpeedMult: 1.0,       // Rotation speed multiplier
+        windBeta: 0.15,          // v / c (0 to 0.50)
+        earthPresetActive: false,// Special flag when Earth 30 km/s preset is clicked
+        showWindParticles: true, // Toggle animated aether wind streamlines
+        isDragging: false,       // Mouse/touch drag on sandstone slab
+        dragStartMouseAngle: 0,
+        dragStartSlabAngle: 0,
+        lastTimestamp: 0,
+        simClock: 0,             // Continuous animation clock (seconds)
+      };
+
+      // =========================================================================
+      // DOM ELEMENTS
+      // =========================================================================
+      const apparatusCanvas = document.getElementById('apparatusCanvas');
+      const apparatusCtx = apparatusCanvas.getContext('2d');
+      const fringeCanvas = document.getElementById('fringeCanvas');
+      const fringeCtx = fringeCanvas.getContext('2d');
+
+      const btnModeAether = document.getElementById('btnModeAether');
+      const btnModeReality = document.getElementById('btnModeReality');
+      const statusBadge = document.getElementById('statusBadge');
+      const explanationText = document.getElementById('explanationText');
+      const windDirectionTag = document.getElementById('windDirectionTag');
+
+      const readoutAngle = document.getElementById('readoutAngle');
+      const readoutShift = document.getElementById('readoutShift');
+      const readoutTimeDiff = document.getElementById('readoutTimeDiff');
+      const readoutBeta = document.getElementById('readoutBeta');
+
+      const btnPlayPause = document.getElementById('btnPlayPause');
+      const btnPlayPauseLabel = document.getElementById('btnPlayPauseLabel');
+      const iconPause = document.getElementById('iconPause');
+      const iconPlay = document.getElementById('iconPlay');
+      const btnRotate90 = document.getElementById('btnRotate90');
+
+      const sliderAngle = document.getElementById('sliderAngle');
+      const labelAngleValue = document.getElementById('labelAngleValue');
+      const sliderRotSpeed = document.getElementById('sliderRotSpeed');
+      const labelRotSpeed = document.getElementById('labelRotSpeed');
+      const sliderWind = document.getElementById('sliderWind');
+      const labelWind = document.getElementById('labelWind');
+      const btnEarthPreset = document.getElementById('btnEarthPreset');
+      const btnToggleWindParticles = document.getElementById('btnToggleWindParticles');
+      const windToggleKnob = document.getElementById('windToggleKnob');
+
+      // =========================================================================
+      // AETHER WIND STREAM PARTICLES
+      // =========================================================================
+      const NUM_WIND_PARTICLES = 55;
+      const windParticles = [];
+      for (let i = 0; i < NUM_WIND_PARTICLES; i++) {
+        windParticles.push({
+          x: Math.random(),
+          y: Math.random(),
+          len: 0.04 + Math.random() * 0.08,
+          speedOffset: 0.8 + Math.random() * 0.4,
+          alpha: 0.15 + Math.random() * 0.35,
+        });
+      }
+
+      // =========================================================================
+      // RESPONSIVE CANVAS RESIZING
+      // =========================================================================
+      function resizeCanvases() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+        // Apparatus canvas
+        const rect = apparatusCanvas.parentElement.getBoundingClientRect();
+        const size = Math.max(260, Math.floor(rect.width));
+        apparatusCanvas.width = size * dpr;
+        apparatusCanvas.height = size * dpr;
+        apparatusCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        // Fringe eyepiece canvas
+        const fRect = fringeCanvas.parentElement.getBoundingClientRect();
+        const fSize = Math.max(110, Math.floor(fRect.width - 12));
+        fringeCanvas.width = fSize * dpr;
+        fringeCanvas.height = fSize * dpr;
+        fringeCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      window.addEventListener('resize', resizeCanvases);
+
+      // =========================================================================
+      // PHYSICS CALCULATIONS (AETHER VS RELATIVITY)
+      // =========================================================================
+      function computeOpticalPhysics() {
+        const thetaRad = (state.angleDeg * Math.PI) / 180;
+        // Effective beta used for visual wave lag and fringe shift
+        // In Earth preset, real beta is 1e-4 (30 km/s), which gives ~0.40 fringes for L=11m!
+        // For visual wave propagation on screen, we scale the animation delay so the user can see it clearly.
+        const visualBeta = state.mode === 'reality' ? 0 : state.windBeta;
+
+        // Round-trip travel time multipliers (normalized where L/c = 1 unit):
+        // Suppose wind blows left-to-right (+x in lab frame).
+        // Arm 1 is oriented at angle theta from +x axis.
+        // Arm 2 is oriented at angle theta + 90 deg from +x axis.
+        // Exact classical aether round-trip time for an arm at angle phi to wind v:
+        // t(phi) = (2L / c) * sqrt(1 - beta^2 * sin^2(phi)) / (1 - beta^2)
+        const beta2 = visualBeta * visualBeta;
+        const denom = Math.max(0.1, 1 - beta2);
+
+        const sin1 = Math.sin(thetaRad);
+        const sin2 = Math.sin(thetaRad + Math.PI / 2); // cos(thetaRad)
+
+        // Normalized round-trip times (in units of 2L/c; equals 1.0 when beta=0)
+        const t1Norm = Math.sqrt(Math.max(0.01, 1 - beta2 * sin1 * sin1)) / denom;
+        const t2Norm = Math.sqrt(Math.max(0.01, 1 - beta2 * sin2 * sin2)) / denom;
+
+        // Difference (t1 - t2) in units of (2L/c)
+        const deltaTNorm = t1Norm - t2Norm;
+
+        // Fringe shift Delta N:
+        // In Michelson-Morley (1887), L_eff = 11 m, lambda = 589 nm -> 2L / lambda = 3.735e7 waves.
+        // For Earth's v = 30 km/s (beta = 1e-4), (2L/lambda)*beta^2 = 0.374 fringes (~0.40 fringes).
+        // To make the interactive slider (0 to 0.5c) intuitive and dramatic without spinning hundreds of fringes:
+        // We calibrate so that at beta = 0.15 (or Earth preset), max fringe shift is ~0.40 to 1.8 fringes.
+        let fringeShift = 0;
+        let deltaTFemtoseconds = 0;
+
+        if (state.mode === 'aether') {
+          if (state.earthPresetActive) {
+            // Exact 1887 experiment numbers for v = 30 km/s (beta = 10^-4), L = 11 m
+            const cos2Theta = Math.cos(2 * thetaRad);
+            fringeShift = 0.40 * cos2Theta;
+            deltaTFemtoseconds = 0.785 * cos2Theta; // 0.40 * (589 nm / c) = 0.785 fs
+          } else {
+            // Scaled smoothly with beta^2 so user sees clear fringe drift across 0..0.5c
+            // At beta = 0.15 -> deltaTNorm max is ~0.0114 -> multiply by 35 gives ~0.40 fringes
+            fringeShift = deltaTNorm * 35.0;
+            deltaTFemtoseconds = fringeShift * 1.963; // 1 fringe of 589nm = 1.963 fs
+          }
+        }
+
+        return {
+          thetaRad,
+          visualBeta,
+          t1Norm,
+          t2Norm,
+          deltaTNorm,
+          fringeShift,
+          deltaTFemtoseconds,
+        };
+      }
+
+      // =========================================================================
+      // DRAW TOP-DOWN INTERFEROMETER APPARATUS
+      // =========================================================================
+      function drawApparatus(physics) {
+        const w = apparatusCanvas.clientWidth;
+        const h = apparatusCanvas.clientHeight;
+        const cx = w / 2;
+        const cy = h / 2;
+        const radius = Math.min(w, h) * 0.44;
+
+        apparatusCtx.clearRect(0, 0, w, h);
+
+        // 1. Subtle laboratory floor grid
+        apparatusCtx.save();
+        apparatusCtx.strokeStyle = 'rgba(30, 41, 59, 0.45)';
+        apparatusCtx.lineWidth = 1;
+        const gridStep = 28;
+        for (let gx = cx % gridStep; gx < w; gx += gridStep) {
+          apparatusCtx.beginPath();
+          apparatusCtx.moveTo(gx, 0);
+          apparatusCtx.lineTo(gx, h);
+          apparatusCtx.stroke();
+        }
+        for (let gy = cy % gridStep; gy < h; gy += gridStep) {
+          apparatusCtx.beginPath();
+          apparatusCtx.moveTo(0, gy);
+          apparatusCtx.lineTo(w, gy);
+          apparatusCtx.stroke();
+        }
+        apparatusCtx.restore();
+
+        // 2. Animated Aether Wind Streamlines (Background layer)
+        if (state.showWindParticles) {
+          drawWindStreamlines(w, h);
+        }
+
+        // 3. Outer Cast-Iron Annular Trough Rim
+        apparatusCtx.save();
+        const outerRimGrad = apparatusCtx.createRadialGradient(cx, cy, radius * 0.85, cx, cy, radius * 1.04);
+        outerRimGrad.addColorStop(0, '#1e293b');
+        outerRimGrad.addColorStop(0.7, '#334155');
+        outerRimGrad.addColorStop(1, '#0f172a');
+        apparatusCtx.fillStyle = outerRimGrad;
+        apparatusCtx.beginPath();
+        apparatusCtx.arc(cx, cy, radius * 1.03, 0, Math.PI * 2);
+        apparatusCtx.fill();
+        apparatusCtx.strokeStyle = '#475569';
+        apparatusCtx.lineWidth = 1.5;
+        apparatusCtx.stroke();
+
+        // 4. Liquid Mercury Pool (Silvery reflective metallic ring)
+        const mercuryRadius = radius * 0.94;
+        const mercGrad = apparatusCtx.createLinearGradient(cx - mercuryRadius, cy - mercuryRadius, cx + mercuryRadius, cy + mercuryRadius);
+        mercGrad.addColorStop(0, '#64748b');
+        mercGrad.addColorStop(0.25, '#cbd5e1');
+        mercGrad.addColorStop(0.5, '#94a3b8');
+        mercGrad.addColorStop(0.75, '#e2e8f0');
+        mercGrad.addColorStop(1, '#475569');
+
+        apparatusCtx.fillStyle = mercGrad;
+        apparatusCtx.beginPath();
+        apparatusCtx.arc(cx, cy, mercuryRadius, 0, Math.PI * 2);
+        apparatusCtx.fill();
+
+        // Subtle mercury shimmer ripples
+        apparatusCtx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+        apparatusCtx.lineWidth = 1;
+        apparatusCtx.beginPath();
+        apparatusCtx.arc(cx, cy, mercuryRadius * 0.965, 0, Math.PI * 2);
+        apparatusCtx.stroke();
+
+        // 5. 16 Observation Degree Markers around the Trough (Every 22.5°)
+        apparatusCtx.font = '500 10px "JetBrains Mono", monospace';
+        apparatusCtx.textAlign = 'center';
+        apparatusCtx.textBaseline = 'middle';
+
+        for (let i = 0; i < 16; i++) {
+          const deg = i * 22.5;
+          const rad = (deg * Math.PI) / 180;
+          const isCardinal = i % 4 === 0;
+          const innerTick = mercuryRadius * (isCardinal ? 0.94 : 0.96);
+          const outerTick = radius * 1.025;
+
+          apparatusCtx.strokeStyle = isCardinal ? '#f59e0b' : '#94a3b8';
+          apparatusCtx.lineWidth = isCardinal ? 2 : 1.2;
+          apparatusCtx.beginPath();
+          apparatusCtx.moveTo(cx + Math.cos(rad) * innerTick, cy + Math.sin(rad) * innerTick);
+          apparatusCtx.lineTo(cx + Math.cos(rad) * outerTick, cy + Math.sin(rad) * outerTick);
+          apparatusCtx.stroke();
+
+          // Degree labels outside rim
+          const labelR = radius * 1.11;
+          if (labelR < Math.min(w, h) * 0.495) {
+            apparatusCtx.fillStyle = isCardinal ? '#fbbf24' : '#64748b';
+            const labelStr = Number.isInteger(deg) ? `${deg}°` : `${deg.toFixed(1)}°`;
+            apparatusCtx.fillText(labelStr, cx + Math.cos(rad) * labelR, cy + Math.sin(rad) * labelR);
+          }
+        }
+        apparatusCtx.restore();
+
+        // =====================================================================
+        // 6. ROTATING SANDSTONE SLAB & OPTICAL BENCH
+        // =====================================================================
+        apparatusCtx.save();
+        apparatusCtx.translate(cx, cy);
+        apparatusCtx.rotate(physics.thetaRad);
+
+        const slabHalf = radius * 0.63;
+
+        // Sandstone slab drop shadow into mercury
+        apparatusCtx.fillStyle = 'rgba(2, 6, 23, 0.55)';
+        roundRect(apparatusCtx, -slabHalf + 4, -slabHalf + 6, slabHalf * 2, slabHalf * 2, 14);
+        apparatusCtx.fill();
+
+        // Sandstone slab body (warm dark slate-stone texture)
+        const stoneGrad = apparatusCtx.createLinearGradient(-slabHalf, -slabHalf, slabHalf, slabHalf);
+        stoneGrad.addColorStop(0, '#334155');
+        stoneGrad.addColorStop(0.5, '#1e293b');
+        stoneGrad.addColorStop(1, '#0f172a');
+        apparatusCtx.fillStyle = stoneGrad;
+        roundRect(apparatusCtx, -slabHalf, -slabHalf, slabHalf * 2, slabHalf * 2, 14);
+        apparatusCtx.fill();
+
+        apparatusCtx.strokeStyle = '#64748b';
+        apparatusCtx.lineWidth = 2;
+        apparatusCtx.stroke();
+
+        // Inner bevel border on sandstone slab
+        apparatusCtx.strokeStyle = 'rgba(148, 163, 184, 0.2)';
+        apparatusCtx.lineWidth = 1;
+        roundRect(apparatusCtx, -slabHalf + 6, -slabHalf + 6, (slabHalf - 6) * 2, (slabHalf - 6) * 2, 10);
+        apparatusCtx.stroke();
+
+        // Orientation pointer arrow on slab edge (points to 0° mark when unrotated)
+        apparatusCtx.fillStyle = '#f59e0b';
+        apparatusCtx.beginPath();
+        apparatusCtx.moveTo(slabHalf + 11, 0);
+        apparatusCtx.lineTo(slabHalf + 1, -6);
+        apparatusCtx.lineTo(slabHalf + 1, 6);
+        apparatusCtx.closePath();
+        apparatusCtx.fill();
+
+        // Optical Arm Geometry (in local slab coordinates)
+        const armLen = slabHalf * 0.72; // Distance L from beam splitter (0,0) to M1 and M2
+        const sourceX = -slabHalf * 0.78;
+        const detectorY = slabHalf * 0.78;
+
+        // Draw optical guide rails on the sandstone
+        apparatusCtx.strokeStyle = 'rgba(148, 163, 184, 0.16)';
+        apparatusCtx.lineWidth = 6;
+        apparatusCtx.beginPath();
+        apparatusCtx.moveTo(sourceX, 0);
+        apparatusCtx.lineTo(armLen, 0);
+        apparatusCtx.moveTo(0, -armLen);
+        apparatusCtx.lineTo(0, detectorY);
+        apparatusCtx.stroke();
+
+        // 7. Continuous Light Beams (Subtle glowing paths)
+        // Incoming beam (Source -> BS)
+        drawGlowBeam(apparatusCtx, sourceX + 14, 0, 0, 0, 'rgba(251, 191, 36, 0.35)', 4);
+        // Arm 1 beam (BS <-> Mirror 1 at +X)
+        drawGlowBeam(apparatusCtx, 0, 0, armLen, 0, 'rgba(251, 191, 36, 0.28)', 4);
+        // Arm 2 beam (BS <-> Mirror 2 at -Y)
+        drawGlowBeam(apparatusCtx, 0, 0, 0, -armLen, 'rgba(56, 189, 248, 0.28)', 4);
+        // Recombined beam (BS -> Detector at +Y)
+        drawGlowBeam(apparatusCtx, 0, 0, 0, detectorY - 12, 'rgba(251, 191, 36, 0.38)', 5);
+
+        // 8. Animated Photon Wave Packets Traveling Along Arms
+        drawAnimatedPhotons(apparatusCtx, sourceX + 14, armLen, detectorY - 12, physics);
+
+        // 9. Optical Components Hardware
+        // --- Light Source (Left: -X) ---
+        apparatusCtx.fillStyle = '#0f172a';
+        apparatusCtx.strokeStyle = '#fbbf24';
+        apparatusCtx.lineWidth = 2;
+        roundRect(apparatusCtx, sourceX - 18, -13, 32, 26, 5);
+        apparatusCtx.fill();
+        apparatusCtx.stroke();
+        // Glowing emitter lens
+        apparatusCtx.fillStyle = '#fbbf24';
+        apparatusCtx.beginPath();
+        apparatusCtx.arc(sourceX + 14, 0, 5, 0, Math.PI * 2);
+        apparatusCtx.fill();
+
+        // --- Mirror 1 (Right: +X, Arm 1) ---
+        drawMirror(apparatusCtx, armLen, 0, Math.PI / 2, '#fbbf24');
+
+        // --- Mirror 2 (Top: -Y, Arm 2) ---
+        drawMirror(apparatusCtx, 0, -armLen, 0, '#38bdf8');
+
+        // --- 45° Half-Silvered Beam Splitter (Center: 0,0) ---
+        apparatusCtx.save();
+        apparatusCtx.rotate(-Math.PI / 4); // 45 degrees
+        apparatusCtx.fillStyle = 'rgba(125, 211, 252, 0.35)';
+        apparatusCtx.strokeStyle = '#e0f2fe';
+        apparatusCtx.lineWidth = 2;
+        apparatusCtx.fillRect(-16, -2.5, 32, 5);
+        apparatusCtx.strokeRect(-16, -2.5, 32, 5);
+        apparatusCtx.restore();
+
+        // --- Detector Eyepiece (Bottom: +Y) ---
+        apparatusCtx.fillStyle = '#0f172a';
+        apparatusCtx.strokeStyle = '#94a3b8';
+        apparatusCtx.lineWidth = 2;
+        roundRect(apparatusCtx, -13, detectorY - 10, 26, 28, 5);
+        apparatusCtx.fill();
+        apparatusCtx.stroke();
+        // Eyepiece lens glow
+        apparatusCtx.fillStyle = '#f59e0b';
+        apparatusCtx.beginPath();
+        apparatusCtx.arc(0, detectorY - 10, 5, 0, Math.PI * 2);
+        apparatusCtx.fill();
+
+        // 10. Crisp Upright-Readable Component Labels on Slab
+        drawComponentLabel(apparatusCtx, sourceX, -24, 'LIGHT SOURCE', '#fde68a', physics.thetaRad);
+        drawComponentLabel(apparatusCtx, armLen, -22, 'MIRROR 1', '#fde68a', physics.thetaRad);
+        drawComponentLabel(apparatusCtx, 0, -armLen - 20, 'MIRROR 2', '#bae6fd', physics.thetaRad);
+        drawComponentLabel(apparatusCtx, -32, -20, '45° BS', '#e2e8f0', physics.thetaRad);
+        drawComponentLabel(apparatusCtx, 0, detectorY + 28, 'DETECTOR', '#cbd5e1', physics.thetaRad);
+
+        apparatusCtx.restore();
+      }
+
+      // Helper: Draw wind flow streamlines across background
+      function drawWindStreamlines(w, h) {
+        apparatusCtx.save();
+        const speedFactor = state.mode === 'reality' ? 0.35 : 0.4 + state.windBeta * 4.5;
+        const alphaScale = state.mode === 'reality' ? 0.35 : 0.6 + state.windBeta * 0.8;
+
+        for (const p of windParticles) {
+          const px = ((p.x + state.simClock * 0.14 * speedFactor * p.speedOffset) % 1) * w;
+          const py = p.y * h;
+          const lineLen = p.len * w * (0.7 + state.windBeta);
+
+          const grad = apparatusCtx.createLinearGradient(px - lineLen, py, px, py);
+          grad.addColorStop(0, 'rgba(34, 211, 238, 0)');
+          grad.addColorStop(1, `rgba(34, 211, 238, ${Math.min(0.65, p.alpha * alphaScale)})`);
+
+          apparatusCtx.strokeStyle = grad;
+          apparatusCtx.lineWidth = 1.5;
+          apparatusCtx.beginPath();
+          apparatusCtx.moveTo(px - lineLen, py);
+          apparatusCtx.lineTo(px, py);
+          apparatusCtx.stroke();
+
+          // Small arrowhead
+          apparatusCtx.fillStyle = `rgba(34, 211, 238, ${Math.min(0.75, p.alpha * alphaScale)})`;
+          apparatusCtx.beginPath();
+          apparatusCtx.moveTo(px + 3, py);
+          apparatusCtx.lineTo(px - 3, py - 2.5);
+          apparatusCtx.lineTo(px - 3, py + 2.5);
+          apparatusCtx.closePath();
+          apparatusCtx.fill();
+        }
+        apparatusCtx.restore();
+      }
+
+      // Helper: Draw animated photon wave packets showing differential travel time
+      function drawAnimatedPhotons(ctx, sourceStartX, armLen, detectorEndY, physics) {
+        // Period of pulse emission (in seconds)
+        const period = 2.4;
+        // Base round-trip duration for an arm when v = 0
+        const baseRoundTrip = 1.35;
+
+        // Visual exaggeration factor so the user clearly sees the upstream/downstream lag on canvas
+        // Even when Earth preset is active (real beta = 1e-4), give a clear visual cue in Aether mode
+        let visualDelayDiff = 0;
+        if (state.mode === 'aether') {
+          if (state.earthPresetActive) {
+            visualDelayDiff = 0.24 * Math.cos(2 * physics.thetaRad);
+          } else {
+            visualDelayDiff = physics.deltaTNorm * 14.0;
+          }
+        }
+
+        // Round-trip durations for Arm 1 (yellow) and Arm 2 (cyan)
+        const rt1 = baseRoundTrip + visualDelayDiff * 0.5;
+        const rt2 = baseRoundTrip - visualDelayDiff * 0.5;
+
+        // Emit 2 staggered wave trains so the arms always have active pulses
+        for (let k = 0; k < 2; k++) {
+          const localTime = (state.simClock + k * (period / 2)) % period;
+          const tSource = 0.45; // time to travel from source to beam splitter
+
+          if (localTime < tSource) {
+            // 1. Traveling from Source -> Beam Splitter
+            const u = localTime / tSource;
+            const x = sourceStartX + u * (0 - sourceStartX);
+            drawPhotonDot(ctx, x, 0, '#fbbf24', 5.5);
+          } else {
+            // Split at Beam Splitter!
+            const tSinceSplit = localTime - tSource;
+
+            // --- Arm 1 Pulse (Yellow, goes to +X Mirror 1 and back) ---
+            if (tSinceSplit < rt1) {
+              const u1 = tSinceSplit / rt1; // 0..0.5 outbound, 0.5..1 inbound
+              // Asymmetric outbound vs inbound speed in aether wind!
+              const windAlongArm1 = physics.visualBeta * Math.cos(physics.thetaRad);
+              const splitPoint = 0.5 * (1 + windAlongArm1 * 0.85);
+              let dist1 = 0;
+              if (u1 < splitPoint) {
+                dist1 = (u1 / splitPoint) * armLen;
+              } else {
+                dist1 = (1 - (u1 - splitPoint) / (1 - splitPoint)) * armLen;
+              }
+              drawPhotonDot(ctx, dist1, 0, '#fbbf24', 5);
+            } else if (tSinceSplit < rt1 + 0.45) {
+              // Returning from BS -> Detector (+Y)
+              const uDet1 = (tSinceSplit - rt1) / 0.45;
+              drawPhotonDot(ctx, -2.5, uDet1 * detectorEndY, '#fbbf24', 4.5);
+            }
+
+            // --- Arm 2 Pulse (Cyan, goes to -Y Mirror 2 and back) ---
+            if (tSinceSplit < rt2) {
+              const u2 = tSinceSplit / rt2;
+              const windAlongArm2 = physics.visualBeta * Math.cos(physics.thetaRad - Math.PI / 2);
+              const splitPoint2 = 0.5 * (1 + windAlongArm2 * 0.85);
+              let dist2 = 0;
+              if (u2 < splitPoint2) {
+                dist2 = (u2 / splitPoint2) * armLen;
+              } else {
+                dist2 = (1 - (u2 - splitPoint2) / (1 - splitPoint2)) * armLen;
+              }
+              drawPhotonDot(ctx, 0, -dist2, '#38bdf8', 5);
+            } else if (tSinceSplit < rt2 + 0.45) {
+              // Returning from BS -> Detector (+Y)
+              const uDet2 = (tSinceSplit - rt2) / 0.45;
+              drawPhotonDot(ctx, 2.5, uDet2 * detectorEndY, '#38bdf8', 4.5);
+            }
+          }
+        }
+      }
+
+      function drawPhotonDot(ctx, x, y, color, r) {
+        ctx.save();
+        ctx.fillStyle = color;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(x, y, r * 0.42, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawGlowBeam(ctx, x1, y1, x2, y2, color, width) {
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawMirror(ctx, x, y, angle, accentColor) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+        // Mirror backing block
+        ctx.fillStyle = '#334155';
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 1.5;
+        roundRect(ctx, -18, -6, 36, 7, 2);
+        ctx.fill();
+        ctx.stroke();
+        // Reflective silver/accent front face
+        ctx.fillStyle = accentColor;
+        ctx.fillRect(-16, 1, 32, 3);
+        ctx.restore();
+      }
+
+      function drawComponentLabel(ctx, x, y, text, color, slabAngleRad) {
+        ctx.save();
+        ctx.translate(x, y);
+        // Counter-rotate text slightly or keep aligned cleanly; counter-rotating keeps text super readable!
+        ctx.rotate(-slabAngleRad);
+        ctx.font = '600 9.5px "JetBrains Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        const metrics = ctx.measureText(text);
+        const padX = 5;
+        const boxW = metrics.width + padX * 2;
+        const boxH = 15;
+
+        ctx.fillStyle = 'rgba(2, 6, 23, 0.82)';
+        roundRect(ctx, -boxW / 2, -boxH / 2, boxW, boxH, 4);
+        ctx.fill();
+
+        ctx.fillStyle = color;
+        ctx.fillText(text, 0, 0.5);
+        ctx.restore();
+      }
+
+      function roundRect(ctx, x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+      }
+
+      // =========================================================================
+      // DRAW DETECTOR EYEPIECE INTERFERENCE FRINGES (BULLSEYE PATTERN)
+      // =========================================================================
+      function drawInterferenceFringes(physics) {
+        const w = fringeCanvas.clientWidth;
+        const h = fringeCanvas.clientHeight;
+        const cx = w / 2;
+        const cy = h / 2;
+        const maxR = Math.min(w, h) / 2;
+
+        fringeCtx.clearRect(0, 0, w, h);
+
+        // Draw smooth concentric interference rings:
+        // Intensity I(r) = cos^2( k * r^2 + pi * fringeShift )
+        // Using radial bands for crisp 60fps performance
+        const numRings = 90;
+        const phaseOffset = physics.fringeShift * Math.PI;
+
+        for (let i = numRings; i >= 1; i--) {
+          const r = (i / numRings) * maxR;
+          const rNorm = i / numRings;
+          // Circular Haidinger fringes have spacing proportional to r^2
+          const phase = rNorm * rNorm * 5.2 * Math.PI + phaseOffset;
+          const intensity = Math.pow(Math.cos(phase), 2);
+
+          // Sodium yellow-amber monochromatic light color palette
+          const red = Math.round(25 + intensity * 230);
+          const green = Math.round(15 + intensity * 175);
+          const blue = Math.round(5 + intensity * 25);
+
+          fringeCtx.fillStyle = `rgb(${red}, ${green}, ${blue})`;
+          fringeCtx.beginPath();
+          fringeCtx.arc(cx, cy, r, 0, Math.PI * 2);
+          fringeCtx.fill();
+        }
+
+        // Subtle vignette around eyepiece lens edge
+        const vig = fringeCtx.createRadialGradient(cx, cy, maxR * 0.65, cx, cy, maxR);
+        vig.addColorStop(0, 'rgba(0, 0, 0, 0)');
+        vig.addColorStop(1, 'rgba(2, 6, 23, 0.72)');
+        fringeCtx.fillStyle = vig;
+        fringeCtx.beginPath();
+        fringeCtx.arc(cx, cy, maxR, 0, Math.PI * 2);
+        fringeCtx.fill();
+      }
+
+      // =========================================================================
+      // UPDATE TELEMETRY & UI TEXT
+      // =========================================================================
+      function updateTelemetryUI(physics) {
+        const normAngle = ((state.angleDeg % 360) + 360) % 360;
+        readoutAngle.textContent = `${normAngle.toFixed(1)}°`;
+        labelAngleValue.textContent = `${Math.round(normAngle)}°`;
+        sliderAngle.value = normAngle;
+
+        if (state.mode === 'reality') {
+          readoutShift.textContent = '0.00 fringes';
+          readoutShift.className = 'font-mono text-sm font-semibold text-emerald-400';
+          readoutTimeDiff.textContent = '0.00 fs';
+        } else {
+          const sign = physics.fringeShift >= 0 ? '+' : '';
+          readoutShift.textContent = `${sign}${physics.fringeShift.toFixed(2)} fringes`;
+          readoutShift.className = 'font-mono text-sm font-semibold text-amber-400';
+
+          const tSign = physics.deltaTFemtoseconds >= 0 ? '+' : '';
+          readoutTimeDiff.textContent = `${tSign}${physics.deltaTFemtoseconds.toFixed(2)} fs`;
+        }
+
+        if (state.earthPresetActive) {
+          readoutBeta.textContent = '0.0001 c (30 km/s)';
+          labelWind.textContent = '30 km/s';
+        } else {
+          readoutBeta.textContent = `${state.windBeta.toFixed(3)} c`;
+          labelWind.textContent = `${state.windBeta.toFixed(2)} c`;
+        }
+      }
+
+      // =========================================================================
+      // MAIN ANIMATION LOOP
+      // =========================================================================
+      function animate(timestamp) {
+        if (!state.lastTimestamp) state.lastTimestamp = timestamp;
+        const dt = Math.min((timestamp - state.lastTimestamp) / 1000, 0.1);
+        state.lastTimestamp = timestamp;
+
+        state.simClock += dt;
+
+        // Handle smooth +90 deg target rotation if triggered
+        if (state.targetAngleDeg !== null) {
+          const diff = state.targetAngleDeg - state.angleDeg;
+          if (Math.abs(diff) < 0.4) {
+            state.angleDeg = ((state.targetAngleDeg % 360) + 360) % 360;
+            state.targetAngleDeg = null;
+          } else {
+            state.angleDeg += diff * Math.min(1, dt * 8);
+          }
+        } else if (state.isPlaying && !state.isDragging) {
+          // Continuous rotation on mercury float (~18 deg/sec at 1x speed)
+          state.angleDeg = (state.angleDeg + 18 * state.rotSpeedMult * dt) % 360;
+        }
+
+        const physics = computeOpticalPhysics();
+        drawApparatus(physics);
+        drawInterferenceFringes(physics);
+        updateTelemetryUI(physics);
+
+        requestAnimationFrame(animate);
+      }
+
+      // =========================================================================
+      // INTERACTIVE EVENT LISTENERS
+      // =========================================================================
+      function setMode(newMode) {
+        state.mode = newMode;
+        if (newMode === 'aether') {
+          btnModeAether.className =
+            'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 flex items-center gap-1.5 bg-amber-500 text-slate-950 shadow-sm';
+          btnModeReality.className =
+            'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 flex items-center gap-1.5 text-slate-400 hover:text-slate-200';
+          statusBadge.textContent = 'Aether Wind Active';
+          statusBadge.className =
+            'text-[11px] font-mono px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30';
+          windDirectionTag.innerHTML = '<span>Aether Wind</span><span class="text-sm leading-none">&rarr;</span>';
+          windDirectionTag.className =
+            'absolute top-2.5 right-3 pointer-events-none text-[11px] text-cyan-300/90 font-mono bg-slate-950/80 px-2.5 py-1 rounded border border-cyan-500/30 flex items-center gap-1.5';
+          explanationText.innerHTML =
+            '<strong class="text-amber-300 font-semibold">1887 Aether Prediction Mode:</strong> Light traveling upstream and downstream along the arm aligned with the aether wind takes longer (<span class="font-mono text-xs text-slate-200">t<sub>&parallel;</sub> = 2L&gamma;&sup2;/c</span>) than light traveling across the wind (<span class="font-mono text-xs text-slate-200">t<sub>&perp;</sub> = 2L&gamma;/c</span>). Watch the yellow pulse lag behind the cyan pulse! Rotating the sandstone slab by 90&deg; swaps which arm is slower, shifting the interference fringes in the eyepiece.';
+        } else {
+          btnModeReality.className =
+            'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 flex items-center gap-1.5 bg-emerald-500 text-slate-950 shadow-sm';
+          btnModeAether.className =
+            'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 flex items-center gap-1.5 text-slate-400 hover:text-slate-200';
+          statusBadge.textContent = 'Null Result (c Invariant)';
+          statusBadge.className =
+            'text-[11px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30';
+          windDirectionTag.innerHTML = '<span>No Aether Wind (c = const)</span>';
+          windDirectionTag.className =
+            'absolute top-2.5 right-3 pointer-events-none text-[11px] text-emerald-300/90 font-mono bg-slate-950/80 px-2.5 py-1 rounded border border-emerald-500/30 flex items-center gap-1.5';
+          explanationText.innerHTML =
+            '<strong class="text-emerald-300 font-semibold">Special Relativity / Actual Reality (Null Result):</strong> No luminiferous aether exists, and the speed of light <span class="font-mono text-xs text-slate-200">c</span> is identical in all directions regardless of Earth&rsquo;s motion. Both light pulses return to the beam splitter in exact synchronization at every angle, keeping the eyepiece interference fringes completely stationary.';
+        }
+      }
+
+      btnModeAether.addEventListener('click', () => setMode('aether'));
+      btnModeReality.addEventListener('click', () => setMode('reality'));
+
+      // Play / Pause Rotation
+      function updatePlayPauseButton() {
+        if (state.isPlaying) {
+          btnPlayPauseLabel.textContent = 'Pause Rotation';
+          iconPause.classList.remove('hidden');
+          iconPlay.classList.add('hidden');
+        } else {
+          btnPlayPauseLabel.textContent = 'Resume Rotation';
+          iconPause.classList.add('hidden');
+          iconPlay.classList.remove('hidden');
+        }
+      }
+
+      btnPlayPause.addEventListener('click', () => {
+        state.isPlaying = !state.isPlaying;
+        state.targetAngleDeg = null;
+        updatePlayPauseButton();
+      });
+
+      // Quick +90° Button
+      btnRotate90.addEventListener('click', () => {
+        state.isPlaying = false;
+        updatePlayPauseButton();
+        const base = state.targetAngleDeg !== null ? state.targetAngleDeg : state.angleDeg;
+        state.targetAngleDeg = base + 90;
+      });
+
+      // Angle Slider
+      sliderAngle.addEventListener('input', (e) => {
+        state.isPlaying = false;
+        state.targetAngleDeg = null;
+        updatePlayPauseButton();
+        state.angleDeg = parseFloat(e.target.value);
+      });
+
+      // Rotation Speed Slider
+      sliderRotSpeed.addEventListener('input', (e) => {
+        state.rotSpeedMult = parseFloat(e.target.value);
+        labelRotSpeed.textContent = `${state.rotSpeedMult.toFixed(1)}×`;
+      });
+
+      // Aether Wind Speed Slider
+      sliderWind.addEventListener('input', (e) => {
+        state.earthPresetActive = false;
+        btnEarthPreset.classList.remove('bg-cyan-500', 'text-slate-950');
+        btnEarthPreset.classList.add('bg-cyan-500/15', 'text-cyan-300');
+        state.windBeta = parseFloat(e.target.value);
+      });
+
+      // Earth Orbit Preset Button (~30 km/s)
+      btnEarthPreset.addEventListener('click', () => {
+        state.earthPresetActive = true;
+        state.windBeta = 0.03;
+        sliderWind.value = 0.03;
+        btnEarthPreset.classList.remove('bg-cyan-500/15', 'text-cyan-300');
+        btnEarthPreset.classList.add('bg-cyan-500', 'text-slate-950');
+      });
+
+      // Show/Hide Wind Particles Switch
+      btnToggleWindParticles.addEventListener('click', () => {
+        state.showWindParticles = !state.showWindParticles;
+        btnToggleWindParticles.setAttribute('aria-checked', String(state.showWindParticles));
+        if (state.showWindParticles) {
+          btnToggleWindParticles.classList.remove('bg-slate-700');
+          btnToggleWindParticles.classList.add('bg-cyan-500');
+          windToggleKnob.classList.remove('translate-x-0');
+          windToggleKnob.classList.add('translate-x-5');
+        } else {
+          btnToggleWindParticles.classList.remove('bg-cyan-500');
+          btnToggleWindParticles.classList.add('bg-slate-700');
+          windToggleKnob.classList.remove('translate-x-5');
+          windToggleKnob.classList.add('translate-x-0');
+        }
+      });
+
+      // =========================================================================
+      // DIRECT MOUSE & TOUCH DRAG ON APPARATUS CANVAS
+      // =========================================================================
+      function getPointerAngleDeg(clientX, clientY) {
+        const rect = apparatusCanvas.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        return (Math.atan2(clientY - cy, clientX - cx) * 180) / Math.PI;
+      }
+
+      apparatusCanvas.addEventListener('mousedown', (e) => {
+        state.isDragging = true;
+        state.targetAngleDeg = null;
+        state.dragStartMouseAngle = getPointerAngleDeg(e.clientX, e.clientY);
+        state.dragStartSlabAngle = state.angleDeg;
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (!state.isDragging) return;
+        const currentMouseAngle = getPointerAngleDeg(e.clientX, e.clientY);
+        const delta = currentMouseAngle - state.dragStartMouseAngle;
+        state.angleDeg = (((state.dragStartSlabAngle + delta) % 360) + 360) % 360;
+      });
+
+      window.addEventListener('mouseup', () => {
+        state.isDragging = false;
+      });
+
+      // Touch drag support
+      apparatusCanvas.addEventListener(
+        'touchstart',
+        (e) => {
+          if (e.touches.length === 1) {
+            state.isDragging = true;
+            state.targetAngleDeg = null;
+            state.dragStartMouseAngle = getPointerAngleDeg(e.touches[0].clientX, e.touches[0].clientY);
+            state.dragStartSlabAngle = state.angleDeg;
+          }
+        },
+        { passive: true }
+      );
+
+      apparatusCanvas.addEventListener(
+        'touchmove',
+        (e) => {
+          if (!state.isDragging || e.touches.length !== 1) return;
+          e.preventDefault();
+          const currentMouseAngle = getPointerAngleDeg(e.touches[0].clientX, e.touches[0].clientY);
+          const delta = currentMouseAngle - state.dragStartMouseAngle;
+          state.angleDeg = (((state.dragStartSlabAngle + delta) % 360) + 360) % 360;
+        },
+        { passive: false }
+      );
+
+      apparatusCanvas.addEventListener('touchend', () => {
+        state.isDragging = false;
+      });
+
+      // =========================================================================
+      // INITIALIZE ON WINDOW LOAD
+      // =========================================================================
+      window.onload = function () {
+        resizeCanvases();
+        requestAnimationFrame(animate);
+      };
+    })();
+  </script>
+</body>
+</html>
