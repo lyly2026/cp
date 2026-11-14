@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Figure 37.6: Time Dilation — Mavis &amp; Stanley's Light Clock</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap');
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #f1f5f9;
+      color: #0f172a;
+    }
+
+    .font-mono-code {
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 6px;
+      border-radius: 999px;
+      background: #475569;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      margin-top: -5px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #38bdf8;
+      border: 2px solid #0f172a;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+    }
+
+    input[type="range"]::-moz-range-track {
+      height: 6px;
+      border-radius: 999px;
+      background: #475569;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #38bdf8;
+      border: 2px solid #0f172a;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-100 text-slate-900">
+
+  <!-- Dark-Slate Header & Interactive Control Bar -->
+  <header class="sticky top-0 z-30 bg-slate-900 text-slate-100 border-b border-slate-800 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col gap-3">
+      <!-- Top Row: Title + Action Buttons -->
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <span class="px-2.5 py-1 rounded-lg bg-orange-600 text-white font-extrabold text-sm tracking-tight shadow-sm shrink-0">
+            37.6
+          </span>
+          <div>
+            <h1 class="text-sm sm:text-base font-bold text-white leading-snug">
+              Figure 37.6: Time Dilation — Mavis &amp; Stanley's Light Clock
+            </h1>
+            <p class="text-xs text-slate-400 hidden sm:block">
+              Comparing proper time <span class="font-mono-code text-slate-300">&Delta;t<sub>0</sub></span> in frame <span class="font-mono-code text-slate-300">S&prime;</span> with dilated time <span class="font-mono-code text-slate-300">&Delta;t = &gamma;&Delta;t<sub>0</sub></span> in frame <span class="font-mono-code text-slate-300">S</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Primary Action & Reset Buttons -->
+        <div class="flex flex-wrap items-center gap-2">
+          <button id="btnAction" type="button"
+            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 shadow-sm transition active:scale-95">
+            <svg id="iconPlay" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+            </svg>
+            <svg id="iconPause" class="w-3.5 h-3.5 hidden" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M6 4a1 1 0 011 1v10a1 1 0 11-2 0V5a1 1 0 011-1zm7 0a1 1 0 011 1v10a1 1 0 11-2 0V5a1 1 0 011-1z" />
+            </svg>
+            <svg id="iconReplay" class="w-3.5 h-3.5 hidden" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+            </svg>
+            <span id="lblAction">Start Simulation</span>
+          </button>
+
+          <button id="btnReset" type="button"
+            class="px-3.5 py-2 rounded-lg text-xs font-semibold text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition active:scale-95">
+            Reset
+          </button>
+        </div>
+      </div>
+
+      <!-- Bottom Control Row: Sliders & Checkboxes -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-3 pt-2 border-t border-slate-800/80 items-center">
+        <!-- Train Velocity Slider u/c (4 cols) -->
+        <div class="md:col-span-4 flex flex-col gap-1 bg-slate-800/60 px-3 py-2 rounded-xl border border-slate-700/70">
+          <div class="flex items-center justify-between text-xs">
+            <label for="sliderBeta" class="font-semibold text-slate-300">Train Velocity (<span class="font-mono-code text-sky-400">u / c</span>)</label>
+            <span id="valBetaGamma" class="font-mono-code font-bold text-sky-300">u = 0.60c &bull; &gamma; = 1.250</span>
+          </div>
+          <input id="sliderBeta" type="range" min="0.00" max="0.92" step="0.01" value="0.60" />
+        </div>
+
+        <!-- Mirror Height Slider d (4 cols) -->
+        <div class="md:col-span-4 flex flex-col gap-1 bg-slate-800/60 px-3 py-2 rounded-xl border border-slate-700/70">
+          <div class="flex items-center justify-between text-xs">
+            <label for="sliderHeight" class="font-semibold text-slate-300">Mirror Height (<span class="font-mono-code text-emerald-400">d</span>)</label>
+            <span id="valHeight" class="font-mono-code font-bold text-emerald-300">d = 2.40 m</span>
+          </div>
+          <input id="sliderHeight" type="range" min="1.50" max="3.50" step="0.05" value="2.40" />
+        </div>
+
+        <!-- Checkboxes (4 cols) -->
+        <div class="md:col-span-4 flex flex-wrap sm:flex-nowrap md:flex-wrap lg:flex-nowrap items-center justify-between gap-2 bg-slate-800/60 px-3 py-2.5 rounded-xl border border-slate-700/70 text-xs">
+          <label class="inline-flex items-center gap-2 cursor-pointer select-none text-slate-200 font-medium">
+            <input id="chkLoop" type="checkbox" class="accent-sky-400 w-3.5 h-3.5 rounded cursor-pointer" />
+            <span>Continuous Loop Mode</span>
+          </label>
+          <label class="inline-flex items-center gap-2 cursor-pointer select-none text-slate-200 font-medium">
+            <input id="chkStrobe" type="checkbox" checked class="accent-sky-400 w-3.5 h-3.5 rounded cursor-pointer" />
+            <span>Show Stroboscopic Trail &amp; Equations</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-4 flex flex-col gap-4">
+
+    <!-- Two-Panel Textbook Canvas Container -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-2.5 sm:p-4 flex flex-col gap-2">
+      <div class="flex flex-wrap items-center justify-between gap-2 px-1 text-xs text-slate-500">
+        <div class="flex items-center gap-2">
+          <span id="statusDot" class="inline-block w-2 h-2 rounded-full bg-amber-500"></span>
+          <span id="statusBanner">Ready at <strong class="font-mono-code text-slate-700">t = 0.00 ns</strong> — Press <strong>Start Simulation</strong> to emit the light pulse from <span class="font-mono-code">O&prime;</span>.</span>
+        </div>
+        <div class="font-mono-code text-[11px] text-slate-500">
+          Speed of light invariant: <strong class="text-slate-800">c = 2.998 &times; 10<sup>8</sup> m/s</strong> in both <span class="text-slate-800">S&prime;</span> and <span class="text-slate-800">S</span>
+        </div>
+      </div>
+
+      <div id="canvasWrap" class="relative w-full h-[460px] sm:h-[490px] rounded-xl overflow-hidden border border-slate-200 bg-[#fdfefe]">
+        <canvas id="simCanvas" width="1200" height="490"></canvas>
+      </div>
+    </section>
+
+    <!-- 4-Card Live Telemetry & Derivation Bar -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+
+      <!-- Card 1: Proper Time (Mavis, S') -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col justify-between gap-2">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">1. Proper Time (Mavis, S&prime;)</span>
+          <span class="px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 font-mono-code text-[11px] font-bold">&Delta;t<sub>0</sub></span>
+        </div>
+        <div>
+          <div id="cardProperTime" class="font-mono-code text-xl font-extrabold text-slate-900">16.01 ns</div>
+          <div id="cardProperLive" class="font-mono-code text-xs text-rose-600 font-semibold mt-0.5">Elapsed: 0.00 / 16.01 ns</div>
+        </div>
+        <div class="pt-2 border-t border-slate-100 font-mono-code text-[11px] text-slate-600">
+          &Delta;t<sub>0</sub> = 2d / c = <span id="eqProperSub">2(2.40 m) / c</span>
+        </div>
+      </div>
+
+      <!-- Card 2: Dilated Time (Stanley, S) -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col justify-between gap-2">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">2. Dilated Time (Stanley, S)</span>
+          <span class="px-2 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200 font-mono-code text-[11px] font-bold">&Delta;t</span>
+        </div>
+        <div>
+          <div id="cardDilatedTime" class="font-mono-code text-xl font-extrabold text-sky-700">20.01 ns</div>
+          <div id="cardDilatedLive" class="font-mono-code text-xs text-sky-600 font-semibold mt-0.5">Elapsed: 0.00 / 20.01 ns</div>
+        </div>
+        <div class="pt-2 border-t border-slate-100 font-mono-code text-[11px] text-slate-600">
+          &Delta;t = &gamma;&Delta;t<sub>0</sub> = <span id="eqDilatedSub">1.250 &times; 16.01 ns</span>
+        </div>
+      </div>
+
+      <!-- Card 3: Lorentz Factor (gamma) -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col justify-between gap-2">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">3. Lorentz Factor (&gamma;)</span>
+          <span class="px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 font-mono-code text-[11px] font-bold">&gamma; &ge; 1</span>
+        </div>
+        <div>
+          <div id="cardGamma" class="font-mono-code text-xl font-extrabold text-amber-700">1.2500</div>
+          <div id="cardShiftDist" class="font-mono-code text-xs text-slate-600 font-semibold mt-0.5">Train shift u&Delta;t = 3.60 m</div>
+        </div>
+        <div class="pt-2 border-t border-slate-100 font-mono-code text-[11px] text-slate-600">
+          &gamma; = 1 / &radic;(1 &minus; u&sup2;/c&sup2;) = <span id="eqGammaSub">1 / &radic;(1 &minus; 0.60&sup2;)</span>
+        </div>
+      </div>
+
+      <!-- Card 4: Pythagorean Geometry Check -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col justify-between gap-2">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">4. Pythagorean Geometry Check</span>
+          <span class="px-2 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200 font-mono-code text-[11px] font-bold">l = c&Delta;t/2</span>
+        </div>
+        <div>
+          <div id="cardLegL" class="font-mono-code text-xl font-extrabold text-purple-700">l = 3.00 m</div>
+          <div id="cardPythVals" class="font-mono-code text-[11px] text-slate-600 font-semibold mt-0.5">&radic;(2.40&sup2; + 1.80&sup2;) = 3.00 m</div>
+        </div>
+        <div class="pt-2 border-t border-slate-100 font-mono-code text-[11px] text-slate-600">
+          c&sup2;(&Delta;t/2)&sup2; = d&sup2; + u&sup2;(&Delta;t/2)&sup2; &rArr; &Delta;t = &gamma;&Delta;t<sub>0</sub>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const C_MPS = 299792458; // m/s
+
+      // =========================================================================
+      // SIMULATION STATE (Starts paused at t = 0)
+      // =========================================================================
+      const state = {
+        beta: 0.60,           // u / c (0.00 to 0.92)
+        mirrorDist: 2.40,     // d in meters (1.50 to 3.50)
+        loopMode: false,      // Unchecked by default so students can inspect completed triangle
+        showStrobe: true,     // Checked by default
+        status: 'ready',      // 'ready' | 'running' | 'paused' | 'completed'
+        progress: 0,          // Normalized round-trip progress in [0, 1] (0.5 = mirror reflection)
+        lastTimestamp: 0,
+        canvasSize: { w: 1200, h: 490 },
+      };
+
+      // =========================================================================
+      // DOM REFERENCES
+      // =========================================================================
+      const canvasWrap = document.getElementById('canvasWrap');
+      const simCanvas = document.getElementById('simCanvas');
+      const ctx = simCanvas.getContext('2d');
+
+      const btnAction = document.getElementById('btnAction');
+      const lblAction = document.getElementById('lblAction');
+      const iconPlay = document.getElementById('iconPlay');
+      const iconPause = document.getElementById('iconPause');
+      const iconReplay = document.getElementById('iconReplay');
+      const btnReset = document.getElementById('btnReset');
+
+      const sliderBeta = document.getElementById('sliderBeta');
+      const valBetaGamma = document.getElementById('valBetaGamma');
+      const sliderHeight = document.getElementById('sliderHeight');
+      const valHeight = document.getElementById('valHeight');
+      const chkLoop = document.getElementById('chkLoop');
+      const chkStrobe = document.getElementById('chkStrobe');
+
+      const statusDot = document.getElementById('statusDot');
+      const statusBanner = document.getElementById('statusBanner');
+
+      // Telemetry cards
+      const cardProperTime = document.getElementById('cardProperTime');
+      const cardProperLive = document.getElementById('cardProperLive');
+      const eqProperSub = document.getElementById('eqProperSub');
+
+      const cardDilatedTime = document.getElementById('cardDilatedTime');
+      const cardDilatedLive = document.getElementById('cardDilatedLive');
+      const eqDilatedSub = document.getElementById('eqDilatedSub');
+
+      const cardGamma = document.getElementById('cardGamma');
+      const cardShiftDist = document.getElementById('cardShiftDist');
+      const eqGammaSub = document.getElementById('eqGammaSub');
+
+      const cardLegL = document.getElementById('cardLegL');
+      const cardPythVals = document.getElementById('cardPythVals');
+
+      // =========================================================================
+      // RESIZE OBSERVER & HIGH-DPI SCALING
+      // =========================================================================
+      function handleResize() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const rect = canvasWrap.getBoundingClientRect();
+        const w = rect.width > 50 ? Math.floor(rect.width) : 1200;
+        const h = rect.height > 50 ? Math.floor(rect.height) : 490;
+
+        if (simCanvas.width !== Math.floor(w * dpr) || simCanvas.height !== Math.floor(h * dpr)) {
+          simCanvas.width = Math.floor(w * dpr);
+          simCanvas.height = Math.floor(h * dpr);
+        }
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        state.canvasSize = { w, h };
+      }
+
+      if (typeof ResizeObserver !== 'undefined') {
+        const ro = new ResizeObserver(handleResize);
+        ro.observe(canvasWrap);
+      }
+      window.addEventListener('resize', handleResize);
+
+      // =========================================================================
+      // PHYSICS CALCULATIONS
+      // =========================================================================
+      function getPhysicsValues() {
+        const beta = state.beta;
+        const d = state.mirrorDist;
+        const gamma = 1 / Math.sqrt(1 - beta * beta);
+        const dt0_ns = ((2 * d) / C_MPS) * 1e9;
+        const dt_ns = gamma * dt0_ns;
+        const halfShift = beta * d * gamma; // u * dt / 2 = (u/c) * (c*dt/2) = beta * gamma * d
+        const fullShift = 2 * halfShift;    // u * dt
+        const legL = gamma * d;             // c * dt / 2 = sqrt(d^2 + (u*dt/2)^2) = gamma * d
+
+        return {
+          beta,
+          d,
+          gamma,
+          dt0_ns,
+          dt_ns,
+          halfShift,
+          fullShift,
+          legL
+        };
+      }
+
+      // =========================================================================
+      // VECTOR ILLUSTRATION HELPERS (MATCHING TEXTBOOK FIG. 37.6)
+      // =========================================================================
+
+      // Draw coordinate axes corner bracket icon ("S'" or "S")
+      function drawCoordinateIcon(x, y, label, scale) {
+        ctx.save();
+        const arm = 22 * scale;
+        const diag = 14 * scale;
+
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = Math.max(1.2, 1.4 * scale);
+        ctx.lineCap = 'round';
+
+        // Vertical axis (y)
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x, y - arm);
+        // Horizontal axis (x)
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + arm, y);
+        // Diagonal perspective axis (z)
+        ctx.moveTo(x, y);
+        ctx.lineTo(x - diag, y + diag * 0.85);
+        ctx.stroke();
+
+        ctx.fillStyle = '#0f172a';
+        ctx.font = `italic 700 ${Math.round(14 * scale)}px Georgia, serif`;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(label, x + 5 * scale, y - 4 * scale);
+        ctx.restore();
+      }
+
+      // Draw pink cylindrical light source O'
+      function drawLightSource(cx, bottomY, scale, alpha, isGhost) {
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        const w = 13 * scale;
+        const h = 16 * scale;
+        const rx = w * 0.5;
+        const ry = 2.6 * scale;
+        const topY = bottomY - h;
+
+        // Cylinder body
+        ctx.fillStyle = isGhost ? '#f9a8d4' : '#f472b6';
+        ctx.strokeStyle = isGhost ? '#be185d' : '#831843';
+        ctx.lineWidth = Math.max(1, 1.15 * scale);
+
+        ctx.beginPath();
+        ctx.moveTo(cx - rx, topY);
+        ctx.lineTo(cx - rx, bottomY - ry);
+        ctx.ellipse(cx, bottomY - ry, rx, ry, 0, Math.PI, 0, true);
+        ctx.lineTo(cx + rx, topY);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Top ellipse cap
+        ctx.fillStyle = isGhost ? '#fbcfe8' : '#f9a8d4';
+        ctx.beginPath();
+        ctx.ellipse(cx, topY, rx, ry, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      // Draw horizontal mirror slab
+      function drawMirror(cx, topY, scale, alpha, isGhost) {
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        const w = 22 * scale;
+        const h = 5.5 * scale;
+        ctx.fillStyle = isGhost ? '#94a3b8' : '#1e293b';
+        ctx.strokeStyle = isGhost ? '#64748b' : '#0f172a';
+        ctx.lineWidth = 1;
+        ctx.fillRect(cx - w * 0.5, topY, w, h);
+        if (isGhost) {
+          ctx.strokeRect(cx - w * 0.5, topY, w, h);
+        }
+        ctx.restore();
+      }
+
+      // Draw seated Mavis in red dress (vector illustration matching Fig. 37.6)
+      function drawMavisSeated(seatCenterX, floorY, scale, showDoubleSeat) {
+        ctx.save();
+        const s = scale;
+
+        // Train passenger seat(s)
+        const seatW = (showDoubleSeat ? 76 : 44) * s;
+        const seatH = 74 * s;
+        const seatX = seatCenterX - (showDoubleSeat ? 24 * s : seatW * 0.5);
+        const seatTopY = floorY - 12 * s - seatH;
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 1.2 * s;
+        ctx.beginPath();
+        ctx.roundRect(seatX, seatTopY, seatW, seatH, 8 * s);
+        ctx.fill();
+        ctx.stroke();
+
+        if (showDoubleSeat) {
+          // Center cushion seam for double seat in Panel (b)
+          ctx.beginPath();
+          ctx.moveTo(seatX + seatW * 0.5, seatTopY + 4 * s);
+          ctx.lineTo(seatX + seatW * 0.5, seatTopY + seatH - 8 * s);
+          ctx.stroke();
+        }
+
+        // Seat cushion base
+        ctx.fillStyle = '#94a3b8';
+        ctx.beginPath();
+        ctx.roundRect(seatX - 2 * s, floorY - 22 * s, seatW + 4 * s, 12 * s, 4 * s);
+        ctx.fill();
+        ctx.stroke();
+
+        // Mavis sitting on the left cushion (centered at seatCenterX)
+        const mx = seatCenterX;
+        const hipY = floorY - 22 * s;
+
+        // Legs & red shoes
+        ctx.fillStyle = '#fed7aa';
+        ctx.strokeStyle = '#7c2d12';
+        ctx.lineWidth = 1.0 * s;
+        // Left & right lower legs
+        ctx.fillRect(mx - 8 * s, hipY + 4 * s, 5.5 * s, 16 * s);
+        ctx.fillRect(mx + 1.5 * s, hipY + 4 * s, 5.5 * s, 16 * s);
+
+        // Red shoes
+        ctx.fillStyle = '#dc2626';
+        ctx.beginPath();
+        ctx.ellipse(mx - 5.5 * s, floorY - 2 * s, 4.5 * s, 2.8 * s, 0, 0, Math.PI * 2);
+        ctx.ellipse(mx + 4.5 * s, floorY - 2 * s, 4.5 * s, 2.8 * s, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Red dress torso & skirt
+        ctx.fillStyle = '#e11d48';
+        ctx.strokeStyle = '#881337';
+        ctx.lineWidth = 1.1 * s;
+        ctx.beginPath();
+        ctx.moveTo(mx - 10 * s, hipY - 34 * s);
+        ctx.lineTo(mx + 10 * s, hipY - 34 * s);
+        ctx.lineTo(mx + 14 * s, hipY + 7 * s);
+        ctx.lineTo(mx - 14 * s, hipY + 7 * s);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Arms & hands resting on lap
+        ctx.fillStyle = '#fed7aa';
+        ctx.beginPath();
+        ctx.roundRect(mx - 13 * s, hipY - 30 * s, 4.5 * s, 22 * s, 2 * s);
+        ctx.roundRect(mx + 8.5 * s, hipY - 30 * s, 4.5 * s, 22 * s, 2 * s);
+        ctx.fill();
+        ctx.stroke();
+
+        // Head & hair
+        const headY = hipY - 46 * s;
+        // Brown hair back
+        ctx.fillStyle = '#78350f';
+        ctx.beginPath();
+        ctx.arc(mx, headY - 1 * s, 10.5 * s, Math.PI * 0.85, Math.PI * 2.15);
+        ctx.fill();
+
+        // Face
+        ctx.fillStyle = '#fed7aa';
+        ctx.beginPath();
+        ctx.ellipse(mx, headY, 8 * s, 9.5 * s, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Hair bangs
+        ctx.fillStyle = '#78350f';
+        ctx.beginPath();
+        ctx.arc(mx, headY - 3 * s, 8.5 * s, Math.PI * 1.05, Math.PI * 1.95);
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      // Draw Stanley standing on the platform in blue suit with brown briefcase
+      function drawStanleyStanding(sx, groundY, scale) {
+        ctx.save();
+        const s = scale;
+
+        // Shoes
+        ctx.fillStyle = '#1e293b';
+        ctx.beginPath();
+        ctx.ellipse(sx - 6 * s, groundY - 2.5 * s, 6 * s, 3 * s, 0, 0, Math.PI * 2);
+        ctx.ellipse(sx + 6 * s, groundY - 2.5 * s, 6 * s, 3 * s, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Blue suit trousers
+        ctx.fillStyle = '#3b82f6';
+        ctx.strokeStyle = '#1d4ed8';
+        ctx.lineWidth = 1.1 * s;
+        ctx.fillRect(sx - 9 * s, groundY - 52 * s, 7.5 * s, 48 * s);
+        ctx.strokeRect(sx - 9 * s, groundY - 52 * s, 7.5 * s, 48 * s);
+        ctx.fillRect(sx + 1 * s, groundY - 52 * s, 7.5 * s, 48 * s);
+        ctx.strokeRect(sx + 1 * s, groundY - 52 * s, 7.5 * s, 48 * s);
+
+        // Blue suit jacket
+        ctx.fillStyle = '#60a5fa';
+        ctx.beginPath();
+        ctx.roundRect(sx - 12 * s, groundY - 94 * s, 23 * s, 46 * s, 5 * s);
+        ctx.fill();
+        ctx.stroke();
+
+        // Brown leather briefcase held in right hand
+        const bx = sx + 8 * s;
+        const by = groundY - 52 * s;
+        ctx.fillStyle = '#92400e';
+        ctx.strokeStyle = '#451a03';
+        ctx.fillRect(bx, by, 16 * s, 21 * s);
+        ctx.strokeRect(bx, by, 16 * s, 21 * s);
+        // Briefcase handle
+        ctx.beginPath();
+        ctx.arc(bx + 8 * s, by, 3.5 * s, Math.PI, 0);
+        ctx.stroke();
+
+        // Arm holding briefcase
+        ctx.fillStyle = '#60a5fa';
+        ctx.beginPath();
+        ctx.roundRect(sx + 4 * s, groundY - 88 * s, 6.5 * s, 35 * s, 3 * s);
+        ctx.fill();
+        ctx.stroke();
+
+        // Head & hair (looking up-right toward the moving light clock)
+        const headY = groundY - 105 * s;
+        ctx.fillStyle = '#fed7aa';
+        ctx.strokeStyle = '#7c2d12';
+        ctx.beginPath();
+        ctx.ellipse(sx + 1 * s, headY, 7.5 * s, 9 * s, -0.15, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Hair
+        ctx.fillStyle = '#475569';
+        ctx.beginPath();
+        ctx.arc(sx - 1 * s, headY - 1 * s, 8.2 * s, Math.PI * 0.75, Math.PI * 1.85);
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      // Draw purple directional chevron along a light ray segment
+      function drawPurpleArrowhead(x1, y1, x2, y2, frac, scale) {
+        const px = x1 + (x2 - x1) * frac;
+        const py = y1 + (y2 - y1) * frac;
+        const ang = Math.atan2(y2 - y1, x2 - x1);
+        const len = 8.5 * scale;
+
+        ctx.save();
+        ctx.strokeStyle = '#7e22ce';
+        ctx.lineWidth = Math.max(1.8, 2.2 * scale);
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(px - len * Math.cos(ang - 0.45), py - len * Math.sin(ang - 0.45));
+        ctx.lineTo(px, py);
+        ctx.lineTo(px - len * Math.cos(ang + 0.45), py - len * Math.sin(ang + 0.45));
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Draw glowing light pulse photon packet
+      function drawPhotonPulse(x, y, scale) {
+        ctx.save();
+        const r = 6.5 * scale;
+        const grad = ctx.createRadialGradient(x, y, 0, x, y, r * 2.4);
+        grad.addColorStop(0, 'rgba(192, 38, 211, 0.95)');
+        grad.addColorStop(0.45, 'rgba(147, 51, 234, 0.45)');
+        grad.addColorStop(1, 'rgba(147, 51, 234, 0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(x, y, r * 2.4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#fdf4ff';
+        ctx.beginPath();
+        ctx.arc(x, y, r * 0.55, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // Draw clean dimension line with tick bars and arrows (for "d" and "u Δt")
+      function drawDimensionLine(x1, y1, x2, y2, label, scale, isVertical) {
+        ctx.save();
+        ctx.strokeStyle = '#1e293b';
+        ctx.fillStyle = '#0f172a';
+        ctx.lineWidth = Math.max(1.0, 1.2 * scale);
+
+        const tick = 7 * scale;
+        const head = 6 * scale;
+
+        // End tick bars
+        ctx.beginPath();
+        if (isVertical) {
+          ctx.moveTo(x1 - tick, y1);
+          ctx.lineTo(x1 + tick, y1);
+          ctx.moveTo(x2 - tick, y2);
+          ctx.lineTo(x2 + tick, y2);
+        } else {
+          ctx.moveTo(x1, y1 - tick);
+          ctx.lineTo(x1, y1 + tick);
+          ctx.moveTo(x2, y2 - tick);
+          ctx.lineTo(x2, y2 + tick);
+        }
+        ctx.stroke();
+
+        // Main dimension shaft
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+
+        // Arrowheads at both ends
+        const drawHead = (tipX, tipY, ang) => {
+          ctx.beginPath();
+          ctx.moveTo(tipX, tipY);
+          ctx.lineTo(tipX - head * Math.cos(ang - 0.38), tipY - head * Math.sin(ang - 0.38));
+          ctx.moveTo(tipX, tipY);
+          ctx.lineTo(tipX - head * Math.cos(ang + 0.38), tipY - head * Math.sin(ang + 0.38));
+          ctx.stroke();
+        };
+
+        const dist = Math.hypot(x2 - x1, y2 - y1);
+        if (dist > 14 * scale) {
+          const ang = Math.atan2(y2 - y1, x2 - x1);
+          drawHead(x2, y2, ang);
+          drawHead(x1, y1, ang + Math.PI);
+        }
+
+        // Label badge with white background cutout so line never obscures text
+        const midX = (x1 + x2) * 0.5;
+        const midY = (y1 + y2) * 0.5;
+        ctx.font = `italic 600 ${Math.round(13.5 * scale)}px Georgia, serif`;
+        const metrics = ctx.measureText(label);
+        const padX = 4 * scale;
+        const padY = 7 * scale;
+
+        ctx.fillStyle = '#fdfefe';
+        ctx.fillRect(midX - metrics.width * 0.5 - padX, midY - padY, metrics.width + padX * 2, padY * 2);
+
+        ctx.fillStyle = '#0f172a';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(label, midX, midY);
+
+        ctx.restore();
+      }
+
+      // Draw green horizontal velocity vector arrow ("u") at nose of train
+      function drawVelocityVectorU(x1, y, len, scale) {
+        ctx.save();
+        const x2 = x1 + len;
+        const head = 9 * scale;
+
+        ctx.strokeStyle = '#16a34a';
+        ctx.fillStyle = '#16a34a';
+        ctx.lineWidth = Math.max(2.4, 3.2 * scale);
+        ctx.lineCap = 'round';
+
+        ctx.beginPath();
+        ctx.moveTo(x1, y);
+        ctx.lineTo(x2 - head * 0.5, y);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(x2, y);
+        ctx.lineTo(x2 - head, y - 5.2 * scale);
+        ctx.lineTo(x2 - head, y + 5.2 * scale);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#0f172a';
+        ctx.font = `italic 700 ${Math.round(14 * scale)}px Georgia, serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText('u', (x1 + x2) * 0.5, y - 5 * scale);
+        ctx.restore();
+      }
+
+      // =========================================================================
+      // MAIN TWO-PANEL CANVAS RENDERER
+      // =========================================================================
+      function renderCanvas() {
+        const { w, h } = state.canvasSize;
+        const phys = getPhysicsValues();
+        const scale = Math.min(w / 1180, h / 480);
+
+        ctx.clearRect(0, 0, w, h);
+
+        // Panel split: Panel (a) ~31% width on left, Panel (b) ~69% width on right
+        const splitX = w * 0.305;
+
+        // Subtle divider between Panel (a) and Panel (b)
+        ctx.save();
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.moveTo(splitX, 16);
+        ctx.lineTo(splitX, h - 16);
+        ctx.stroke();
+        ctx.restore();
+
+        // Shared vertical geometry for the light clock
+        // Scale vertical mirror height d cleanly between 1.5m and 3.5m
+        const pxPerMeterY = 64 * scale;
+        const clockHeightPx = phys.d * pxPerMeterY;
+        const floorY = h * 0.67;
+        const ceilingY = floorY - clockHeightPx;
+
+        // =======================================================================
+        // PANEL (a): MAVIS'S FRAME OF REFERENCE (S')
+        // =======================================================================
+        ctx.save();
+        ctx.fillStyle = '#0f172a';
+        ctx.font = `700 ${Math.round(16 * scale)}px Inter, sans-serif`;
+        ctx.textAlign = 'left';
+        ctx.fillText('(a)', 18 * scale, 28 * scale);
+
+        ctx.font = `600 ${Math.round(11.5 * scale)}px Inter, sans-serif`;
+        ctx.fillStyle = '#64748b';
+        ctx.fillText("Mavis's Rest Frame (S′)", 44 * scale, 27 * scale);
+        ctx.restore();
+
+        const clockAx = splitX * 0.34;
+        const sourceTopAy = floorY - 16 * scale;
+        const mirrorBotAy = ceilingY + 5.5 * scale;
+
+        // Dimension line "d" to the right of the vertical light path
+        drawDimensionLine(
+          clockAx + 26 * scale,
+          mirrorBotAy,
+          clockAx + 26 * scale,
+          sourceTopAy,
+          'd',
+          scale,
+          true
+        );
+
+        // Labels "Mirror", "Source", and "O'"
+        ctx.save();
+        ctx.fillStyle = '#0f172a';
+        ctx.font = `500 ${Math.round(13 * scale)}px Georgia, serif`;
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Mirror', clockAx - 18 * scale, ceilingY + 3 * scale);
+        ctx.fillText('Source', clockAx - 14 * scale, floorY - 7 * scale);
+
+        ctx.font = `italic 600 ${Math.round(13.5 * scale)}px Georgia, serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText("O′", clockAx, floorY + 13 * scale);
+        ctx.restore();
+
+        // Draw Mirror & Source O' in Panel (a)
+        drawMirror(clockAx, ceilingY, scale, 1.0, false);
+        drawLightSource(clockAx, floorY, scale, 1.0, false);
+
+        // Draw Vertical Purple Light Beam & Pulse in Panel (a)
+        const p = state.progress;
+        ctx.save();
+        ctx.strokeStyle = '#7e22ce';
+        ctx.lineWidth = Math.max(2.0, 2.5 * scale);
+        ctx.lineCap = 'round';
+
+        if (p <= 0.5) {
+          // Going straight UP from source to mirror
+          const fracUp = p / 0.5;
+          const curY = sourceTopAy + (mirrorBotAy - sourceTopAy) * fracUp;
+          ctx.beginPath();
+          ctx.moveTo(clockAx, sourceTopAy);
+          ctx.lineTo(clockAx, curY);
+          ctx.stroke();
+
+          if (fracUp > 0.35) {
+            drawPurpleArrowhead(clockAx, sourceTopAy, clockAx, mirrorBotAy, 0.32, scale);
+          }
+          if (p > 0) {
+            drawPhotonPulse(clockAx, curY, scale);
+          }
+        } else {
+          // Full upward path + downward reflection path
+          const fracDown = (p - 0.5) / 0.5;
+          const curY = mirrorBotAy + (sourceTopAy - mirrorBotAy) * fracDown;
+
+          // Slight horizontal separation (1.5 px) so both up & down arrowheads are visible like textbook Fig. 37.6a
+          ctx.beginPath();
+          ctx.moveTo(clockAx - 1.2 * scale, sourceTopAy);
+          ctx.lineTo(clockAx - 1.2 * scale, mirrorBotAy);
+          ctx.moveTo(clockAx + 1.2 * scale, mirrorBotAy);
+          ctx.lineTo(clockAx + 1.2 * scale, curY);
+          ctx.stroke();
+
+          drawPurpleArrowhead(clockAx - 1.2 * scale, sourceTopAy, clockAx - 1.2 * scale, mirrorBotAy, 0.32, scale);
+          if (fracDown > 0.25) {
+            drawPurpleArrowhead(clockAx + 1.2 * scale, mirrorBotAy, clockAx + 1.2 * scale, sourceTopAy, 0.28, scale);
+          }
+          if (p < 1.0) {
+            drawPhotonPulse(clockAx + 1.2 * scale, curY, scale);
+          }
+        }
+        ctx.restore();
+
+        // Mavis seated inside Panel (a)
+        drawMavisSeated(splitX * 0.72, floorY, scale, false);
+
+        // Coordinate icon S' in Panel (a)
+        drawCoordinateIcon(splitX - 38 * scale, floorY + 26 * scale, "S′", scale);
+
+        // Textbook Cyan Caption in Panel (a)
+        ctx.save();
+        ctx.fillStyle = '#0284c7';
+        ctx.font = `500 ${Math.round(13.5 * scale)}px Georgia, serif`;
+        ctx.textAlign = 'left';
+        const capAx = splitX * 0.44;
+        const capAy = floorY + 32 * scale;
+        ctx.fillText('Mavis measures', capAx, capAy);
+        ctx.fillText(`time interval Δt₀ (${(p * phys.dt0_ns).toFixed(1)} ns).`, capAx, capAy + 17 * scale);
+        ctx.restore();
+
+        // =======================================================================
+        // PANEL (b): STANLEY'S FRAME OF REFERENCE (S)
+        // =======================================================================
+        ctx.save();
+        ctx.fillStyle = '#0f172a';
+        ctx.font = `700 ${Math.round(16 * scale)}px Inter, sans-serif`;
+        ctx.textAlign = 'left';
+        ctx.fillText('(b)', splitX + 16 * scale, 28 * scale);
+
+        ctx.font = `600 ${Math.round(11.5 * scale)}px Inter, sans-serif`;
+        ctx.fillStyle = '#64748b';
+        ctx.fillText("Stanley's Ground Frame (S)", splitX + 42 * scale, 27 * scale);
+        ctx.restore();
+
+        // Compute horizontal shift in pixels for Panel (b)
+        // Scale horizontal pixels so even at beta = 0.92c the train fits cleanly inside Panel (b)
+        const panelBWidth = w - splitX;
+        const maxAvailableShiftPx = panelBWidth * 0.34;
+        // Reference horizontal scale tied to vertical scale, clamped gracefully at extreme beta
+        const rawFullShiftPx = phys.fullShift * pxPerMeterY;
+        const fullShiftPx = Math.min(rawFullShiftPx, maxAvailableShiftPx);
+        const curShiftPx = fullShiftPx * p;
+
+        // Departure X position of O' in Stanley's frame
+        const departX = splitX + panelBWidth * 0.27;
+        const currentSourceX = departX + curShiftPx;
+        const returnX = departX + fullShiftPx;
+        const midX = departX + fullShiftPx * 0.5;
+
+        // Train car exterior geometry (moves right by curShiftPx)
+        const trainLeft = currentSourceX - 115 * scale;
+        const trainBodyRight = currentSourceX + 185 * scale;
+        const trainNoseTipX = trainBodyRight + 74 * scale;
+        const trainRoofY = ceilingY - 12 * scale;
+        const trainFloorY = floorY + 8 * scale;
+
+        // 1. Track / Platform Bar beneath train
+        ctx.save();
+        const trackGrad = ctx.createLinearGradient(0, trainFloorY, 0, trainFloorY + 10 * scale);
+        trackGrad.addColorStop(0, '#cbd5e1');
+        trackGrad.addColorStop(1, '#94a3b8');
+        ctx.fillStyle = trackGrad;
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 1;
+        ctx.fillRect(splitX + 16 * scale, trainFloorY, panelBWidth - 28 * scale, 9 * scale);
+        ctx.strokeRect(splitX + 16 * scale, trainFloorY, panelBWidth - 28 * scale, 9 * scale);
+        ctx.restore();
+
+        // 2. Curved Motion Arcs behind tail of train (matching Fig. 37.6b)
+        if (phys.beta > 0.01) {
+          ctx.save();
+          ctx.strokeStyle = 'rgba(148, 163, 184, 0.55)';
+          ctx.lineWidth = 1.4 * scale;
+          for (let i = 1; i <= 4; i++) {
+            const arcX = trainLeft - i * 11 * scale;
+            ctx.beginPath();
+            ctx.moveTo(arcX + 6 * scale, trainRoofY - 4 * scale);
+            ctx.quadraticCurveTo(arcX - 4 * scale, (trainRoofY + trainFloorY) * 0.5, arcX + 6 * scale, trainFloorY + 2 * scale);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+
+        // 3. Aerodynamic Train Car Body & Windows
+        ctx.save();
+        ctx.fillStyle = '#cbd5e1';
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 1.4 * scale;
+
+        // Outer bullet-train silhouette
+        ctx.beginPath();
+        ctx.moveTo(trainLeft + 10 * scale, trainRoofY);
+        ctx.lineTo(trainBodyRight, trainRoofY);
+        ctx.quadraticCurveTo(trainNoseTipX - 10 * scale, trainRoofY + 6 * scale, trainNoseTipX, trainFloorY - 12 * scale);
+        ctx.quadraticCurveTo(trainNoseTipX - 4 * scale, trainFloorY, trainBodyRight - 10 * scale, trainFloorY);
+        ctx.lineTo(trainLeft + 10 * scale, trainFloorY);
+        ctx.quadraticCurveTo(trainLeft, trainFloorY, trainLeft, trainFloorY - 12 * scale);
+        ctx.lineTo(trainLeft, trainRoofY + 12 * scale);
+        ctx.quadraticCurveTo(trainLeft, trainRoofY, trainLeft + 10 * scale, trainRoofY);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Large panoramic passenger window cutout
+        const winLeft = trainLeft + 16 * scale;
+        const winRight = trainBodyRight - 6 * scale;
+        const winTop = trainRoofY + 10 * scale;
+        const winBot = trainFloorY - 8 * scale;
+        ctx.fillStyle = '#f8fafc';
+        ctx.beginPath();
+        ctx.roundRect(winLeft, winTop, winRight - winLeft, winBot - winTop, 8 * scale);
+        ctx.fill();
+        ctx.stroke();
+
+        // Subtle diagonal window glass reflection lines
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 1.1 * scale;
+        ctx.beginPath();
+        ctx.moveTo(winLeft + 18 * scale, winTop + 34 * scale);
+        ctx.lineTo(winLeft + 34 * scale, winTop + 14 * scale);
+        ctx.moveTo(winLeft + 24 * scale, winTop + 38 * scale);
+        ctx.lineTo(winLeft + 42 * scale, winTop + 16 * scale);
+
+        ctx.moveTo(winRight - 36 * scale, winBot - 16 * scale);
+        ctx.lineTo(winRight - 18 * scale, winBot - 38 * scale);
+        ctx.moveTo(winRight - 28 * scale, winBot - 14 * scale);
+        ctx.lineTo(winRight - 12 * scale, winBot - 34 * scale);
+        ctx.stroke();
+
+        // Nose coupler + green velocity arrow "u"
+        ctx.fillStyle = '#64748b';
+        ctx.fillRect(trainNoseTipX - 2 * scale, trainFloorY - 24 * scale, 6 * scale, 12 * scale);
+        if (phys.beta > 0.005) {
+          drawVelocityVectorU(trainNoseTipX + 6 * scale, trainFloorY - 18 * scale, (26 + 24 * phys.beta) * scale, scale);
+        }
+        ctx.restore();
+
+        // 4. Stroboscopic Trail of Sources, Mirrors, and Wavy Vertical Rays (Fig. 37.6b style)
+        if (state.showStrobe && curShiftPx > 4 * scale) {
+          const stepPx = 15 * scale;
+          const numSteps = Math.floor(curShiftPx / stepPx);
+          for (let i = 0; i < numSteps; i++) {
+            const gx = departX + i * stepPx;
+            const alpha = 0.25 + 0.35 * (i / Math.max(1, numSteps));
+
+            // Faint wavy vertical light-pulse trace inside the train's frame
+            ctx.save();
+            ctx.strokeStyle = `rgba(148, 163, 184, ${alpha * 0.7})`;
+            ctx.lineWidth = 1.0 * scale;
+            ctx.beginPath();
+            const segs = 14;
+            for (let s = 0; s <= segs; s++) {
+              const frac = s / segs;
+              const wy = sourceTopAy + (mirrorBotAy - sourceTopAy) * frac;
+              const wx = gx + Math.sin(frac * Math.PI * 5) * 2.2 * scale;
+              if (s === 0) ctx.moveTo(wx, wy);
+              else ctx.lineTo(wx, wy);
+            }
+            ctx.stroke();
+            ctx.restore();
+
+            // Ghost mirror segment & ghost pink source cylinder
+            drawMirror(gx, ceilingY, scale, alpha, true);
+            drawLightSource(gx, floorY, scale, alpha, true);
+          }
+        }
+
+        // 5. Active Mirror & Active Source O' on the train
+        drawMirror(currentSourceX, ceilingY, scale, 1.0, false);
+        drawLightSource(currentSourceX, floorY, scale, 1.0, false);
+
+        // 6. Mavis seated inside moving train car + S' coordinate icon
+        const mavisBx = currentSourceX + 96 * scale;
+        drawMavisSeated(mavisBx, floorY, scale, true);
+        drawCoordinateIcon(mavisBx + 64 * scale, floorY - 6 * scale, "S′", scale);
+
+        // 7. Diagonal Purple Light Path & Pulse in Stanley's Frame (S)
+        ctx.save();
+        ctx.strokeStyle = '#7e22ce';
+        ctx.lineWidth = Math.max(2.2, 2.7 * scale);
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        if (p <= 0.5) {
+          const fracUp = p / 0.5;
+          const curPxX = departX + (midX - departX) * fracUp;
+          const curPxY = sourceTopAy + (mirrorBotAy - sourceTopAy) * fracUp;
+
+          ctx.beginPath();
+          ctx.moveTo(departX, sourceTopAy);
+          ctx.lineTo(curPxX, curPxY);
+          ctx.stroke();
+
+          if (fracUp > 0.45) {
+            drawPurpleArrowhead(departX, sourceTopAy, midX, mirrorBotAy, 0.48, scale);
+          }
+          if (p > 0) {
+            drawPhotonPulse(curPxX, curPxY, scale);
+          }
+        } else {
+          const fracDown = (p - 0.5) / 0.5;
+          const curPxX = midX + (returnX - midX) * fracDown;
+          const curPxY = mirrorBotAy + (sourceTopAy - mirrorBotAy) * fracDown;
+
+          ctx.beginPath();
+          ctx.moveTo(departX, sourceTopAy);
+          ctx.lineTo(midX, mirrorBotAy);
+          ctx.lineTo(curPxX, curPxY);
+          ctx.stroke();
+
+          drawPurpleArrowhead(departX, sourceTopAy, midX, mirrorBotAy, 0.48, scale);
+          if (fracDown > 0.45) {
+            drawPurpleArrowhead(midX, mirrorBotAy, returnX, sourceTopAy, 0.48, scale);
+          }
+          if (p < 1.0) {
+            drawPhotonPulse(curPxX, curPxY, scale);
+          }
+        }
+        ctx.restore();
+
+        // 8. Labels "O'" (departure & current/return) and Diagonal Path Labels "l"
+        ctx.save();
+        ctx.fillStyle = '#0f172a';
+        ctx.font = `italic 600 ${Math.round(13.5 * scale)}px Georgia, serif`;
+        ctx.textAlign = 'center';
+
+        // Departure O' label
+        ctx.fillText("O′", departX - 8 * scale, floorY - 18 * scale);
+
+        // Current / Return O' label
+        if (curShiftPx > 18 * scale) {
+          ctx.fillText("O′", currentSourceX + 10 * scale, floorY - 18 * scale);
+        }
+
+        // Labels "l" along the diagonal legs
+        if (p > 0.25 && phys.beta > 0.03) {
+          ctx.fillText('l', (departX + midX) * 0.5 - 11 * scale, (sourceTopAy + mirrorBotAy) * 0.5 - 4 * scale);
+        }
+        if (p > 0.75 && phys.beta > 0.03) {
+          ctx.fillText('l', (midX + returnX) * 0.5 + 11 * scale, (mirrorBotAy + sourceTopAy) * 0.5 - 4 * scale);
+        }
+        ctx.restore();
+
+        // 9. Dimension Lines: Vertical "d" on right of clock & Horizontal "u Δt" below track
+        drawDimensionLine(
+          currentSourceX + 24 * scale,
+          mirrorBotAy,
+          currentSourceX + 24 * scale,
+          sourceTopAy,
+          'd',
+          scale,
+          true
+        );
+
+        if (curShiftPx > 22 * scale) {
+          const dimLabel = p >= 0.99 ? 'u Δt' : 'u t';
+          drawDimensionLine(
+            departX,
+            trainFloorY + 22 * scale,
+            currentSourceX,
+            trainFloorY + 22 * scale,
+            dimLabel,
+            scale,
+            false
+          );
+        }
+
+        // 10. Stanley Standing at Ground Origin O + S Coordinate Icon
+        const stanleyX = departX - 38 * scale;
+        drawStanleyStanding(stanleyX, trainFloorY + 18 * scale, scale);
+        drawCoordinateIcon(stanleyX - 58 * scale, trainFloorY + 34 * scale, 'S', scale);
+
+        ctx.save();
+        ctx.fillStyle = '#0f172a';
+        ctx.font = `italic 600 ${Math.round(13.5 * scale)}px Georgia, serif`;
+        ctx.textAlign = 'left';
+        ctx.fillText('O', stanleyX + 16 * scale, trainFloorY + 26 * scale);
+        ctx.restore();
+
+        // 11. Three Textbook Cyan Annotations in Panel (b) (exact Fig. 37.6b text!)
+        ctx.save();
+        ctx.fillStyle = '#0284c7';
+        ctx.font = `500 ${Math.round(12.5 * scale)}px Georgia, serif`;
+        ctx.textAlign = 'left';
+
+        // Top-right annotation inside/above train
+        const topAnnoX = splitX + panelBWidth * 0.53;
+        const topAnnoY = 34 * scale;
+        ctx.fillText('Mavis observes a light pulse', topAnnoX, topAnnoY);
+        ctx.fillText("emitted from a source at O′ and", topAnnoX, topAnnoY + 15.5 * scale);
+        ctx.fillText('reflected back along the same line.', topAnnoX, topAnnoY + 31 * scale);
+
+        // Bottom-left annotation near Stanley
+        const botLeftX = splitX + 18 * scale;
+        const botLeftY = trainFloorY + 54 * scale;
+        ctx.fillText('Stanley observes', botLeftX, botLeftY);
+        ctx.fillText('the same light pulse', botLeftX, botLeftY + 15.5 * scale);
+        ctx.fillText('following a diagonal path.', botLeftX, botLeftY + 31 * scale);
+
+        // Bottom-right annotation explaining time dilation
+        const botRightX = splitX + panelBWidth * 0.37;
+        const botRightY = trainFloorY + 46 * scale;
+        ctx.fillText('Stanley measures a longer time interval Δt:', botRightX, botRightY);
+        ctx.fillText("The light pulse travels at same speed as in S′,", botRightX, botRightY + 15.5 * scale);
+        ctx.fillText("but travels a greater distance than in S′.", botRightX, botRightY + 31 * scale);
+        ctx.restore();
+      }
+
+      // =========================================================================
+      // UI, BUTTON STATE & TELEMETRY UPDATES
+      // =========================================================================
+      function updateActionButton() {
+        iconPlay.classList.add('hidden');
+        iconPause.classList.add('hidden');
+        iconReplay.classList.add('hidden');
+
+        if (state.status === 'ready') {
+          lblAction.textContent = 'Start Simulation';
+          btnAction.className =
+            'inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 shadow-sm transition active:scale-95';
+          iconPlay.classList.remove('hidden');
+          statusDot.className = 'inline-block w-2 h-2 rounded-full bg-amber-500';
+        } else if (state.status === 'running') {
+          lblAction.textContent = 'Pause';
+          btnAction.className =
+            'inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold text-white bg-amber-500 hover:bg-amber-400 shadow-sm transition active:scale-95';
+          iconPause.classList.remove('hidden');
+          statusDot.className = 'inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
+        } else if (state.status === 'paused') {
+          lblAction.textContent = 'Resume';
+          btnAction.className =
+            'inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold text-white bg-sky-600 hover:bg-sky-500 shadow-sm transition active:scale-95';
+          iconPlay.classList.remove('hidden');
+          statusDot.className = 'inline-block w-2 h-2 rounded-full bg-sky-500';
+        } else if (state.status === 'completed') {
+          lblAction.textContent = 'Replay';
+          btnAction.className =
+            'inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-sm transition active:scale-95';
+          iconReplay.classList.remove('hidden');
+          statusDot.className = 'inline-block w-2 h-2 rounded-full bg-indigo-500';
+        }
+      }
+
+      function updateTelemetry() {
+        const phys = getPhysicsValues();
+        const p = state.progress;
+
+        valBetaGamma.innerHTML = `u = ${phys.beta.toFixed(2)}c &bull; &gamma; = ${phys.gamma.toFixed(3)}`;
+        valHeight.textContent = `d = ${phys.d.toFixed(2)} m`;
+
+        // Card 1: Proper Time
+        cardProperTime.textContent = `${phys.dt0_ns.toFixed(2)} ns`;
+        cardProperLive.textContent = `Elapsed: ${(p * phys.dt0_ns).toFixed(2)} / ${phys.dt0_ns.toFixed(2)} ns`;
+        eqProperSub.textContent = `2(${phys.d.toFixed(2)} m) / c`;
+
+        // Card 2: Dilated Time
+        cardDilatedTime.textContent = `${phys.dt_ns.toFixed(2)} ns`;
+        cardDilatedLive.textContent = `Elapsed: ${(p * phys.dt_ns).toFixed(2)} / ${phys.dt_ns.toFixed(2)} ns`;
+        eqDilatedSub.textContent = `${phys.gamma.toFixed(3)} × ${phys.dt0_ns.toFixed(2)} ns`;
+
+        // Card 3: Lorentz Factor
+        cardGamma.textContent = phys.gamma.toFixed(4);
+        cardShiftDist.textContent = `Train shift uΔt = ${phys.fullShift.toFixed(2)} m`;
+        eqGammaSub.textContent = `1 / √(1 − ${phys.beta.toFixed(2)}²)`;
+
+        // Card 4: Pythagorean Geometry Check
+        cardLegL.textContent = `l = ${phys.legL.toFixed(2)} m`;
+        cardPythVals.textContent = `√(${phys.d.toFixed(2)}² + ${phys.halfShift.toFixed(2)}²) = ${phys.legL.toFixed(2)} m`;
+
+        // Status banner text
+        if (state.status === 'ready') {
+          statusBanner.innerHTML =
+            'Ready at <strong class="font-mono-code text-slate-700">t = 0.00 ns</strong> — Press <strong>Start Simulation</strong> to emit the light pulse from <span class="font-mono-code">O&prime;</span>.';
+        } else if (state.status === 'running') {
+          const legText = p < 0.5 ? 'traveling upward toward mirror' : 'reflecting downward back to O&prime;';
+          statusBanner.innerHTML =
+            `Pulse ${legText} (<strong class="font-mono-code text-purple-700">${Math.round(p * 100)}%</strong> complete) &mdash; Mavis: <strong class="font-mono-code text-rose-700">${(p * phys.dt0_ns).toFixed(2)} ns</strong> | Stanley: <strong class="font-mono-code text-sky-700">${(p * phys.dt_ns).toFixed(2)} ns</strong>`;
+        } else if (state.status === 'paused') {
+          statusBanner.innerHTML =
+            `Paused at <strong class="font-mono-code text-slate-700">${Math.round(p * 100)}%</strong> &mdash; Press <strong>Resume</strong> to continue or adjust sliders.`;
+        } else {
+          statusBanner.innerHTML =
+            `Round-trip complete! Mavis measured <strong class="font-mono-code text-rose-700">&Delta;t<sub>0</sub> = ${phys.dt0_ns.toFixed(2)} ns</strong> while Stanley measured <strong class="font-mono-code text-sky-700">&Delta;t = ${phys.dt_ns.toFixed(2)} ns</strong> (&gamma; = ${phys.gamma.toFixed(3)}).`;
+        }
+      }
+
+      // =========================================================================
+      // MAIN ANIMATION LOOP
+      // =========================================================================
+      function animate(timestamp) {
+        if (!state.lastTimestamp) state.lastTimestamp = timestamp;
+        const dt = Math.min((timestamp - state.lastTimestamp) / 1000, 0.05);
+        state.lastTimestamp = timestamp;
+
+        if (state.status === 'running') {
+          const phys = getPhysicsValues();
+          // Scale visual playback speed inversely with gamma so c remains visually constant!
+          // At beta = 0, full round-trip takes ~3.2s; at higher beta, dilated round-trip takes 3.2 * gamma seconds.
+          const roundTripDurationSec = 3.2 * phys.gamma;
+          state.progress += dt / roundTripDurationSec;
+
+          if (state.progress >= 1.0) {
+            if (state.loopMode) {
+              state.progress %= 1.0;
+            } else {
+              state.progress = 1.0;
+              state.status = 'completed';
+              updateActionButton();
+            }
+          }
+        }
+
+        renderCanvas();
+        updateTelemetry();
+        requestAnimationFrame(animate);
+      }
+
+      // =========================================================================
+      // CONTROL LISTENERS
+      // =========================================================================
+      btnAction.addEventListener('click', () => {
+        if (state.status === 'ready' || state.status === 'paused') {
+          state.status = 'running';
+        } else if (state.status === 'running') {
+          state.status = 'paused';
+        } else if (state.status === 'completed') {
+          state.progress = 0;
+          state.status = 'running';
+        }
+        updateActionButton();
+      });
+
+      btnReset.addEventListener('click', () => {
+        state.progress = 0;
+        state.status = 'ready';
+        updateActionButton();
+      });
+
+      sliderBeta.addEventListener('input', (e) => {
+        state.beta = parseFloat(e.target.value);
+      });
+
+      sliderHeight.addEventListener('input', (e) => {
+        state.mirrorDist = parseFloat(e.target.value);
+      });
+
+      chkLoop.addEventListener('change', (e) => {
+        state.loopMode = e.target.checked;
+        if (state.loopMode && state.status === 'completed') {
+          state.progress = 0;
+          state.status = 'running';
+          updateActionButton();
+        }
+      });
+
+      chkStrobe.addEventListener('change', (e) => {
+        state.showStrobe = e.target.checked;
+      });
+
+      // Initialize
+      handleResize();
+      updateActionButton();
+      requestAnimationFrame(animate);
+    })();
+  </script>
+</body>
+</html>
