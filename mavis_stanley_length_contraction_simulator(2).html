@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Length Contraction Simulator — Mavis &amp; Stanley (S &amp; S')</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 6px;
+      border-radius: 999px;
+      background: #1e293b;
+      border: 1px solid #334155;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      margin-top: -6px;
+      background-color: #818cf8;
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      border: 2px solid #0f172a;
+      box-shadow: 0 0 8px rgba(129, 140, 248, 0.55);
+      transition: transform 0.1s ease, background-color 0.15s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+      background-color: #a5b4fc;
+    }
+    input[type="range"]::-moz-range-track {
+      height: 6px;
+      border-radius: 999px;
+      background: #1e293b;
+      border: 1px solid #334155;
+    }
+    input[type="range"]::-moz-range-thumb {
+      background-color: #818cf8;
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      border: 2px solid #0f172a;
+      box-shadow: 0 0 8px rgba(129, 140, 248, 0.55);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex flex-col selection:bg-indigo-500/30 selection:text-indigo-200">
+
+  <!-- Top Control Bar -->
+  <header class="border-b border-slate-800/80 bg-slate-900/90 backdrop-blur-md sticky top-0 z-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="7" width="20" height="10" rx="2" />
+            <line x1="6" y1="12" x2="18" y2="12" stroke="#c084fc" stroke-width="2.2" />
+            <polyline points="15 9 18 12 15 15" stroke="#c084fc" stroke-width="2.2" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-bold tracking-tight text-slate-100 flex items-center gap-2">
+            Relativistic Length Contraction
+            <span class="hidden md:inline-block text-[11px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-slate-800 text-indigo-300 border border-slate-700">Mavis &amp; Stanley (S &amp; S')</span>
+          </h1>
+          <p class="text-xs text-slate-400">Round-trip light clock &amp; ruler contraction across inertial reference frames</p>
+        </div>
+      </div>
+
+      <!-- Playback Controls -->
+      <div class="flex flex-wrap items-center gap-2">
+        <button
+          id="btnPlayPause"
+          type="button"
+          class="px-4 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-xs transition flex items-center gap-1.5 shadow-sm shadow-emerald-500/20"
+        >
+          <svg id="iconPause" class="w-3.5 h-3.5 hidden" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M6 4a1 1 0 011 1v10a1 1 0 11-2 0V5a1 1 0 011-1zm7 0a1 1 0 011 1v10a1 1 0 11-2 0V5a1 1 0 011-1z" clip-rule="evenodd" />
+          </svg>
+          <svg id="iconPlay" class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" clip-rule="evenodd" />
+          </svg>
+          <span id="lblPlayPause">Start Simulation</span>
+        </button>
+
+        <button
+          id="btnReset"
+          type="button"
+          class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-semibold text-xs transition"
+        >
+          Reset
+        </button>
+
+        <label class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 cursor-pointer text-xs text-slate-300 select-none">
+          <input id="chkAutoLoop" type="checkbox" class="accent-indigo-500 w-3.5 h-3.5 rounded" />
+          <span>Continuous Loop</span>
+        </label>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-4 sm:py-5 grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+    <!-- Left 8 Columns: Stacked Dual-Frame Canvases (a) & (b) -->
+    <section class="lg:col-span-8 flex flex-col gap-4">
+
+      <!-- Panel (a): Mavis's Frame S' -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 sm:p-4 shadow-xl">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-purple-500/20 border border-purple-500/40 text-purple-300 font-mono text-xs font-bold">(a)</span>
+            <h2 class="text-xs sm:text-sm font-bold text-slate-100">Mavis's Frame of Reference (<span class="font-mono text-purple-300">S'</span> — Train Rest Frame)</h2>
+          </div>
+          <span id="phaseBadgeMavis" class="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/30">
+            Ready: Pulse at Source (t' = 0)
+          </span>
+        </div>
+
+        <div id="wrapMavis" class="relative w-full h-[220px] sm:h-[240px] rounded-xl overflow-hidden bg-slate-950 border border-slate-800/90">
+          <canvas id="canvasMavis" width="760" height="230" class="w-full h-full block"></canvas>
+        </div>
+
+        <p class="mt-2.5 text-xs text-sky-300/90 leading-relaxed">
+          The ruler is stationary in Mavis's frame <span class="font-mono font-semibold">S'</span> with proper length <span class="font-mono font-semibold">l<sub>0</sub></span>. The light pulse travels a distance <span class="font-mono font-semibold">l<sub>0</sub></span> from the light source to the mirror (<span class="font-mono font-semibold">t'<sub>1</sub> = l<sub>0</sub>/c</span>) and <span class="font-mono font-semibold">l<sub>0</sub></span> back (<span class="font-mono font-semibold">&Delta;t<sub>0</sub> = 2l<sub>0</sub>/c</span>).
+        </p>
+      </div>
+
+      <!-- Panel (b): Stanley's Frame S -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 sm:p-4 shadow-xl">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 font-mono text-xs font-bold">(b)</span>
+            <h2 class="text-xs sm:text-sm font-bold text-slate-100">Stanley's Frame of Reference (<span class="font-mono text-cyan-300">S</span> — Platform Frame)</h2>
+          </div>
+          <span id="phaseBadgeStanley" class="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+            Ready: Press Start Simulation (t = 0)
+          </span>
+        </div>
+
+        <div id="wrapStanley" class="relative w-full h-[275px] sm:h-[295px] rounded-xl overflow-hidden bg-slate-950 border border-slate-800/90">
+          <canvas id="canvasStanley" width="760" height="285" class="w-full h-full block"></canvas>
+        </div>
+
+        <p class="mt-2.5 text-xs text-sky-300/90 leading-relaxed">
+          The ruler moves at speed <span class="font-mono font-semibold">u</span> in Stanley's frame <span class="font-mono font-semibold">S</span> and is contracted to <span class="font-mono font-semibold">l = l<sub>0</sub>/&gamma;</span>. Outbound (<span class="font-mono font-semibold">&Delta;t<sub>1</sub></span>), the light pulse travels <span class="font-mono font-semibold">d<sub>1</sub> = l + u&Delta;t<sub>1</sub></span> to catch the receding mirror. Returning (<span class="font-mono font-semibold">&Delta;t<sub>2</sub></span>), it travels <span class="font-mono font-semibold">d<sub>2</sub> = l &minus; u&Delta;t<sub>2</sub></span> to meet the advancing source.
+        </p>
+      </div>
+
+    </section>
+
+    <!-- Right 4 Columns: Parameters & Live Relativistic Telemetry -->
+    <section class="lg:col-span-4 flex flex-col gap-4">
+
+      <!-- Parameter Sliders Card -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xs font-mono uppercase tracking-wider text-slate-400">Experiment Parameters</h2>
+          <span id="readoutGammaBadge" class="font-mono text-xs font-bold px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+            &gamma; = 1.250
+          </span>
+        </div>
+
+        <!-- Train Speed u/c -->
+        <div class="space-y-1.5">
+          <div class="flex justify-between text-xs">
+            <label for="sliderSpeed" class="text-slate-300 font-medium">Train Speed (<span class="font-mono">u / c</span>)</label>
+            <span id="labelSpeedVal" class="font-mono text-indigo-400 font-bold">0.600 c</span>
+          </div>
+          <input id="sliderSpeed" type="range" min="0" max="0.90" step="0.005" value="0.60" class="w-full" />
+          <div class="flex justify-between text-[10px] font-mono text-slate-500">
+            <span>0.00 c</span>
+            <span>0.45 c</span>
+            <span>0.90 c</span>
+          </div>
+        </div>
+
+        <!-- Quick Relativistic Presets -->
+        <div class="grid grid-cols-4 gap-1.5">
+          <button type="button" data-speed="0.00" class="preset-btn py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] font-mono text-slate-300 transition">
+            0.00c
+          </button>
+          <button type="button" data-speed="0.60" class="preset-btn py-1.5 rounded-lg bg-indigo-500/20 border border-indigo-500/50 text-[11px] font-mono text-indigo-200 font-semibold transition">
+            0.60c
+          </button>
+          <button type="button" data-speed="0.80" class="preset-btn py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] font-mono text-slate-300 transition">
+            0.80c
+          </button>
+          <button type="button" data-speed="0.866" class="preset-btn py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] font-mono text-slate-300 transition" title="Gamma = 2.00">
+            0.866c
+          </button>
+        </div>
+
+        <!-- Proper Ruler Length l_0 -->
+        <div class="space-y-1.5 pt-2 border-t border-slate-800">
+          <div class="flex justify-between text-xs">
+            <label for="sliderProperLen" class="text-slate-300 font-medium">Proper Ruler Length (<span class="font-mono">l<sub>0</sub></span>)</label>
+            <span id="labelProperLenVal" class="font-mono text-amber-400 font-bold">1.00 m</span>
+          </div>
+          <input id="sliderProperLen" type="range" min="0.60" max="1.40" step="0.05" value="1.00" class="w-full" />
+          <div class="flex justify-between text-[10px] font-mono text-slate-500">
+            <span>0.60 m</span>
+            <span>1.00 m</span>
+            <span>1.40 m</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Telemetry & Physics Formulas Card -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xs font-mono uppercase tracking-wider text-slate-400">Live Telemetry &amp; Formulas</h2>
+          <span class="text-[11px] font-mono text-slate-500">Natural units: c = 1</span>
+        </div>
+
+        <!-- Lorentz Factor & Contracted Length -->
+        <div class="grid grid-cols-2 gap-2">
+          <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5">
+            <div class="text-[11px] text-slate-400">Lorentz Factor (&gamma;)</div>
+            <div id="valGamma" class="font-mono text-sm font-bold text-indigo-400 mt-0.5">1.250</div>
+            <div class="text-[10px] font-mono text-slate-500 mt-0.5">&gamma; = 1 / &radic;(1 &minus; u&sup2;/c&sup2;)</div>
+          </div>
+
+          <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5">
+            <div class="text-[11px] text-slate-400">Contracted Length (<span class="font-mono">l</span>)</div>
+            <div id="valLength" class="font-mono text-sm font-bold text-amber-400 mt-0.5">0.800 m</div>
+            <div class="text-[10px] font-mono text-slate-500 mt-0.5">l = l<sub>0</sub> / &gamma;</div>
+          </div>
+        </div>
+
+        <!-- Stanley's Outbound & Return Times -->
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2 text-xs">
+          <div class="flex items-center justify-between border-b border-slate-800/80 pb-1.5">
+            <span class="text-slate-400">Outbound (<span class="font-mono">&Delta;t<sub>1</sub> = l / (c &minus; u)</span>)</span>
+            <span id="valLeg1" class="font-mono font-semibold text-cyan-300">2.000 m/c</span>
+          </div>
+          <div class="flex items-center justify-between border-b border-slate-800/80 pb-1.5">
+            <span class="text-slate-400">Return (<span class="font-mono">&Delta;t<sub>2</sub> = l / (c + u)</span>)</span>
+            <span id="valLeg2" class="font-mono font-semibold text-emerald-300">0.500 m/c</span>
+          </div>
+          <div class="flex items-center justify-between pt-0.5">
+            <span class="text-slate-300 font-medium">Total Dilated Time (<span class="font-mono">&Delta;t = &Delta;t<sub>1</sub> + &Delta;t<sub>2</sub></span>)</span>
+            <span id="valTotalTime" class="font-mono font-bold text-indigo-300">2.500 m/c</span>
+          </div>
+        </div>
+
+        <!-- Proper Time vs Dilated Time Proof -->
+        <div class="bg-indigo-950/30 border border-indigo-500/25 rounded-xl p-3 text-xs space-y-1.5">
+          <div class="flex justify-between">
+            <span class="text-slate-300">Mavis's Proper Time (<span class="font-mono">&Delta;t<sub>0</sub> = 2l<sub>0</sub>/c</span>):</span>
+            <span id="valMavisTotal" class="font-mono font-bold text-purple-300">2.000 m/c</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-300">Time Dilation (<span class="font-mono">&Delta;t = &gamma;&Delta;t<sub>0</sub></span>):</span>
+            <span id="valDilationCheck" class="font-mono font-bold text-indigo-300">2.500 m/c</span>
+          </div>
+          <p class="text-[11px] text-slate-400 pt-1 leading-snug">
+            Equating <span class="font-mono text-slate-300">&Delta;t = 2l&gamma;&sup2;/c</span> with <span class="font-mono text-slate-300">&gamma;(2l<sub>0</sub>/c)</span> yields <span class="font-mono text-amber-300">l = l<sub>0</sub>/&gamma;</span>.
+          </p>
+        </div>
+
+        <!-- Live Elapsed Clocks -->
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <div class="bg-slate-950/90 border border-purple-500/30 rounded-xl px-3 py-2 flex items-center justify-between">
+            <span class="text-[11px] text-purple-300">Clock t' (S')</span>
+            <span id="clockMavis" class="font-mono text-xs font-bold text-purple-200">0.00</span>
+          </div>
+          <div class="bg-slate-950/90 border border-cyan-500/30 rounded-xl px-3 py-2 flex items-center justify-between">
+            <span class="text-[11px] text-cyan-300">Clock t (S)</span>
+            <span id="clockStanley" class="font-mono text-xs font-bold text-cyan-200">0.00</span>
+          </div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // =========================================================================
+      // SIMULATION STATE
+      // =========================================================================
+      const state = {
+        beta: 0.60,           // u / c (0.00 to 0.90)
+        properLength: 1.00,   // l0 in meters (0.60 to 1.40)
+        isPlaying: false,     // Starts paused at t = 0
+        autoLoop: false,      // Single round-trip by default
+        tStanley: 0,          // Current time in Stanley's frame S (units of m / c)
+        lastTimestamp: 0,
+        loopPauseTimer: 0,
+        mavisSize: { w: 760, h: 230 },
+        stanleySize: { w: 760, h: 285 },
+      };
+
+      // =========================================================================
+      // DOM REFERENCES
+      // =========================================================================
+      const wrapMavis = document.getElementById('wrapMavis');
+      const canvasMavis = document.getElementById('canvasMavis');
+      const ctxMavis = canvasMavis.getContext('2d');
+
+      const wrapStanley = document.getElementById('wrapStanley');
+      const canvasStanley = document.getElementById('canvasStanley');
+      const ctxStanley = canvasStanley.getContext('2d');
+
+      const btnPlayPause = document.getElementById('btnPlayPause');
+      const lblPlayPause = document.getElementById('lblPlayPause');
+      const iconPause = document.getElementById('iconPause');
+      const iconPlay = document.getElementById('iconPlay');
+      const btnReset = document.getElementById('btnReset');
+      const chkAutoLoop = document.getElementById('chkAutoLoop');
+
+      const sliderSpeed = document.getElementById('sliderSpeed');
+      const labelSpeedVal = document.getElementById('labelSpeedVal');
+      const readoutGammaBadge = document.getElementById('readoutGammaBadge');
+      const presetBtns = document.querySelectorAll('.preset-btn');
+
+      const sliderProperLen = document.getElementById('sliderProperLen');
+      const labelProperLenVal = document.getElementById('labelProperLenVal');
+
+      const phaseBadgeMavis = document.getElementById('phaseBadgeMavis');
+      const phaseBadgeStanley = document.getElementById('phaseBadgeStanley');
+
+      const valGamma = document.getElementById('valGamma');
+      const valLength = document.getElementById('valLength');
+      const valLeg1 = document.getElementById('valLeg1');
+      const valLeg2 = document.getElementById('valLeg2');
+      const valTotalTime = document.getElementById('valTotalTime');
+      const valMavisTotal = document.getElementById('valMavisTotal');
+      const valDilationCheck = document.getElementById('valDilationCheck');
+      const clockMavis = document.getElementById('clockMavis');
+      const clockStanley = document.getElementById('clockStanley');
+
+      // =========================================================================
+      // RELIABLE CANVAS SIZING (RESIZE OBSERVER + FALLBACK DIMENSIONS)
+      // =========================================================================
+      function syncCanvasSize(wrapper, canvas, ctx, fallbackW, fallbackH) {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const rect = wrapper.getBoundingClientRect();
+        const w = rect.width > 40 ? Math.floor(rect.width) : fallbackW;
+        const h = rect.height > 40 ? Math.floor(rect.height) : fallbackH;
+
+        if (canvas.width !== Math.floor(w * dpr) || canvas.height !== Math.floor(h * dpr)) {
+          canvas.width = Math.floor(w * dpr);
+          canvas.height = Math.floor(h * dpr);
+        }
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        return { w, h };
+      }
+
+      function updateAllCanvasSizes() {
+        state.mavisSize = syncCanvasSize(wrapMavis, canvasMavis, ctxMavis, 760, 230);
+        state.stanleySize = syncCanvasSize(wrapStanley, canvasStanley, ctxStanley, 760, 285);
+      }
+
+      if (typeof ResizeObserver !== 'undefined') {
+        const ro = new ResizeObserver(() => {
+          updateAllCanvasSizes();
+        });
+        ro.observe(wrapMavis);
+        ro.observe(wrapStanley);
+      }
+      window.addEventListener('resize', updateAllCanvasSizes);
+
+      // =========================================================================
+      // RELATIVISTIC KINEMATICS (UNITS: l0 in meters, c = 1)
+      // =========================================================================
+      function getKinematics() {
+        const u = state.beta; // in units of c
+        const gamma = 1 / Math.sqrt(1 - u * u);
+        const l0 = state.properLength;
+        const l = l0 / gamma;
+
+        // Mavis's rest frame S'
+        const dt0_out = l0;       // t'_1 = l0 / c
+        const dt0_ret = l0;       // t'_2 = l0 / c
+        const dt0_total = 2 * l0; // Delta t_0 = 2 l0 / c
+
+        // Stanley's platform frame S
+        const dt1 = l / (1 - u);  // Delta t_1 = l / (c - u)
+        const d1 = l + u * dt1;   // d_1 = l + u * Delta t_1
+
+        const dt2 = l / (1 + u);  // Delta t_2 = l / (c + u)
+        const d2 = l - u * dt2;   // d_2 = l - u * Delta t_2
+
+        const dtTotal = dt1 + dt2; // Delta t = gamma * Delta t_0
+
+        return {
+          u,
+          gamma,
+          l0,
+          l,
+          dt0_out,
+          dt0_ret,
+          dt0_total,
+          dt1,
+          d1,
+          dt2,
+          d2,
+          dtTotal,
+        };
+      }
+
+      // =========================================================================
+      // VECTOR ILLUSTRATION HELPERS
+      // =========================================================================
+      function roundRect(ctx, x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+      }
+
+      function drawTrainSeats(ctx, x, y, totalWidth, height, numSeats) {
+        const seatW = totalWidth / numSeats;
+        for (let i = 0; i < numSeats; i++) {
+          const sx = x + i * seatW;
+          ctx.fillStyle = '#334155';
+          ctx.strokeStyle = '#64748b';
+          ctx.lineWidth = 1.2;
+          roundRect(ctx, sx + 1.5, y, Math.max(4, seatW - 3), height * 0.72, 5);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.fillStyle = '#475569';
+          roundRect(ctx, sx + 1, y + height * 0.66, Math.max(4, seatW - 2), height * 0.34, 4);
+          ctx.fill();
+          ctx.stroke();
+        }
+      }
+
+      function drawMavis(ctx, centerX, seatTopY, seatH, scaleX) {
+        ctx.save();
+        ctx.translate(centerX, seatTopY);
+        ctx.scale(scaleX, 1);
+
+        // Legs
+        ctx.strokeStyle = '#fda4af';
+        ctx.lineWidth = 4.2;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(-4, seatH * 0.85);
+        ctx.lineTo(-5, seatH * 1.32);
+        ctx.moveTo(4, seatH * 0.85);
+        ctx.lineTo(3, seatH * 1.32);
+        ctx.stroke();
+
+        // Shoes
+        ctx.fillStyle = '#e11d48';
+        ctx.beginPath();
+        ctx.ellipse(-6, seatH * 1.34, 4.5, 2.5, 0, 0, Math.PI * 2);
+        ctx.ellipse(2, seatH * 1.34, 4.5, 2.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Dress
+        ctx.fillStyle = '#e11d48';
+        ctx.strokeStyle = '#be123c';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(-8, seatH * 0.25);
+        ctx.lineTo(8, seatH * 0.25);
+        ctx.lineTo(13, seatH * 0.92);
+        ctx.lineTo(-13, seatH * 0.92);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Arms
+        ctx.strokeStyle = '#fda4af';
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.moveTo(-8, seatH * 0.32);
+        ctx.lineTo(-11, seatH * 0.65);
+        ctx.lineTo(-3, seatH * 0.72);
+        ctx.moveTo(8, seatH * 0.32);
+        ctx.lineTo(10, seatH * 0.65);
+        ctx.lineTo(3, seatH * 0.72);
+        ctx.stroke();
+
+        // Hair & Head
+        ctx.fillStyle = '#92400e';
+        ctx.beginPath();
+        ctx.arc(0, seatH * 0.04, 10.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#fecdd3';
+        ctx.beginPath();
+        ctx.arc(0, seatH * 0.06, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#92400e';
+        ctx.beginPath();
+        ctx.arc(0, seatH * 0.02, 8.2, Math.PI, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#1e293b';
+        ctx.beginPath();
+        ctx.arc(-3, seatH * 0.06, 1.1, 0, Math.PI * 2);
+        ctx.arc(3, seatH * 0.06, 1.1, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+
+        // Uncontracted label
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = '600 11px "Inter", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Mavis', centerX, seatTopY - 14);
+      }
+
+      function drawStanley(ctx, x, platformY) {
+        ctx.save();
+        ctx.translate(x, platformY);
+
+        // Shoes
+        ctx.fillStyle = '#334155';
+        ctx.beginPath();
+        ctx.ellipse(-4, -2, 6, 3, 0, 0, Math.PI * 2);
+        ctx.ellipse(5, -4, 6, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Trousers
+        ctx.fillStyle = '#2563eb';
+        ctx.beginPath();
+        ctx.moveTo(-8, -46);
+        ctx.lineTo(8, -46);
+        ctx.lineTo(9, -5);
+        ctx.lineTo(2, -5);
+        ctx.lineTo(0, -28);
+        ctx.lineTo(-2, -3);
+        ctx.lineTo(-9, -3);
+        ctx.closePath();
+        ctx.fill();
+
+        // Suit Jacket
+        ctx.fillStyle = '#3b82f6';
+        ctx.strokeStyle = '#1d4ed8';
+        ctx.lineWidth = 1.2;
+        roundRect(ctx, -10, -76, 20, 34, 5);
+        ctx.fill();
+        ctx.stroke();
+
+        // Briefcase
+        ctx.fillStyle = '#b45309';
+        ctx.strokeStyle = '#78350f';
+        roundRect(ctx, 4, -46, 14, 18, 2.5);
+        ctx.fill();
+        ctx.stroke();
+
+        // Arm
+        ctx.strokeStyle = '#3b82f6';
+        ctx.lineWidth = 5;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(7, -70);
+        ctx.lineTo(10, -47);
+        ctx.stroke();
+
+        // Head & Hair
+        ctx.fillStyle = '#fed7aa';
+        ctx.beginPath();
+        ctx.arc(0, -85, 7.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#64748b';
+        ctx.beginPath();
+        ctx.arc(-1, -87, 7.8, Math.PI * 0.85, Math.PI * 2.15);
+        ctx.fill();
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '600 11px "Inter", sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText('Stanley', -15, -10);
+
+        ctx.restore();
+      }
+
+      function drawRuler(ctx, x, y, width, height, alpha = 1.0, dashed = false) {
+        if (width <= 1) return;
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = '#facc15';
+        ctx.strokeStyle = '#ca8a04';
+        ctx.lineWidth = 1.2;
+        if (dashed) ctx.setLineDash([4, 3]);
+
+        ctx.fillRect(x, y, width, height);
+        ctx.strokeRect(x, y, width, height);
+        ctx.setLineDash([]);
+
+        const numTicks = Math.max(4, Math.round(width / 8));
+        ctx.strokeStyle = '#713f12';
+        ctx.lineWidth = 1;
+        for (let i = 1; i < numTicks; i++) {
+          const tx = x + (i / numTicks) * width;
+          const tickH = i % 5 === 0 ? height * 0.58 : height * 0.35;
+          ctx.beginPath();
+          ctx.moveTo(tx, y);
+          ctx.lineTo(tx, y + tickH);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      function drawLightSource(ctx, x, y, scaleX = 1, alpha = 1.0) {
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.translate(x, y);
+        ctx.scale(scaleX, 1);
+
+        ctx.fillStyle = '#ec4899';
+        ctx.strokeStyle = '#fbcfe8';
+        ctx.lineWidth = 1.2;
+        roundRect(ctx, -18, -6, 18, 12, 3);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#fdf2f8';
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 2.5, 5.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      function drawMirror(ctx, x, y, scaleX = 1, alpha = 1.0) {
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.translate(x, y);
+        ctx.scale(scaleX, 1);
+
+        ctx.fillStyle = '#bae6fd';
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 1.4;
+        ctx.fillRect(0, -13, 5, 26);
+        ctx.strokeRect(0, -13, 5, 26);
+
+        ctx.restore();
+      }
+
+      function drawDimensionArrow(ctx, x1, x2, y, label, color = '#94a3b8', tickTop = -6, tickBot = 6) {
+        if (Math.abs(x2 - x1) < 6) return;
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 1.3;
+
+        ctx.beginPath();
+        ctx.moveTo(x1, y + tickTop);
+        ctx.lineTo(x1, y + tickBot);
+        ctx.moveTo(x2, y + tickTop);
+        ctx.lineTo(x2, y + tickBot);
+        ctx.stroke();
+
+        const left = Math.min(x1, x2);
+        const right = Math.max(x1, x2);
+        ctx.beginPath();
+        ctx.moveTo(left + 2, y);
+        ctx.lineTo(right - 2, y);
+        ctx.stroke();
+
+        if (right - left > 14) {
+          ctx.beginPath();
+          ctx.moveTo(left + 1, y);
+          ctx.lineTo(left + 6, y - 3);
+          ctx.lineTo(left + 6, y + 3);
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.moveTo(right - 1, y);
+          ctx.lineTo(right - 6, y - 3);
+          ctx.lineTo(right - 6, y + 3);
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        if (label) {
+          ctx.font = '600 10.5px "JetBrains Mono", monospace';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          const tw = ctx.measureText(label).width;
+          ctx.fillStyle = '#020617';
+          ctx.fillRect((left + right) / 2 - tw / 2 - 4, y - 7, tw + 8, 14);
+          ctx.fillStyle = color;
+          ctx.fillText(label, (left + right) / 2, y + 0.5);
+        }
+
+        ctx.restore();
+      }
+
+      function drawFrameAxes(ctx, x, y, label, color) {
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 1.5;
+
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x, y - 22);
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + 24, y);
+        ctx.moveTo(x, y);
+        ctx.lineTo(x - 11, y + 11);
+        ctx.stroke();
+
+        ctx.font = '700 12px "JetBrains Mono", monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(label, x + 7, y - 8);
+        ctx.restore();
+      }
+
+      function drawPhotonPulse(ctx, x, y, dirSign) {
+        ctx.save();
+        const trailGrad = ctx.createLinearGradient(x - dirSign * 26, y, x, y);
+        trailGrad.addColorStop(0, 'rgba(192, 132, 252, 0)');
+        trailGrad.addColorStop(1, 'rgba(217, 70, 239, 0.9)');
+        ctx.strokeStyle = trailGrad;
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(x - dirSign * 26, y);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+
+        ctx.fillStyle = '#e879f9';
+        ctx.shadowColor = '#d946ef';
+        ctx.shadowBlur = 12;
+        ctx.beginPath();
+        ctx.arc(x, y, 5.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(x, y, 2.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // =========================================================================
+      // RENDER PANEL (a): MAVIS'S FRAME S'
+      // =========================================================================
+      function renderMavisFrame(kin) {
+        const { w, h } = state.mavisSize;
+        ctxMavis.clearRect(0, 0, w, h);
+
+        // Background grid
+        ctxMavis.strokeStyle = 'rgba(30, 41, 59, 0.35)';
+        ctxMavis.lineWidth = 1;
+        for (let gx = 24; gx < w; gx += 32) {
+          ctxMavis.beginPath();
+          ctxMavis.moveTo(gx, 0);
+          ctxMavis.lineTo(gx, h);
+          ctxMavis.stroke();
+        }
+
+        const unitPx = Math.min(190, w * 0.26);
+        const l0Px = unitPx * kin.l0;
+        const seatsWidth = Math.max(l0Px * 1.48, unitPx * 2.1);
+        const seatsH = 66;
+        const seatsX = w * 0.5 - seatsWidth * 0.48;
+        const seatsY = h * 0.25;
+
+        drawTrainSeats(ctxMavis, seatsX, seatsY, seatsWidth, seatsH, 6);
+
+        const mavisX = seatsX + seatsWidth * 0.64;
+        drawMavis(ctxMavis, mavisX, seatsY + 4, seatsH, 1.0);
+
+        const sourceX = seatsX + 18;
+        const mirrorX = sourceX + l0Px;
+        const beamY = seatsY + seatsH * 0.56;
+        const rulerY = beamY + 9;
+
+        drawRuler(ctxMavis, sourceX, rulerY, l0Px, 10, 1.0, false);
+        drawLightSource(ctxMavis, sourceX, beamY, 1.0, 1.0);
+        drawMirror(ctxMavis, mirrorX, beamY, 1.0, 1.0);
+
+        ctxMavis.fillStyle = '#f9a8d4';
+        ctxMavis.font = '600 11px "Inter", sans-serif';
+        ctxMavis.textAlign = 'center';
+        ctxMavis.fillText('Source', sourceX - 6, beamY - 14);
+
+        ctxMavis.fillStyle = '#7dd3fc';
+        ctxMavis.fillText('Mirror', mirrorX + 16, beamY - 14);
+
+        drawDimensionArrow(ctxMavis, sourceX, mirrorX, rulerY + 22, `l₀ = ${kin.l0.toFixed(2)} m`, '#facc15', -8, 6);
+        drawFrameAxes(ctxMavis, seatsX + seatsWidth + 22, seatsY + seatsH + 14, "S'", '#c084fc');
+
+        // Light path guide
+        ctxMavis.strokeStyle = 'rgba(192, 132, 252, 0.28)';
+        ctxMavis.lineWidth = 2;
+        ctxMavis.beginPath();
+        ctxMavis.moveTo(sourceX, beamY);
+        ctxMavis.lineTo(mirrorX, beamY);
+        ctxMavis.stroke();
+
+        // Synchronized proper time t' in S'
+        const progress = Math.min(1, state.tStanley / kin.dtTotal);
+        const tPrime = progress * kin.dt0_total;
+
+        let pulseX = sourceX;
+        let dirSign = 1;
+        let phaseText = "Ready: Pulse at Source (t' = 0)";
+
+        if (state.tStanley <= 0) {
+          pulseX = sourceX;
+          dirSign = 1;
+        } else if (state.tStanley >= kin.dtTotal) {
+          pulseX = sourceX;
+          dirSign = -1;
+          phaseText = `Complete: Δt₀ = ${kin.dt0_total.toFixed(2)} m/c`;
+        } else if (tPrime <= kin.dt0_out) {
+          const frac = tPrime / kin.dt0_out;
+          pulseX = sourceX + frac * l0Px;
+          dirSign = 1;
+          phaseText = `Outbound: x' = ${(frac * kin.l0).toFixed(2)} m`;
+        } else {
+          const frac = (tPrime - kin.dt0_out) / kin.dt0_ret;
+          pulseX = mirrorX - frac * l0Px;
+          dirSign = -1;
+          phaseText = `Return: x' = ${((1 - frac) * kin.l0).toFixed(2)} m`;
+        }
+
+        drawPhotonPulse(ctxMavis, pulseX, beamY, dirSign);
+        phaseBadgeMavis.textContent = phaseText;
+        clockMavis.textContent = `${tPrime.toFixed(2)} m/c`;
+      }
+
+      // =========================================================================
+      // RENDER PANEL (b): STANLEY'S PLATFORM FRAME S
+      // =========================================================================
+      function renderStanleyFrame(kin) {
+        const { w, h } = state.stanleySize;
+        ctxStanley.clearRect(0, 0, w, h);
+
+        // Background grid
+        ctxStanley.strokeStyle = 'rgba(30, 41, 59, 0.35)';
+        ctxStanley.lineWidth = 1;
+        for (let gx = 24; gx < w; gx += 32) {
+          ctxStanley.beginPath();
+          ctxStanley.moveTo(gx, 0);
+          ctxStanley.lineTo(gx, h);
+          ctxStanley.stroke();
+        }
+
+        // Dynamic horizontal scale so train + travel distance fits inside canvas even at u = 0.90c
+        const contractScale = 1 / kin.gamma;
+        const maxNeededUnits = Math.max(kin.l0 * 1.48, 2.1) * contractScale + kin.u * kin.dtTotal + 0.55;
+        const baseUnitPx = Math.min(165, Math.max(42, (w - 135) / maxNeededUnits));
+
+        const lPx = baseUnitPx * kin.l;
+        const seatsWidthPx = Math.max(baseUnitPx * kin.l0 * 1.48, baseUnitPx * 2.1) * contractScale;
+        const seatsH = 62;
+
+        const totalTrainTravelPx = kin.u * kin.dtTotal * baseUnitPx;
+        const carWidthPx = seatsWidthPx + 68 * contractScale;
+        const startSourceX = Math.max(95, (w - (carWidthPx + totalTrainTravelPx)) * 0.45);
+
+        const t = Math.min(state.tStanley, kin.dtTotal);
+        const currentShiftPx = kin.u * t * baseUnitPx;
+
+        const curSourceX = startSourceX + currentShiftPx;
+        const curMirrorX = curSourceX + lPx;
+
+        const platformY = h * 0.77;
+        const carTopY = h * 0.14;
+        const carBottomY = platformY - 10;
+        const carH = carBottomY - carTopY;
+        const carLeftX = curSourceX - 32 * contractScale;
+
+        // Platform Track
+        const platGrad = ctxStanley.createLinearGradient(0, platformY, 0, platformY + 12);
+        platGrad.addColorStop(0, '#475569');
+        platGrad.addColorStop(1, '#1e293b');
+        ctxStanley.fillStyle = platGrad;
+        ctxStanley.fillRect(16, platformY, w - 32, 10);
+
+        // Motion wake lines behind moving train
+        if (kin.u > 0.02) {
+          ctxStanley.save();
+          for (let b = 1; b <= 4; b++) {
+            const blurX = carLeftX - b * (9 + kin.u * 13);
+            if (blurX > 18) {
+              ctxStanley.strokeStyle = `rgba(148, 163, 184, ${0.28 - b * 0.055})`;
+              ctxStanley.lineWidth = 1.5;
+              ctxStanley.beginPath();
+              ctxStanley.moveTo(blurX + 10, carTopY + 4);
+              ctxStanley.quadraticCurveTo(blurX, (carTopY + carBottomY) / 2, blurX + 10, carBottomY - 4);
+              ctxStanley.stroke();
+            }
+          }
+          ctxStanley.restore();
+        }
+
+        // Transparent Glass Train Car Body
+        ctxStanley.save();
+        ctxStanley.fillStyle = 'rgba(30, 41, 59, 0.55)';
+        ctxStanley.strokeStyle = '#64748b';
+        ctxStanley.lineWidth = 1.8;
+        ctxStanley.beginPath();
+        ctxStanley.moveTo(carLeftX + 12, carTopY);
+        ctxStanley.lineTo(carLeftX + carWidthPx - 24 * contractScale, carTopY);
+        ctxStanley.quadraticCurveTo(carLeftX + carWidthPx + 16 * contractScale, carTopY + carH * 0.45, carLeftX + carWidthPx, carBottomY);
+        ctxStanley.lineTo(carLeftX + 12, carBottomY);
+        ctxStanley.quadraticCurveTo(carLeftX, (carTopY + carBottomY) / 2, carLeftX + 12, carTopY);
+        ctxStanley.closePath();
+        ctxStanley.fill();
+        ctxStanley.stroke();
+
+        // Velocity Vector Arrow "u"
+        if (kin.u > 0.001) {
+          const noseX = carLeftX + carWidthPx + 5 * contractScale;
+          const noseY = carTopY + carH * 0.56;
+          const arrowLen = 18 + kin.u * 34;
+
+          ctxStanley.fillStyle = '#94a3b8';
+          ctxStanley.fillRect(noseX - 3, noseY - 5, 5, 10);
+
+          ctxStanley.strokeStyle = '#22c55e';
+          ctxStanley.fillStyle = '#22c55e';
+          ctxStanley.lineWidth = 2.5;
+          ctxStanley.beginPath();
+          ctxStanley.moveTo(noseX + 2, noseY);
+          ctxStanley.lineTo(noseX + arrowLen, noseY);
+          ctxStanley.stroke();
+
+          ctxStanley.beginPath();
+          ctxStanley.moveTo(noseX + arrowLen + 4, noseY);
+          ctxStanley.lineTo(noseX + arrowLen - 4, noseY - 4);
+          ctxStanley.lineTo(noseX + arrowLen - 4, noseY + 4);
+          ctxStanley.closePath();
+          ctxStanley.fill();
+
+          ctxStanley.font = '700 11.5px "JetBrains Mono", monospace';
+          ctxStanley.textAlign = 'center';
+          ctxStanley.fillText(`u = ${kin.u.toFixed(2)}c`, noseX + arrowLen * 0.55, noseY - 11);
+        }
+        ctxStanley.restore();
+
+        // Contracted Train Seats & Mavis
+        const seatsX = curSourceX - 8 * contractScale;
+        const seatsY = carTopY + 25;
+        drawTrainSeats(ctxStanley, seatsX, seatsY, seatsWidthPx, seatsH, 6);
+
+        const mavisX = seatsX + seatsWidthPx * 0.64;
+        drawMavis(ctxStanley, mavisX, seatsY + 4, seatsH, contractScale);
+
+        drawFrameAxes(ctxStanley, seatsX + seatsWidthPx + 8 * contractScale, seatsY + seatsH + 12, "S'", '#c084fc');
+
+        // Key Relativistic Positions
+        const beamY = seatsY + seatsH * 0.56;
+        const rulerY = beamY + 9;
+
+        const initSourceX = startSourceX;
+        const initMirrorX = startSourceX + lPx;
+        const reflectMirrorX = startSourceX + kin.d1 * baseUnitPx;
+        const finalSourceX = startSourceX + kin.u * kin.dtTotal * baseUnitPx;
+
+        // Ghost outlines & dashed yellow ruler extension for u * Delta t_1
+        if (kin.u > 0.01) {
+          drawMirror(ctxStanley, initMirrorX, beamY, contractScale, 0.35);
+
+          if (t > 0.01) {
+            const reachedMirrorX = Math.min(curMirrorX, reflectMirrorX);
+            if (reachedMirrorX > initMirrorX + 2) {
+              drawRuler(ctxStanley, initMirrorX, rulerY, reachedMirrorX - initMirrorX, 10, 0.45, true);
+            }
+          }
+
+          if (curSourceX - initSourceX > 12) {
+            drawLightSource(ctxStanley, initSourceX, beamY, contractScale, 0.35);
+          }
+
+          if (t > kin.dt1 && Math.abs(curMirrorX - reflectMirrorX) > 8) {
+            drawMirror(ctxStanley, reflectMirrorX, beamY, contractScale, 0.35);
+          }
+        }
+
+        // Contracted Yellow Ruler (l = l0 / gamma)
+        drawRuler(ctxStanley, curSourceX, rulerY, lPx, 10, 1.0, false);
+
+        // Active Source and Mirror
+        drawLightSource(ctxStanley, curSourceX, beamY, contractScale, 1.0);
+        drawMirror(ctxStanley, curMirrorX, beamY, contractScale, 1.0);
+
+        // Live Dimension Arrows (d1 = l + u*dt1 outbound; d2 = l - u*dt2 return)
+        const isOutbound = t <= kin.dt1;
+        if (isOutbound) {
+          const targetX = kin.u > 0.01 ? reflectMirrorX : initMirrorX;
+          drawDimensionArrow(ctxStanley, initSourceX, targetX, beamY - 22, kin.u > 0.01 ? 'd₁ = l + uΔt₁' : 'd₁ = l₀', '#38bdf8', -5, 7);
+          drawDimensionArrow(ctxStanley, initSourceX, initMirrorX, rulerY + 21, kin.u > 0.01 ? 'l' : 'l₀', '#facc15', -7, 5);
+          if (kin.u > 0.01) {
+            drawDimensionArrow(ctxStanley, initMirrorX, reflectMirrorX, rulerY + 21, 'uΔt₁', '#fb923c', -7, 5);
+          }
+        } else {
+          drawDimensionArrow(ctxStanley, finalSourceX, reflectMirrorX, beamY - 22, kin.u > 0.01 ? 'd₂ = l − uΔt₂' : 'd₂ = l₀', '#34d399', -5, 7);
+          drawDimensionArrow(ctxStanley, curSourceX, curMirrorX, rulerY + 21, kin.u > 0.01 ? 'l' : 'l₀', '#facc15', -7, 5);
+          if (kin.u > 0.01) {
+            drawDimensionArrow(ctxStanley, initSourceX, finalSourceX, rulerY + 21, 'u(Δt₁ + Δt₂)', '#94a3b8', -7, 5);
+          }
+        }
+
+        // Photon Pulse & Beam Path in Frame S
+        let pulseX = initSourceX;
+        let dirSign = 1;
+
+        if (t <= 0) {
+          pulseX = initSourceX;
+          dirSign = 1;
+          phaseBadgeStanley.textContent = 'Ready: Press Start Simulation (t = 0)';
+          phaseBadgeStanley.className =
+            'text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700';
+        } else if (t >= kin.dtTotal) {
+          pulseX = finalSourceX;
+          dirSign = -1;
+
+          ctxStanley.strokeStyle = 'rgba(56, 189, 248, 0.22)';
+          ctxStanley.lineWidth = 2;
+          ctxStanley.beginPath();
+          ctxStanley.moveTo(initSourceX, beamY);
+          ctxStanley.lineTo(reflectMirrorX, beamY);
+          ctxStanley.stroke();
+
+          ctxStanley.strokeStyle = 'rgba(52, 211, 153, 0.45)';
+          ctxStanley.lineWidth = 2.5;
+          ctxStanley.beginPath();
+          ctxStanley.moveTo(reflectMirrorX, beamY);
+          ctxStanley.lineTo(finalSourceX, beamY);
+          ctxStanley.stroke();
+
+          phaseBadgeStanley.textContent = `Complete: Δt = ${kin.dtTotal.toFixed(2)} m/c`;
+          phaseBadgeStanley.className =
+            'text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40';
+        } else if (isOutbound) {
+          pulseX = initSourceX + t * baseUnitPx;
+          dirSign = 1;
+
+          ctxStanley.strokeStyle = 'rgba(56, 189, 248, 0.38)';
+          ctxStanley.lineWidth = 2.5;
+          ctxStanley.beginPath();
+          ctxStanley.moveTo(initSourceX, beamY);
+          ctxStanley.lineTo(pulseX, beamY);
+          ctxStanley.stroke();
+
+          phaseBadgeStanley.textContent = 'Leg 1 (Δt₁): Outbound at c';
+          phaseBadgeStanley.className =
+            'text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30';
+        } else {
+          const tRet = t - kin.dt1;
+          pulseX = reflectMirrorX - tRet * baseUnitPx;
+          dirSign = -1;
+
+          ctxStanley.strokeStyle = 'rgba(56, 189, 248, 0.16)';
+          ctxStanley.lineWidth = 2;
+          ctxStanley.beginPath();
+          ctxStanley.moveTo(initSourceX, beamY);
+          ctxStanley.lineTo(reflectMirrorX, beamY);
+          ctxStanley.stroke();
+
+          ctxStanley.strokeStyle = 'rgba(52, 211, 153, 0.45)';
+          ctxStanley.lineWidth = 2.5;
+          ctxStanley.beginPath();
+          ctxStanley.moveTo(reflectMirrorX, beamY);
+          ctxStanley.lineTo(pulseX, beamY);
+          ctxStanley.stroke();
+
+          phaseBadgeStanley.textContent = 'Leg 2 (Δt₂): Return at c';
+          phaseBadgeStanley.className =
+            'text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30';
+        }
+
+        drawPhotonPulse(ctxStanley, pulseX, beamY, dirSign);
+
+        // Stanley & Platform Frame S Axes
+        drawStanley(ctxStanley, 54, platformY);
+        drawFrameAxes(ctxStanley, 80, platformY + 18, 'S', '#38bdf8');
+
+        clockStanley.textContent = `${t.toFixed(2)} m/c`;
+      }
+
+      // =========================================================================
+      // TELEMETRY READOUT UPDATES
+      // =========================================================================
+      function updateTelemetry(kin) {
+        labelSpeedVal.textContent = `${kin.u.toFixed(3)} c`;
+        readoutGammaBadge.textContent = `γ = ${kin.gamma.toFixed(3)}`;
+        labelProperLenVal.textContent = `${kin.l0.toFixed(2)} m`;
+
+        valGamma.textContent = kin.gamma.toFixed(3);
+        valLength.textContent = `${kin.l.toFixed(3)} m`;
+
+        valLeg1.textContent = `${kin.dt1.toFixed(3)} m/c`;
+        valLeg2.textContent = `${kin.dt2.toFixed(3)} m/c`;
+        valTotalTime.textContent = `${kin.dtTotal.toFixed(3)} m/c`;
+
+        valMavisTotal.textContent = `${kin.dt0_total.toFixed(3)} m/c`;
+        valDilationCheck.textContent = `${(kin.gamma * kin.dt0_total).toFixed(3)} m/c`;
+      }
+
+      // =========================================================================
+      // ANIMATION LOOP
+      // =========================================================================
+      function animate(timestamp) {
+        if (!state.lastTimestamp) state.lastTimestamp = timestamp;
+        const dtReal = Math.min((timestamp - state.lastTimestamp) / 1000, 0.1);
+        state.lastTimestamp = timestamp;
+
+        const kin = getKinematics();
+
+        if (state.isPlaying) {
+          const simRate = 0.95;
+          if (state.tStanley < kin.dtTotal) {
+            state.tStanley = Math.min(kin.dtTotal, state.tStanley + dtReal * simRate);
+            if (state.tStanley >= kin.dtTotal && !state.autoLoop) {
+              state.isPlaying = false;
+              updatePlayPauseUI();
+            }
+          } else if (state.autoLoop) {
+            state.loopPauseTimer += dtReal;
+            if (state.loopPauseTimer >= 0.7) {
+              state.loopPauseTimer = 0;
+              state.tStanley = 0;
+            }
+          }
+        }
+
+        renderMavisFrame(kin);
+        renderStanleyFrame(kin);
+        updateTelemetry(kin);
+
+        requestAnimationFrame(animate);
+      }
+
+      // =========================================================================
+      // BUTTONS & SLIDERS
+      // =========================================================================
+      function updatePlayPauseUI() {
+        const kin = getKinematics();
+        if (state.isPlaying) {
+          lblPlayPause.textContent = 'Pause';
+          btnPlayPause.className =
+            'px-4 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs transition flex items-center gap-1.5 shadow-sm';
+          iconPause.classList.remove('hidden');
+          iconPlay.classList.add('hidden');
+        } else if (state.tStanley >= kin.dtTotal) {
+          lblPlayPause.textContent = 'Replay';
+          btnPlayPause.className =
+            'px-4 py-1.5 rounded-lg bg-indigo-500 hover:bg-indigo-400 text-slate-950 font-semibold text-xs transition flex items-center gap-1.5 shadow-sm';
+          iconPause.classList.add('hidden');
+          iconPlay.classList.remove('hidden');
+        } else if (state.tStanley > 0) {
+          lblPlayPause.textContent = 'Resume';
+          btnPlayPause.className =
+            'px-4 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-xs transition flex items-center gap-1.5 shadow-sm shadow-emerald-500/20';
+          iconPause.classList.add('hidden');
+          iconPlay.classList.remove('hidden');
+        } else {
+          lblPlayPause.textContent = 'Start Simulation';
+          btnPlayPause.className =
+            'px-4 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-xs transition flex items-center gap-1.5 shadow-sm shadow-emerald-500/20';
+          iconPause.classList.add('hidden');
+          iconPlay.classList.remove('hidden');
+        }
+      }
+
+      function setTrainSpeed(newBeta) {
+        state.beta = Math.max(0, Math.min(0.90, newBeta));
+        sliderSpeed.value = state.beta;
+        state.tStanley = 0;
+        state.loopPauseTimer = 0;
+        state.isPlaying = false;
+        updatePlayPauseUI();
+
+        presetBtns.forEach((btn) => {
+          const val = parseFloat(btn.getAttribute('data-speed'));
+          if (Math.abs(val - state.beta) < 0.002) {
+            btn.className =
+              'preset-btn py-1.5 rounded-lg bg-indigo-500/20 border border-indigo-500/50 text-[11px] font-mono text-indigo-200 font-semibold transition';
+          } else {
+            btn.className =
+              'preset-btn py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] font-mono text-slate-300 transition';
+          }
+        });
+      }
+
+      btnPlayPause.addEventListener('click', () => {
+        const kin = getKinematics();
+        if (!state.isPlaying && state.tStanley >= kin.dtTotal) {
+          state.tStanley = 0;
+        }
+        state.isPlaying = !state.isPlaying;
+        updatePlayPauseUI();
+      });
+
+      btnReset.addEventListener('click', () => {
+        state.tStanley = 0;
+        state.loopPauseTimer = 0;
+        state.isPlaying = false;
+        updatePlayPauseUI();
+      });
+
+      chkAutoLoop.addEventListener('change', (e) => {
+        state.autoLoop = e.target.checked;
+      });
+
+      sliderSpeed.addEventListener('input', (e) => {
+        setTrainSpeed(parseFloat(e.target.value));
+      });
+
+      presetBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          setTrainSpeed(parseFloat(btn.getAttribute('data-speed')));
+        });
+      });
+
+      sliderProperLen.addEventListener('input', (e) => {
+        state.properLength = parseFloat(e.target.value);
+        state.tStanley = 0;
+        state.loopPauseTimer = 0;
+        state.isPlaying = false;
+        updatePlayPauseUI();
+      });
+
+      // Initialize immediately and on load
+      updateAllCanvasSizes();
+      updatePlayPauseUI();
+      requestAnimationFrame(animate);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>37.14 Relativistic Visual Appearance of a 5×5 Rod Array — Terrell–Penrose Rotation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap');
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+
+    .font-mono-code {
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 6px;
+      border-radius: 999px;
+      background: #cbd5e1;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      margin-top: -5px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #0284c7;
+      border: 2px solid #ffffff;
+      box-shadow: 0 1px 4px rgba(15, 23, 42, 0.35);
+    }
+
+    input[type="range"]::-moz-range-track {
+      height: 6px;
+      border-radius: 999px;
+      background: #cbd5e1;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #0284c7;
+      border: 2px solid #ffffff;
+      box-shadow: 0 1px 4px rgba(15, 23, 42, 0.35);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50 text-slate-900">
+
+  <!-- Sticky Academic Header & Playback Toolbar -->
+  <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <!-- Title & Figure Reference -->
+      <div class="flex items-start sm:items-center gap-3">
+        <span class="px-2.5 py-1 rounded-lg bg-orange-600 text-white font-bold text-sm tracking-tight shadow-sm shrink-0">
+          Fig. 37.14
+        </span>
+        <div>
+          <h1 class="text-sm sm:text-base font-bold text-slate-900 leading-snug">
+            Computer Simulation of an Array of 25 Square Rods (<span class="text-sky-700">Terrell–Penrose Rotation</span>)
+          </h1>
+          <p class="text-xs text-slate-500 hidden sm:block">
+            Exact relativistic ray-tracing combining Lorentz contraction &amp; finite light-travel-time delay (Doppler color shift omitted)
+          </p>
+        </div>
+      </div>
+
+      <!-- Fly-By Playback Controls -->
+      <div class="flex flex-wrap items-center gap-2">
+        <button id="btnFlyBy" type="button"
+          class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 shadow-sm transition active:scale-95">
+          <svg id="iconPlay" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+          </svg>
+          <svg id="iconPause" class="w-3.5 h-3.5 hidden" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M6 4a1 1 0 011 1v10a1 1 0 11-2 0V5a1 1 0 011-1zm7 0a1 1 0 011 1v10a1 1 0 11-2 0V5a1 1 0 011-1z" />
+          </svg>
+          <span id="lblFlyBy">Start Fly-By</span>
+        </button>
+
+        <button id="btnSnapshot" type="button"
+          class="px-3 py-2 rounded-lg text-xs font-semibold text-slate-800 bg-sky-50 hover:bg-sky-100 border border-sky-300 shadow-sm transition active:scale-95">
+          Textbook Snapshot (t<sub>obs</sub> = 0)
+        </button>
+
+        <label class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 border border-slate-300 cursor-pointer select-none">
+          <input id="chkIgnoreDelay" type="checkbox" class="accent-rose-600 w-3.5 h-3.5 rounded cursor-pointer" />
+          <span>Lorentz Contraction Only (No Light Delay)</span>
+        </label>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-4 flex flex-col gap-4">
+
+    <!-- Side-by-Side Textbook Comparison Panels: (a) Array at rest vs. (b) Moving array -->
+    <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+      <!-- Panel (a): Array at rest -->
+      <article class="bg-white rounded-2xl border border-slate-200 shadow-sm p-3.5 sm:p-4 flex flex-col gap-2.5">
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-sm text-slate-900">(a)</span>
+            <h2 class="text-sm font-semibold text-slate-800">Array at rest (<span class="font-mono-code">v = 0</span>)</h2>
+          </div>
+          <span class="text-[11px] font-mono-code px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
+            Center rod viewed end-on
+          </span>
+        </div>
+
+        <div id="wrapCanvasRest" class="relative w-full aspect-square max-h-[370px] mx-auto rounded-xl overflow-hidden border border-slate-300 bg-[#eaedf2]">
+          <canvas id="canvasRest" width="420" height="420"></canvas>
+        </div>
+
+        <p class="text-xs text-slate-500 leading-relaxed">
+          All 25 square rods point directly away from the camera (<span class="font-mono-code">+z</span>). The center rod (<span class="font-mono-code">0,0</span>) shows only its red front square; outer rods reveal symmetric navy top/bottom faces and white side faces.
+        </p>
+      </article>
+
+      <!-- Panel (b): Array moving to the right -->
+      <article class="bg-white rounded-2xl border border-slate-200 shadow-sm p-3.5 sm:p-4 flex flex-col gap-2.5">
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-sm text-slate-900">(b)</span>
+            <h2 class="text-sm font-semibold text-slate-800">
+              Array moving to the right at <span id="panelBTitleSpeed" class="font-mono-code text-sky-700">0.20c</span>
+            </h2>
+          </div>
+          <span id="panelBModeBadge" class="text-[11px] font-mono-code px-2 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200">
+            Snapshot t<sub>obs</sub> = 0
+          </span>
+        </div>
+
+        <div id="wrapCanvasMoving" class="relative w-full aspect-square max-h-[370px] mx-auto rounded-xl overflow-hidden border border-slate-300 bg-[#eaedf2]">
+          <canvas id="canvasMoving" width="420" height="420"></canvas>
+        </div>
+
+        <p id="panelBCaption" class="text-xs text-slate-500 leading-relaxed">
+          At <span class="font-mono-code">v = 0.20c</span>, photons from the rear of each rod were emitted earlier when the array was further left—exposing the long white left-hand faces and creating an apparent rotation of <span class="font-mono-code">11.5&deg;</span>.
+        </p>
+      </article>
+
+    </section>
+
+    <!-- Interactive Velocity & Geometry Controls + Live Telemetry -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+
+      <!-- Left: Sliders & Presets (6 cols) -->
+      <div class="lg:col-span-6 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col justify-between gap-3.5">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Relativistic Velocity Control</span>
+          <div class="flex flex-wrap items-center gap-1.5">
+            <button type="button" data-beta="0.00" class="preset-btn px-2 py-1 rounded text-[11px] font-mono-code font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300">0.00c</button>
+            <button type="button" data-beta="0.20" class="preset-btn px-2 py-1 rounded text-[11px] font-mono-code font-semibold bg-sky-600 text-white border border-sky-700">0.20c (Fig.)</button>
+            <button type="button" data-beta="0.50" class="preset-btn px-2 py-1 rounded text-[11px] font-mono-code font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300">0.50c</button>
+            <button type="button" data-beta="0.85" class="preset-btn px-2 py-1 rounded text-[11px] font-mono-code font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300">0.85c</button>
+          </div>
+        </div>
+
+        <!-- Speed Slider -->
+        <div class="flex flex-col gap-1">
+          <div class="flex justify-between text-xs">
+            <label for="sliderBeta" class="font-semibold text-slate-700">Array Speed (<span class="font-mono-code">&beta; = v / c</span>)</label>
+            <span id="valBeta" class="font-mono-code font-bold text-sky-700">0.20c (6.00 &times; 10<sup>7</sup> m/s)</span>
+          </div>
+          <input id="sliderBeta" type="range" min="0.00" max="0.95" step="0.01" value="0.20" />
+          <div class="flex justify-between text-[10px] font-mono-code text-slate-400">
+            <span>0.00c (Rest)</span>
+            <span>0.20c</span>
+            <span>0.50c</span>
+            <span>0.95c</span>
+          </div>
+        </div>
+
+        <!-- Rod Length Slider -->
+        <div class="flex flex-col gap-1 pt-2 border-t border-slate-100">
+          <div class="flex justify-between text-xs">
+            <label for="sliderLength" class="font-semibold text-slate-700">Rest Rod Length (<span class="font-mono-code">L<sub>0</sub></span>)</label>
+            <span id="valLength" class="font-mono-code font-bold text-slate-700">12.0 m</span>
+          </div>
+          <input id="sliderLength" type="range" min="4.0" max="20.0" step="0.5" value="12.0" />
+        </div>
+      </div>
+
+      <!-- Right: Relativistic Optics Telemetry & Physics Explanation (6 cols) -->
+      <div class="lg:col-span-6 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col justify-between gap-3">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Terrell–Penrose Optical Parameters</span>
+          <span class="font-mono-code text-[11px] text-slate-500">&theta;<sub>app</sub> = arcsin(&beta;)</span>
+        </div>
+
+        <!-- 4 Metric Boxes -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div class="rounded-xl bg-slate-50 border border-slate-200 p-2.5">
+            <div class="text-[11px] text-slate-500 font-medium">Lorentz Factor &gamma;</div>
+            <div id="metricGamma" class="font-mono-code text-sm sm:text-base font-bold text-slate-900 mt-0.5">1.021</div>
+          </div>
+
+          <div class="rounded-xl bg-sky-50 border border-sky-200 p-2.5">
+            <div class="text-[11px] text-sky-800 font-medium">Apparent Rotation</div>
+            <div id="metricAngle" class="font-mono-code text-sm sm:text-base font-bold text-sky-700 mt-0.5">11.5&deg;</div>
+          </div>
+
+          <div class="rounded-xl bg-rose-50 border border-rose-200 p-2.5">
+            <div class="text-[11px] text-rose-800 font-medium">Front Width (1/&gamma;)</div>
+            <div id="metricWidth" class="font-mono-code text-sm sm:text-base font-bold text-rose-700 mt-0.5">98.0%</div>
+          </div>
+
+          <div class="rounded-xl bg-amber-50 border border-amber-200 p-2.5">
+            <div class="text-[11px] text-amber-800 font-medium">Rear Light Lag &Delta;t</div>
+            <div id="metricLag" class="font-mono-code text-sm sm:text-base font-bold text-amber-700 mt-0.5">40.0 ns</div>
+          </div>
+        </div>
+
+        <!-- Conceptual Note -->
+        <div class="rounded-xl bg-slate-50 border border-slate-200 p-3 text-xs text-slate-700 leading-relaxed">
+          <strong>Why do we see the white side faces?</strong> Even though each rod is Lorentz-contracted horizontally by <span class="font-mono-code">1/&gamma;</span>, light from the far end (<span class="font-mono-code">z = z<sub>back</sub></span>) takes longer to reach your eye than light from the red front tip (<span class="font-mono-code">z = z<sub>front</sub></span>). Consequently, your eye simultaneously sees the rear of each rod at an <em>earlier position further to the left</em>, revealing its white left side!
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const C_MPS = 299792458;
+
+      // =========================================================================
+      // SIMULATION STATE
+      // =========================================================================
+      const state = {
+        beta: 0.20,           // v / c (defaults to 0.20c matching Fig. 37.14b)
+        rodLength: 12.0,      // Rest length L0 along +z (meters)
+        ignoreLightDelay: false,
+        isFlying: false,      // Fly-by animation state (starts paused at t_obs = 0)
+        tObs: 0,              // Observer reception time (in light-meters: c * t_obs)
+        lastTimestamp: 0,
+        sizeRest: { w: 420, h: 420 },
+        sizeMoving: { w: 420, h: 420 },
+      };
+
+      // =========================================================================
+      // DOM REFERENCES
+      // =========================================================================
+      const wrapCanvasRest = document.getElementById('wrapCanvasRest');
+      const canvasRest = document.getElementById('canvasRest');
+      const ctxRest = canvasRest.getContext('2d');
+
+      const wrapCanvasMoving = document.getElementById('wrapCanvasMoving');
+      const canvasMoving = document.getElementById('canvasMoving');
+      const ctxMoving = canvasMoving.getContext('2d');
+
+      const btnFlyBy = document.getElementById('btnFlyBy');
+      const lblFlyBy = document.getElementById('lblFlyBy');
+      const iconPlay = document.getElementById('iconPlay');
+      const iconPause = document.getElementById('iconPause');
+      const btnSnapshot = document.getElementById('btnSnapshot');
+      const chkIgnoreDelay = document.getElementById('chkIgnoreDelay');
+
+      const sliderBeta = document.getElementById('sliderBeta');
+      const valBeta = document.getElementById('valBeta');
+      const sliderLength = document.getElementById('sliderLength');
+      const valLength = document.getElementById('valLength');
+      const presetBtns = document.querySelectorAll('.preset-btn');
+
+      const panelBTitleSpeed = document.getElementById('panelBTitleSpeed');
+      const panelBModeBadge = document.getElementById('panelBModeBadge');
+      const panelBCaption = document.getElementById('panelBCaption');
+
+      const metricGamma = document.getElementById('metricGamma');
+      const metricAngle = document.getElementById('metricAngle');
+      const metricWidth = document.getElementById('metricWidth');
+      const metricLag = document.getElementById('metricLag');
+
+      // =========================================================================
+      // RESIZE OBSERVER & DPR SCALING
+      // =========================================================================
+      function syncCanvas(wrapper, canvas, ctx, fallback) {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const rect = wrapper.getBoundingClientRect();
+        const w = rect.width > 40 ? Math.floor(rect.width) : fallback;
+        const h = rect.height > 40 ? Math.floor(rect.height) : fallback;
+
+        if (canvas.width !== Math.floor(w * dpr) || canvas.height !== Math.floor(h * dpr)) {
+          canvas.width = Math.floor(w * dpr);
+          canvas.height = Math.floor(h * dpr);
+        }
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        return { w, h };
+      }
+
+      function handleResize() {
+        state.sizeRest = syncCanvas(wrapCanvasRest, canvasRest, ctxRest, 420);
+        state.sizeMoving = syncCanvas(wrapCanvasMoving, canvasMoving, ctxMoving, 420);
+      }
+
+      if (typeof ResizeObserver !== 'undefined') {
+        const ro = new ResizeObserver(handleResize);
+        ro.observe(wrapCanvasRest);
+        ro.observe(wrapCanvasMoving);
+      }
+      window.addEventListener('resize', handleResize);
+
+      // =========================================================================
+      // EXACT RELATIVISTIC TRANSFORMATION (LORENTZ CONTRACTION + LIGHT DELAY)
+      // =========================================================================
+      // Transforms a rest-frame point (x0, y0, z0) on a rod into its apparent
+      // lab-frame emission position (xLab, y0, z0) seen by the observer at (0,0,0)
+      // at observer reception time ctObs (measured in meters, c * t_obs).
+      function transformPointRelativistic(x0, y0, z0, beta, ctObs, ignoreLightDelay) {
+        if (beta <= 1e-6) {
+          return { x: x0, y: y0, z: z0 };
+        }
+
+        const gamma = 1 / Math.sqrt(1 - beta * beta);
+
+        if (ignoreLightDelay) {
+          // Naive Lorentz contraction only (instantaneous light speed):
+          // x_lab = x0 / gamma + beta * ctObs
+          return {
+            x: x0 / gamma + beta * ctObs,
+            y: y0,
+            z: z0
+          };
+        }
+
+        // Exact relativistic ray-tracing:
+        // At emission time t_emit, the rod point is at:
+        //   x_lab = x0 / gamma + beta * (c * t_emit)
+        // Photon arrives at camera (0,0,0) at ctObs:
+        //   ctObs - c * t_emit = r = sqrt(x_lab^2 + y0^2 + z0^2)
+        // Let u = x0 / gamma + beta * ctObs (instantaneous contracted position at t_obs).
+        // Then: x_lab - u = -beta * sqrt(x_lab^2 + y0^2 + z0^2) <= 0.
+        // Squaring both sides and solving the quadratic for the physical root (x_lab <= u):
+        //   (1 - beta^2) x_lab^2 - 2 u x_lab + u^2 - beta^2 (y0^2 + z0^2) = 0
+        //   x_lab = gamma^2 * (u - beta * sqrt(u^2 + (y0^2 + z0^2) / gamma^2))
+        const u = x0 / gamma + beta * ctObs;
+        const perpSq = y0 * y0 + z0 * z0;
+        const disc = Math.sqrt(u * u + perpSq / (gamma * gamma));
+        const xLab = gamma * gamma * (u - beta * disc);
+
+        return {
+          x: xLab,
+          y: y0,
+          z: z0
+        };
+      }
+
+      // =========================================================================
+      // 3D ROD ARRAY MESH GENERATOR & PAINTER'S ALGORITHM RENDERER
+      // =========================================================================
+      function renderRodArray(ctx, width, height, beta, ctObs, ignoreLightDelay) {
+        // Soft cool-gray textbook background (#eaedf2)
+        ctx.fillStyle = '#eaedf2';
+        ctx.fillRect(0, 0, width, height);
+
+        // Array geometry parameters (in meters)
+        const gridSpacing = 1.65;  // Center-to-center spacing between adjacent rods
+        const rodHalfW = 0.27;     // Square cross-section width = 0.54 m (ratio ~ 1:3 to spacing)
+        const zFront = 6.8;        // Distance from observer camera (0,0,0) to front red faces
+        const zBack = zFront + state.rodLength;
+        const numZSegs = 22;       // Subdivide long faces along z so relativistic curves are smooth
+
+        // Camera pinhole projection focal length (calibrated so 5x5 grid fills ~76% of frame)
+        const focal = Math.min(width, height) * 0.84;
+        const cx = width * 0.5;
+        const cy = height * 0.5;
+
+        const quads = [];
+
+        // Helper to project a 3D lab point to 2D canvas coordinates
+        const project = (p) => ({
+          sx: cx + focal * (p.x / p.z),
+          sy: cy - focal * (p.y / p.z), // +y is up in 3D, down on canvas
+          rSq: p.x * p.x + p.y * p.y + p.z * p.z
+        });
+
+        // Build all 25 square-cross-section rods (ix in -2..2, iy in -2..2)
+        for (let iy = -2; iy <= 2; iy++) {
+          for (let ix = -2; ix <= 2; ix++) {
+            const xCenter = ix * gridSpacing;
+            const yCenter = iy * gridSpacing;
+
+            const xL = xCenter - rodHalfW;
+            const xR = xCenter + rodHalfW;
+            const yB = yCenter - rodHalfW;
+            const yT = yCenter + rodHalfW;
+
+            // 1. Front End Face (z = zFront) — Bright Crimson Red
+            const fTL = project(transformPointRelativistic(xL, yT, zFront, beta, ctObs, ignoreLightDelay));
+            const fTR = project(transformPointRelativistic(xR, yT, zFront, beta, ctObs, ignoreLightDelay));
+            const fBR = project(transformPointRelativistic(xR, yB, zFront, beta, ctObs, ignoreLightDelay));
+            const fBL = project(transformPointRelativistic(xL, yB, zFront, beta, ctObs, ignoreLightDelay));
+
+            quads.push({
+              pts: [fTL, fTR, fBR, fBL],
+              depth: (fTL.rSq + fTR.rSq + fBR.rSq + fBL.rSq) * 0.25,
+              fill: '#e11d48',
+              stroke: '#be123c',
+              lineWidth: 0.7
+            });
+
+            // 2. Longitudinal Faces (subdivided along z from zFront to zBack)
+            const dz = (zBack - zFront) / numZSegs;
+            for (let s = 0; s < numZSegs; s++) {
+              const z0 = zFront + s * dz;
+              const z1 = z0 + dz;
+              // Subtle atmospheric distance fade along the length of the rod
+              const fade = Math.min(1, s / (numZSegs * 1.15));
+
+              // Transform 8 corners of this rod slice
+              const p0TL = transformPointRelativistic(xL, yT, z0, beta, ctObs, ignoreLightDelay);
+              const p0TR = transformPointRelativistic(xR, yT, z0, beta, ctObs, ignoreLightDelay);
+              const p0BR = transformPointRelativistic(xR, yB, z0, beta, ctObs, ignoreLightDelay);
+              const p0BL = transformPointRelativistic(xL, yB, z0, beta, ctObs, ignoreLightDelay);
+
+              const p1TL = transformPointRelativistic(xL, yT, z1, beta, ctObs, ignoreLightDelay);
+              const p1TR = transformPointRelativistic(xR, yT, z1, beta, ctObs, ignoreLightDelay);
+              const p1BR = transformPointRelativistic(xR, yB, z1, beta, ctObs, ignoreLightDelay);
+              const p1BL = transformPointRelativistic(xL, yB, z1, beta, ctObs, ignoreLightDelay);
+
+              const s0TL = project(p0TL);
+              const s0TR = project(p0TR);
+              const s0BR = project(p0BR);
+              const s0BL = project(p0BL);
+
+              const s1TL = project(p1TL);
+              const s1TR = project(p1TR);
+              const s1BR = project(p1BR);
+              const s1BL = project(p1BL);
+
+              // Helper to check if a face is front-facing toward the camera via 2D winding
+              // (In screen coords where y points down, outward-facing CCW 3D quad has positive signed area)
+              const isVisible = (a, b, c) => {
+                return (b.sx - a.sx) * (c.sy - a.sy) - (b.sy - a.sy) * (c.sx - a.sx) > 0.01;
+              };
+
+              // Top Face (y = yT, outward normal +y): order p0TL -> p1TL -> p1TR -> p0TR
+              if (isVisible(s0TL, s1TL, s1TR)) {
+                const blueShade = lerpHex('#1e3a8a', '#3b5998', fade * 0.45);
+                quads.push({
+                  pts: [s0TL, s1TL, s1TR, s0TR],
+                  depth: (s0TL.rSq + s1TL.rSq + s1TR.rSq + s0TR.rSq) * 0.25,
+                  fill: blueShade,
+                  stroke: blueShade,
+                  lineWidth: 0.45
+                });
+              }
+
+              // Bottom Face (y = yB, outward normal -y): order p0BL -> p0BR -> p1BR -> p1BL
+              if (isVisible(s0BL, s0BR, s1BR)) {
+                const blueShade = lerpHex('#172554', '#253b80', fade * 0.45);
+                quads.push({
+                  pts: [s0BL, s0BR, s1BR, s1BL],
+                  depth: (s0BL.rSq + s0BR.rSq + s1BR.rSq + s1BL.rSq) * 0.25,
+                  fill: blueShade,
+                  stroke: blueShade,
+                  lineWidth: 0.45
+                });
+              }
+
+              // Left Face (x = xL, outward normal -x): order p0TL -> p0BL -> p1BL -> p1TL
+              if (isVisible(s0TL, s0BL, s1BL)) {
+                const whiteShade = lerpHex('#ffffff', '#e2e8f0', fade * 0.65);
+                quads.push({
+                  pts: [s0TL, s0BL, s1BL, s1TL],
+                  depth: (s0TL.rSq + s0BL.rSq + s1BL.rSq + s1TL.rSq) * 0.25,
+                  fill: whiteShade,
+                  stroke: '#cbd5e1',
+                  lineWidth: 0.35
+                });
+              }
+
+              // Right Face (x = xR, outward normal +x): order p0TR -> p1TR -> p1BR -> p0BR
+              if (isVisible(s0TR, s1TR, s1BR)) {
+                const whiteShade = lerpHex('#f8fafc', '#cbd5e1', fade * 0.75);
+                quads.push({
+                  pts: [s0TR, s1TR, s1BR, s0BR],
+                  depth: (s0TR.rSq + s1TR.rSq + s1BR.rSq + s0BR.rSq) * 0.25,
+                  fill: whiteShade,
+                  stroke: '#cbd5e1',
+                  lineWidth: 0.35
+                });
+              }
+            }
+          }
+        }
+
+        // Sort back-to-front (largest emission distance r^2 drawn first)
+        quads.sort((a, b) => b.depth - a.depth);
+
+        // Draw all polygons
+        ctx.save();
+        ctx.lineJoin = 'round';
+        for (let i = 0; i < quads.length; i++) {
+          const q = quads[i];
+          const [p0, p1, p2, p3] = q.pts;
+
+          ctx.beginPath();
+          ctx.moveTo(p0.sx, p0.sy);
+          ctx.lineTo(p1.sx, p1.sy);
+          ctx.lineTo(p2.sx, p2.sy);
+          ctx.lineTo(p3.sx, p3.sy);
+          ctx.closePath();
+
+          ctx.fillStyle = q.fill;
+          ctx.fill();
+
+          if (q.stroke) {
+            ctx.strokeStyle = q.stroke;
+            ctx.lineWidth = q.lineWidth;
+            ctx.stroke();
+          }
+        }
+        ctx.restore();
+      }
+
+      // Linear color interpolation helper
+      function lerpHex(hexA, hexB, t) {
+        const a = parseInt(hexA.slice(1), 16);
+        const b = parseInt(hexB.slice(1), 16);
+        const rA = (a >> 16) & 255, gA = (a >> 8) & 255, bA = a & 255;
+        const rB = (b >> 16) & 255, gB = (b >> 8) & 255, bB = b & 255;
+        const r = Math.round(rA + (rB - rA) * t);
+        const g = Math.round(gA + (gB - gA) * t);
+        const bl = Math.round(bA + (bB - bA) * t);
+        return `rgb(${r},${g},${bl})`;
+      }
+
+      // =========================================================================
+      // UI & TELEMETRY UPDATES
+      // =========================================================================
+      function updateUI() {
+        const b = state.beta;
+        const gamma = 1 / Math.sqrt(1 - b * b);
+        const angleDeg = (Math.asin(b) * 180) / Math.PI;
+        const widthPct = (100 / gamma).toFixed(1);
+        const speedMps = (b * C_MPS).toExponential(2);
+        // Approximate light travel time difference along rod length L0: dt ~ L0 / c
+        const lagNs = ((state.rodLength / C_MPS) * 1e9).toFixed(1);
+
+        valBeta.innerHTML = `${b.toFixed(2)}c (${speedMps.replace('e+', ' &times; 10<sup>')}</sup> m/s)`;
+        valLength.textContent = `${state.rodLength.toFixed(1)} m`;
+
+        panelBTitleSpeed.textContent = `${b.toFixed(2)}c`;
+        metricGamma.textContent = gamma.toFixed(3);
+        metricAngle.innerHTML = state.ignoreLightDelay ? '0.0&deg; (Off)' : `${angleDeg.toFixed(1)}&deg;`;
+        metricWidth.textContent = `${widthPct}%`;
+        metricLag.textContent = `${lagNs} ns`;
+
+        if (state.isFlying) {
+          panelBModeBadge.textContent = `Fly-By Active (ct = ${state.tObs.toFixed(1)} m)`;
+        } else {
+          panelBModeBadge.textContent = `Snapshot t_obs = 0`;
+        }
+
+        if (b < 0.005) {
+          panelBCaption.innerHTML =
+            'At <span class="font-mono-code">v = 0.00c</span>, panel (b) is identical to panel (a): no Lorentz contraction and no relativistic visual rotation occur.';
+        } else if (state.ignoreLightDelay) {
+          panelBCaption.innerHTML =
+            `<strong>Light-Delay Disabled:</strong> Showing naive Lorentz contraction (<span class="font-mono-code">1/&gamma; = ${widthPct}%</span>) alone. Notice how the rods merely look squashed horizontally rather than rotated—proving finite light speed is essential!`;
+        } else {
+          panelBCaption.innerHTML =
+            `At <span class="font-mono-code">v = ${b.toFixed(2)}c</span>, photons from the rear of each rod were emitted earlier when the array was further left—exposing the white left-hand faces and creating an apparent rotation of <span class="font-mono-code">${angleDeg.toFixed(1)}&deg;</span>.`;
+        }
+
+        // Update preset button active styling
+        presetBtns.forEach((btn) => {
+          const pBeta = parseFloat(btn.getAttribute('data-beta'));
+          if (Math.abs(pBeta - b) < 0.005) {
+            btn.className = 'preset-btn px-2 py-1 rounded text-[11px] font-mono-code font-semibold bg-sky-600 text-white border border-sky-700';
+          } else {
+            btn.className = 'preset-btn px-2 py-1 rounded text-[11px] font-mono-code font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300';
+          }
+        });
+      }
+
+      function updateFlyByButton() {
+        if (state.isFlying) {
+          lblFlyBy.textContent = 'Pause Fly-By';
+          btnFlyBy.className =
+            'inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold text-white bg-amber-500 hover:bg-amber-400 shadow-sm transition active:scale-95';
+          iconPlay.classList.add('hidden');
+          iconPause.classList.remove('hidden');
+        } else {
+          lblFlyBy.textContent = 'Start Fly-By';
+          btnFlyBy.className =
+            'inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 shadow-sm transition active:scale-95';
+          iconPlay.classList.remove('hidden');
+          iconPause.classList.add('hidden');
+        }
+      }
+
+      // =========================================================================
+      // ANIMATION & RENDER LOOP
+      // =========================================================================
+      function animate(timestamp) {
+        if (!state.lastTimestamp) state.lastTimestamp = timestamp;
+        const dt = Math.min((timestamp - state.lastTimestamp) / 1000, 0.05);
+        state.lastTimestamp = timestamp;
+
+        if (state.isFlying) {
+          // Advance observer light-time ctObs so array sweeps cleanly from left to right
+          const effBeta = Math.max(state.beta, 0.12);
+          state.tObs += dt * 11.5;
+          // Wrap around smoothly once the array exits the right edge of the frame
+          if (state.tObs * effBeta > 9.5) {
+            state.tObs = -9.5 / effBeta;
+          }
+        }
+
+        // Render Panel (a): Always at rest (beta = 0, tObs = 0)
+        renderRodArray(ctxRest, state.sizeRest.w, state.sizeRest.h, 0, 0, false);
+
+        // Render Panel (b): Relativistic moving array
+        renderRodArray(
+          ctxMoving,
+          state.sizeMoving.w,
+          state.sizeMoving.h,
+          state.beta,
+          state.tObs,
+          state.ignoreLightDelay
+        );
+
+        updateUI();
+        requestAnimationFrame(animate);
+      }
+
+      // =========================================================================
+      // EVENT LISTENERS
+      // =========================================================================
+      sliderBeta.addEventListener('input', (e) => {
+        state.beta = parseFloat(e.target.value);
+      });
+
+      sliderLength.addEventListener('input', (e) => {
+        state.rodLength = parseFloat(e.target.value);
+      });
+
+      presetBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          state.beta = parseFloat(btn.getAttribute('data-beta'));
+          sliderBeta.value = state.beta.toFixed(2);
+          if (!state.isFlying) {
+            state.tObs = 0;
+          }
+        });
+      });
+
+      btnFlyBy.addEventListener('click', () => {
+        if (!state.isFlying && state.beta < 0.05) {
+          // Automatically bump to 0.20c if user clicks Fly-By while speed is 0
+          state.beta = 0.20;
+          sliderBeta.value = '0.20';
+        }
+        state.isFlying = !state.isFlying;
+        updateFlyByButton();
+      });
+
+      btnSnapshot.addEventListener('click', () => {
+        state.isFlying = false;
+        state.tObs = 0;
+        updateFlyByButton();
+      });
+
+      chkIgnoreDelay.addEventListener('change', (e) => {
+        state.ignoreLightDelay = e.target.checked;
+      });
+
+      // Initialize
+      handleResize();
+      updateFlyByButton();
+      requestAnimationFrame(animate);
+    })();
+  </script>
+</body>
+</html>

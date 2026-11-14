@@ -1,0 +1,1441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Relativistic Velocity Addition — Newtonian vs. Einstein's Second Postulate</title>
+  <style>
+    :root {
+      --bg-page: #070b14;
+      --bg-card: #0f172a;
+      --bg-panel: #090e1a;
+      --border: #1e293b;
+      --border-light: #334155;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --green: #10b981;
+      --green-bg: rgba(16, 185, 129, 0.14);
+      --green-border: rgba(16, 185, 129, 0.35);
+      --red: #f43f5e;
+      --red-bg: rgba(244, 63, 94, 0.14);
+      --red-border: rgba(244, 63, 94, 0.35);
+      --amber: #f59e0b;
+      --cyan: #38bdf8;
+      --indigo: #818cf8;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header Bar */
+    header {
+      background: rgba(15, 23, 42, 0.92);
+      border-bottom: 1px solid var(--border);
+      padding: 0.85rem 1.25rem;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(8px);
+    }
+
+    .header-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .title-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .logo-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--cyan);
+      flex-shrink: 0;
+    }
+
+    h1 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .tag-pill {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      background: #1e293b;
+      color: var(--cyan);
+      border: 1px solid var(--border-light);
+    }
+
+    .subtitle {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    /* Playback Toolbar */
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    button {
+      font-family: var(--font-sans);
+      cursor: pointer;
+      border: none;
+      transition: transform 0.1s ease, background-color 0.15s ease, border-color 0.15s ease;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.48rem 0.95rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #050a14;
+      background: var(--green);
+      box-shadow: 0 2px 10px rgba(16, 185, 129, 0.25);
+    }
+
+    .btn-primary:hover {
+      background: #34d399;
+    }
+
+    .btn-primary.paused {
+      background: var(--amber);
+      box-shadow: 0 2px 10px rgba(245, 158, 11, 0.25);
+    }
+
+    .btn-primary.paused:hover {
+      background: #fbbf24;
+    }
+
+    .btn-primary.replay {
+      background: var(--indigo);
+      box-shadow: 0 2px 10px rgba(129, 140, 248, 0.25);
+    }
+
+    .btn-primary.replay:hover {
+      background: #a5b4fc;
+    }
+
+    .btn-secondary {
+      padding: 0.48rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-main);
+      background: #1e293b;
+      border: 1px solid var(--border-light);
+    }
+
+    .btn-secondary:hover {
+      background: #334155;
+    }
+
+    .checkbox-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.42rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .checkbox-pill input {
+      accent-color: var(--cyan);
+      width: 14px;
+      height: 14px;
+      cursor: pointer;
+    }
+
+    /* Main Layout */
+    main {
+      flex: 1;
+      max-width: 1280px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* Side-by-side Dual Scenario Grid */
+    .panels-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+
+    @media (max-width: 960px) {
+      .panels-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .scenario-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+    }
+
+    .card-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.92rem;
+      font-weight: 700;
+    }
+
+    .letter-badge {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: 6px;
+    }
+
+    .letter-a {
+      background: var(--green-bg);
+      color: var(--green);
+      border: 1px solid var(--green-border);
+    }
+
+    .letter-b {
+      background: var(--red-bg);
+      color: var(--red);
+      border: 1px solid var(--red-border);
+    }
+
+    .status-chip {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      padding: 0.18rem 0.6rem;
+      border-radius: 999px;
+      background: #1e293b;
+      color: var(--text-muted);
+      border: 1px solid var(--border-light);
+    }
+
+    .canvas-wrapper {
+      position: relative;
+      width: 100%;
+      height: 270px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .verdict-box {
+      border-radius: 10px;
+      padding: 0.75rem 0.9rem;
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+
+    .verdict-holds {
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.28);
+      color: #cbd5e1;
+    }
+
+    .verdict-holds strong {
+      color: #34d399;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+
+    .verdict-fails {
+      background: rgba(244, 63, 94, 0.08);
+      border: 1px solid rgba(244, 63, 94, 0.28);
+      color: #cbd5e1;
+    }
+
+    .verdict-fails strong {
+      color: #fb7185;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+
+    .mono {
+      font-family: var(--font-mono);
+    }
+
+    /* Bottom Controls & Telemetry Grid */
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.25fr;
+      gap: 1.25rem;
+    }
+
+    @media (max-width: 960px) {
+      .bottom-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .control-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .section-label {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Regime Toggle Tabs */
+    .regime-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.45rem;
+      background: var(--bg-panel);
+      padding: 0.3rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .regime-btn {
+      padding: 0.5rem 0.6rem;
+      border-radius: 7px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: transparent;
+      text-align: center;
+    }
+
+    .regime-btn.active {
+      background: #1e293b;
+      color: var(--cyan);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    }
+
+    /* Custom Sliders */
+    .slider-block {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.82rem;
+    }
+
+    .slider-val {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.84rem;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 6px;
+      border-radius: 999px;
+      background: #1e293b;
+      border: 1px solid var(--border-light);
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      margin-top: -6px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--cyan);
+      border: 2px solid #090e1a;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.55);
+    }
+
+    input[type="range"]::-moz-range-track {
+      height: 6px;
+      border-radius: 999px;
+      background: #1e293b;
+      border: 1px solid var(--border-light);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--cyan);
+      border: 2px solid #090e1a;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.55);
+    }
+
+    .slider-ticks {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--text-dim);
+    }
+
+    /* Formula & Telemetry Table */
+    .telemetry-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
+    .telemetry-table th {
+      text-align: left;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      padding: 0.45rem 0.55rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .telemetry-table td {
+      padding: 0.55rem;
+      border-bottom: 1px solid rgba(30, 41, 59, 0.6);
+      vertical-align: middle;
+    }
+
+    .telemetry-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .formula-banner {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.65rem 0.85rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .formula-code {
+      font-family: var(--font-mono);
+      color: #e2e8f0;
+      background: #1e293b;
+      padding: 0.22rem 0.55rem;
+      border-radius: 6px;
+      border: 1px solid var(--border-light);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header>
+    <div class="header-inner">
+      <div class="title-group">
+        <div class="logo-badge" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M13 6l6 6-6 6" />
+          </svg>
+        </div>
+        <div>
+          <h1>
+            Relativistic Velocity Addition
+            <span class="tag-pill">Einstein's Second Postulate</span>
+          </h1>
+          <p class="subtitle">Comparing Galilean addition for a projectile (<span class="mono">M</span>) vs. a light beam (<span class="mono">L</span>)</p>
+        </div>
+      </div>
+
+      <!-- Playback Controls (Starts Paused at t = 0) -->
+      <div class="toolbar">
+        <button id="btnStartPause" type="button" class="btn-primary">
+          <svg id="iconPlay" width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+          </svg>
+          <svg id="iconPause" width="14" height="14" viewBox="0 0 20 20" fill="currentColor" style="display:none;">
+            <path d="M6 4a1 1 0 011 1v10a1 1 0 11-2 0V5a1 1 0 011-1zm7 0a1 1 0 011 1v10a1 1 0 11-2 0V5a1 1 0 011-1z" />
+          </svg>
+          <span id="lblStartPause">Start Simulation</span>
+        </button>
+
+        <button id="btnReset" type="button" class="btn-secondary">Reset</button>
+
+        <label class="checkbox-pill">
+          <input id="chkLoop" type="checkbox" />
+          <span>Continuous Loop</span>
+        </label>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Dual Panels (a) and (b) -->
+    <section class="panels-grid">
+
+      <!-- Panel (a): Missile M -->
+      <article class="scenario-card">
+        <div class="card-top-row">
+          <div class="panel-title">
+            <span class="letter-badge letter-a">(a)</span>
+            <span>Spaceship (<span class="mono" style="color:#38bdf8;">S'</span>) Firing Missile (<span class="mono" style="color:#fb7185;">M</span>)</span>
+          </div>
+          <span id="badgePanelA" class="status-chip">Ready (t = 0.00 s)</span>
+        </div>
+
+        <div id="wrapCanvasA" class="canvas-wrapper">
+          <canvas id="canvasA" width="600" height="270"></canvas>
+        </div>
+
+        <div id="verdictA" class="verdict-box verdict-holds">
+          <strong>NEWTONIAN MECHANICS HOLDS:</strong> At everyday speeds (<span class="mono">v<sub>S'/S</sub> = 1000 m/s</span>, <span class="mono">v<sub>M/S'</sub> = 2000 m/s</span>), Newtonian addition predicts <span class="mono">v<sub>M/S</sub> = 3000 m/s</span> relative to Earth (<span class="mono">S</span>), matching Einstein's exact formula to within <span class="mono">0.000000002%</span>.
+        </div>
+      </article>
+
+      <!-- Panel (b): Light Beam L -->
+      <article class="scenario-card">
+        <div class="card-top-row">
+          <div class="panel-title">
+            <span class="letter-badge letter-b">(b)</span>
+            <span>Spaceship (<span class="mono" style="color:#38bdf8;">S'</span>) Emitting Light Beam (<span class="mono" style="color:#facc15;">L</span>)</span>
+          </div>
+          <span id="badgePanelB" class="status-chip">Ready (t = 0.00 s)</span>
+        </div>
+
+        <div id="wrapCanvasB" class="canvas-wrapper">
+          <canvas id="canvasB" width="600" height="270"></canvas>
+        </div>
+
+        <div id="verdictB" class="verdict-box verdict-fails">
+          <strong>NEWTONIAN MECHANICS FAILS:</strong> Newtonian mechanics predicts <em>incorrectly</em> that the light beam moves at <span class="mono">c + 1000 m/s</span> relative to Earth (<span class="mono">S</span>)—contradicting Einstein's second postulate that light always travels at invariant speed <span class="mono">v<sub>L/S</sub> = c</span>.
+        </div>
+      </article>
+
+    </section>
+
+    <!-- Bottom Controls & Telemetry -->
+    <section class="bottom-grid">
+
+      <!-- Left: Regime Presets & Speed Sliders -->
+      <div class="control-card">
+        <div class="section-label">
+          <span>Velocity Regime &amp; Controls</span>
+          <span id="regimeIndicator" class="mono" style="color:#38bdf8;">Classical Scale (m/s)</span>
+        </div>
+
+        <!-- Mode Switcher -->
+        <div class="regime-tabs" role="group" aria-label="Velocity Regime">
+          <button id="btnRegimeClassical" type="button" class="regime-btn active">
+            Textbook Example (1000 &amp; 2000 m/s)
+          </button>
+          <button id="btnRegimeRelativistic" type="button" class="regime-btn">
+            Relativistic Speeds (0.0c – 0.95c)
+          </button>
+        </div>
+
+        <!-- Slider 1: Spaceship Speed v_{S'/S} -->
+        <div class="slider-block">
+          <div class="slider-header">
+            <label for="sliderShip">Spaceship Speed (<span class="mono">v<sub>S'/S</sub></span> relative to Earth)</label>
+            <span id="valShipSlider" class="slider-val" style="color:#4ade80;">1000 m/s</span>
+          </div>
+          <input id="sliderShip" type="range" min="0" max="3000" step="100" value="1000" />
+          <div id="ticksShip" class="slider-ticks">
+            <span>0 m/s</span>
+            <span>1500 m/s</span>
+            <span>3000 m/s</span>
+          </div>
+        </div>
+
+        <!-- Slider 2: Missile Speed v_{M/S'} -->
+        <div class="slider-block">
+          <div class="slider-header">
+            <label for="sliderMissile">Missile Speed (<span class="mono">v<sub>M/S'</sub></span> relative to Ship)</label>
+            <span id="valMissileSlider" class="slider-val" style="color:#fb7185;">2000 m/s</span>
+          </div>
+          <input id="sliderMissile" type="range" min="500" max="4000" step="100" value="2000" />
+          <div id="ticksMissile" class="slider-ticks">
+            <span>500 m/s</span>
+            <span>2250 m/s</span>
+            <span>4000 m/s</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Live Formula Comparison Table -->
+      <div class="control-card">
+        <div class="section-label">
+          <span>Earth Observer (<span class="mono">S</span>) Velocity Comparison</span>
+          <span class="mono">c = 2.998 &times; 10<sup>8</sup> m/s</span>
+        </div>
+
+        <div class="formula-banner">
+          <span>Einstein's Velocity Addition Law:</span>
+          <span class="formula-code">v<sub>A/S</sub> = (v<sub>A/S'</sub> + v<sub>S'/S</sub>) / (1 + v<sub>A/S'</sub>&middot;v<sub>S'/S</sub> / c<sup>2</sup>)</span>
+        </div>
+
+        <table class="telemetry-table">
+          <thead>
+            <tr>
+              <th>Object</th>
+              <th>In Ship (<span class="mono">S'</span>)</th>
+              <th>Newtonian (<span class="mono">S</span>)</th>
+              <th>Relativistic (<span class="mono">S</span>)</th>
+              <th>Newtonian Error</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong style="color:#fb7185;">Missile (M)</strong></td>
+              <td id="tblMissileShip" class="mono">2000 m/s</td>
+              <td id="tblMissileNewt" class="mono" style="color:#4ade80;">3000 m/s</td>
+              <td id="tblMissileRel" class="mono" style="color:#38bdf8;">3000.000 m/s</td>
+              <td id="tblMissileErr" class="mono" style="color:#94a3b8;">~0.00% (Holds)</td>
+            </tr>
+            <tr>
+              <td><strong style="color:#facc15;">Light Beam (L)</strong></td>
+              <td class="mono">c</td>
+              <td id="tblLightNewt" class="mono" style="color:#fb7185; text-decoration: line-through;">c + 1000 m/s</td>
+              <td class="mono" style="color:#facc15; font-weight:700;">c (Invariant)</td>
+              <td class="mono" style="color:#fb7185;">Violates Postulate 2</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const C_MPS = 299792458; // Exact speed of light in m/s
+
+      // =========================================================================
+      // STATE (Starts paused at t = 0)
+      // =========================================================================
+      const state = {
+        regime: 'classical', // 'classical' (m/s) | 'relativistic' (fractions of c)
+        shipSpeed: 1000,     // m/s in classical mode, or beta (0..0.95) in relativistic mode
+        missileSpeed: 2000,  // m/s in classical mode, or beta (0..0.95) in relativistic mode
+        isPlaying: false,
+        autoLoop: false,
+        progress: 0,         // Normalized simulation progress [0, 1]
+        lastTimestamp: 0,
+        loopWaitTimer: 0,
+        sizeA: { w: 600, h: 270 },
+        sizeB: { w: 600, h: 270 },
+      };
+
+      // =========================================================================
+      // DOM ELEMENTS
+      // =========================================================================
+      const wrapCanvasA = document.getElementById('wrapCanvasA');
+      const canvasA = document.getElementById('canvasA');
+      const ctxA = canvasA.getContext('2d');
+
+      const wrapCanvasB = document.getElementById('wrapCanvasB');
+      const canvasB = document.getElementById('canvasB');
+      const ctxB = canvasB.getContext('2d');
+
+      const btnStartPause = document.getElementById('btnStartPause');
+      const lblStartPause = document.getElementById('lblStartPause');
+      const iconPlay = document.getElementById('iconPlay');
+      const iconPause = document.getElementById('iconPause');
+      const btnReset = document.getElementById('btnReset');
+      const chkLoop = document.getElementById('chkLoop');
+
+      const btnRegimeClassical = document.getElementById('btnRegimeClassical');
+      const btnRegimeRelativistic = document.getElementById('btnRegimeRelativistic');
+      const regimeIndicator = document.getElementById('regimeIndicator');
+
+      const sliderShip = document.getElementById('sliderShip');
+      const valShipSlider = document.getElementById('valShipSlider');
+      const ticksShip = document.getElementById('ticksShip');
+
+      const sliderMissile = document.getElementById('sliderMissile');
+      const valMissileSlider = document.getElementById('valMissileSlider');
+      const ticksMissile = document.getElementById('ticksMissile');
+
+      const badgePanelA = document.getElementById('badgePanelA');
+      const badgePanelB = document.getElementById('badgePanelB');
+      const verdictA = document.getElementById('verdictA');
+      const verdictB = document.getElementById('verdictB');
+
+      const tblMissileShip = document.getElementById('tblMissileShip');
+      const tblMissileNewt = document.getElementById('tblMissileNewt');
+      const tblMissileRel = document.getElementById('tblMissileRel');
+      const tblMissileErr = document.getElementById('tblMissileErr');
+      const tblLightNewt = document.getElementById('tblLightNewt');
+
+      // =========================================================================
+      // RELIABLE CANVAS SIZING (RESIZE OBSERVER + DPR)
+      // =========================================================================
+      function syncCanvas(wrapper, canvas, ctx, fallbackW, fallbackH) {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const rect = wrapper.getBoundingClientRect();
+        const w = rect.width > 40 ? Math.floor(rect.width) : fallbackW;
+        const h = rect.height > 40 ? Math.floor(rect.height) : fallbackH;
+
+        if (canvas.width !== Math.floor(w * dpr) || canvas.height !== Math.floor(h * dpr)) {
+          canvas.width = Math.floor(w * dpr);
+          canvas.height = Math.floor(h * dpr);
+        }
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        return { w, h };
+      }
+
+      function updateCanvasSizes() {
+        state.sizeA = syncCanvas(wrapCanvasA, canvasA, ctxA, 600, 270);
+        state.sizeB = syncCanvas(wrapCanvasB, canvasB, ctxB, 600, 270);
+      }
+
+      if (typeof ResizeObserver !== 'undefined') {
+        const ro = new ResizeObserver(updateCanvasSizes);
+        ro.observe(wrapCanvasA);
+        ro.observe(wrapCanvasB);
+      }
+      window.addEventListener('resize', updateCanvasSizes);
+
+      // =========================================================================
+      // PHYSICS CALCULATIONS
+      // =========================================================================
+      function computeVelocities() {
+        if (state.regime === 'classical') {
+          const vShip = state.shipSpeed;       // m/s
+          const vMissShip = state.missileSpeed; // m/s
+          const vNewt = vShip + vMissShip;
+          const vRel = vNewt / (1 + (vShip * vMissShip) / (C_MPS * C_MPS));
+          const errPct = vRel > 0 ? ((vNewt - vRel) / vRel) * 100 : 0;
+
+          return {
+            isClassical: true,
+            shipStr: `${vShip} m/s`,
+            missShipStr: `${vMissShip} m/s`,
+            missNewtStr: `${vNewt} m/s`,
+            missRelStr: `${vRel.toFixed(6)} m/s`,
+            errStr: errPct < 1e-6 ? '~0.00% (Holds)' : `+${errPct.toExponential(2)}%`,
+            lightNewtStr: `c + ${vShip} m/s`,
+            // Normalized visual speeds on screen (so motion is clear & smooth)
+            visShipRate: 0.14 * (vShip / 1000),
+            visMissileRate: 0.14 * (vNewt / 1000),
+            visLightRate: 0.72,
+          };
+        } else {
+          const bShip = state.shipSpeed;       // fraction of c
+          const bMissShip = state.missileSpeed; // fraction of c
+          const bNewt = bShip + bMissShip;
+          const bRel = bNewt / (1 + bShip * bMissShip);
+          const errPct = bRel > 0 ? ((bNewt - bRel) / bRel) * 100 : 0;
+
+          return {
+            isClassical: false,
+            shipStr: `${bShip.toFixed(2)}c`,
+            missShipStr: `${bMissShip.toFixed(2)}c`,
+            missNewtStr: `${bNewt.toFixed(2)}c`,
+            missRelStr: `${bRel.toFixed(3)}c`,
+            errStr: `+${errPct.toFixed(1)}% error`,
+            lightNewtStr: `${(1 + bShip).toFixed(2)}c`,
+            // Visual rates proportional to true relativistic speeds (capped at c = 0.72)
+            visShipRate: 0.72 * bShip,
+            visMissileRate: 0.72 * bRel,
+            visLightRate: 0.72,
+          };
+        }
+      }
+
+      // =========================================================================
+      // DRAWING HELPERS (DISCOVERY SPACESHIP, EARTH HORIZON, MISSILE, LIGHT BEAM)
+      // =========================================================================
+      function drawSpaceBackdrop(ctx, w, h) {
+        // Deep space gradient
+        const bg = ctx.createLinearGradient(0, 0, 0, h);
+        bg.addColorStop(0, '#060a14');
+        bg.addColorStop(1, '#0c162c');
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, w, h);
+
+        // Subtle starfield
+        ctx.fillStyle = 'rgba(226, 232, 240, 0.35)';
+        const stars = [
+          [0.08, 0.14], [0.19, 0.28], [0.31, 0.11], [0.47, 0.22],
+          [0.62, 0.12], [0.76, 0.25], [0.89, 0.15], [0.94, 0.36],
+          [0.14, 0.45], [0.54, 0.38], [0.82, 0.44]
+        ];
+        for (const [sx, sy] of stars) {
+          ctx.beginPath();
+          ctx.arc(sx * w, sy * h, 1.1, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      function drawEarthAndObserver(ctx, w, h) {
+        const horizonTopY = h * 0.76;
+
+        // Curved Earth limb
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(0, horizonTopY);
+        ctx.quadraticCurveTo(w * 0.28, horizonTopY + 12, w * 0.56, h);
+        ctx.lineTo(0, h);
+        ctx.closePath();
+
+        const earthGrad = ctx.createLinearGradient(0, horizonTopY, 0, h);
+        earthGrad.addColorStop(0, '#0284c7');
+        earthGrad.addColorStop(0.35, '#0369a1');
+        earthGrad.addColorStop(1, '#0c4a6e');
+        ctx.fillStyle = earthGrad;
+        ctx.fill();
+
+        // Atmospheric rim glow
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, horizonTopY);
+        ctx.quadraticCurveTo(w * 0.28, horizonTopY + 12, w * 0.56, h);
+        ctx.stroke();
+
+        // Stylized white cloud swirls on Earth
+        ctx.fillStyle = 'rgba(241, 245, 249, 0.45)';
+        ctx.beginPath();
+        ctx.ellipse(w * 0.08, h * 0.88, 28, 5, 0.12, 0, Math.PI * 2);
+        ctx.ellipse(w * 0.31, h * 0.91, 34, 6, 0.22, 0, Math.PI * 2);
+        ctx.ellipse(w * 0.42, h * 0.96, 26, 4.5, 0.18, 0, Math.PI * 2);
+        ctx.fill();
+
+        // "Earth" label
+        ctx.fillStyle = '#e0f2fe';
+        ctx.font = '600 12px system-ui, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('Earth', w * 0.33, h * 0.94);
+
+        // Earth Observer (S) seated looking up at spaceship
+        const obsX = w * 0.18;
+        const obsY = h * 0.97;
+
+        // Chair back & shoulders
+        ctx.fillStyle = '#64748b';
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.roundRect(obsX - 18, obsY - 38, 36, 36, 8);
+        ctx.fill();
+        ctx.stroke();
+
+        // Spiky Einstein-inspired white hair & head
+        ctx.fillStyle = '#f8fafc';
+        ctx.beginPath();
+        ctx.arc(obsX, obsY - 46, 10.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Frame label "S" on observer
+        ctx.fillStyle = '#0f172a';
+        ctx.font = 'italic 700 12px Georgia, serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('S', obsX, obsY - 14);
+
+        ctx.restore();
+      }
+
+      function drawDiscoverySpaceship(ctx, noseX, centerY, shipLabelText) {
+        // Discovery-style spacecraft: rear engine bell + dish + truss spine + spherical command module
+        const sphereR = 16;
+        const sphereCx = noseX - sphereR;
+        const trussLen = 84;
+        const trussLeft = sphereCx - sphereR - trussLen;
+        const engineW = 24;
+        const engineLeft = trussLeft - engineW;
+
+        ctx.save();
+
+        // 1. Engine Bell & Thruster Housing (Left)
+        ctx.fillStyle = '#475569';
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(engineLeft - 7, centerY - 12);
+        ctx.lineTo(engineLeft, centerY - 7);
+        ctx.lineTo(engineLeft, centerY + 7);
+        ctx.lineTo(engineLeft - 7, centerY + 12);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Thruster exhaust glow when moving
+        if (state.isPlaying && state.shipSpeed > 0) {
+          const flameGrad = ctx.createLinearGradient(engineLeft - 24, centerY, engineLeft - 7, centerY);
+          flameGrad.addColorStop(0, 'rgba(56, 189, 248, 0)');
+          flameGrad.addColorStop(1, 'rgba(56, 189, 248, 0.85)');
+          ctx.fillStyle = flameGrad;
+          ctx.beginPath();
+          ctx.moveTo(engineLeft - 7, centerY - 6);
+          ctx.lineTo(engineLeft - 24, centerY);
+          ctx.lineTo(engineLeft - 7, centerY + 6);
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        const engGrad = ctx.createLinearGradient(0, centerY - 9, 0, centerY + 9);
+        engGrad.addColorStop(0, '#94a3b8');
+        engGrad.addColorStop(0.5, '#475569');
+        engGrad.addColorStop(1, '#1e293b');
+        ctx.fillStyle = engGrad;
+        ctx.beginPath();
+        ctx.roundRect(engineLeft, centerY - 9, engineW, 18, 3);
+        ctx.fill();
+        ctx.stroke();
+
+        // Communications Dish on top of engine
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(engineLeft + 12, centerY - 9);
+        ctx.lineTo(engineLeft + 12, centerY - 19);
+        ctx.stroke();
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.beginPath();
+        ctx.arc(engineLeft + 15, centerY - 21, 9, Math.PI * 0.65, Math.PI * 1.55);
+        ctx.stroke();
+
+        // 2. Lattice Truss Spine
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1.2;
+        ctx.strokeRect(trussLeft, centerY - 4, trussLen, 8);
+
+        const bays = 7;
+        const bayW = trussLen / bays;
+        ctx.beginPath();
+        for (let i = 0; i < bays; i++) {
+          const bx = trussLeft + i * bayW;
+          ctx.moveTo(bx, centerY - 4);
+          ctx.lineTo(bx + bayW, centerY + 4);
+          ctx.moveTo(bx, centerY + 4);
+          ctx.lineTo(bx + bayW, centerY - 4);
+        }
+        ctx.stroke();
+
+        // 3. Spherical Command Module (Right)
+        const sphereGrad = ctx.createRadialGradient(
+          sphereCx - 5, centerY - 5, 2,
+          sphereCx, centerY, sphereR
+        );
+        sphereGrad.addColorStop(0, '#f8fafc');
+        sphereGrad.addColorStop(0.6, '#cbd5e1');
+        sphereGrad.addColorStop(1, '#475569');
+
+        ctx.fillStyle = sphereGrad;
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 1.3;
+        ctx.beginPath();
+        ctx.arc(sphereCx, centerY, sphereR, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // S' Label above truss
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = 'italic 700 13px Georgia, serif';
+        ctx.textAlign = 'center';
+        ctx.fillText("S'", trussLeft + trussLen * 0.5, centerY - 10);
+
+        // Green Velocity Arrow beneath ship
+        const arrowStartX = trussLeft + 12;
+        const arrowEndX = trussLeft + trussLen - 10;
+        const arrowY = centerY + 18;
+        drawGreenArrow(ctx, arrowStartX, arrowEndX, arrowY);
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '600 11.5px ui-monospace, monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(shipLabelText, (arrowStartX + arrowEndX) / 2, arrowY + 17);
+
+        ctx.restore();
+      }
+
+      function drawGreenArrow(ctx, x1, x2, y) {
+        if (x2 - x1 < 8) return;
+        ctx.save();
+        ctx.strokeStyle = '#22c55e';
+        ctx.fillStyle = '#22c55e';
+        ctx.lineWidth = 2.6;
+        ctx.lineCap = 'round';
+
+        ctx.beginPath();
+        ctx.moveTo(x1, y);
+        ctx.lineTo(x2 - 5, y);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(x2, y);
+        ctx.lineTo(x2 - 8, y - 4.5);
+        ctx.lineTo(x2 - 8, y + 4.5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawRedMissile(ctx, tailX, centerY, velShipLabel, velEarthLabel) {
+        ctx.save();
+        const bodyLen = 20;
+
+        // Exhaust trail if active
+        if (state.isPlaying) {
+          const trail = ctx.createLinearGradient(tailX - 24, centerY, tailX, centerY);
+          trail.addColorStop(0, 'rgba(244, 63, 94, 0)');
+          trail.addColorStop(1, 'rgba(251, 113, 133, 0.85)');
+          ctx.fillStyle = trail;
+          ctx.beginPath();
+          ctx.moveTo(tailX, centerY - 3);
+          ctx.lineTo(tailX - 24, centerY);
+          ctx.lineTo(tailX, centerY + 3);
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        // Tail fins
+        ctx.fillStyle = '#be123c';
+        ctx.beginPath();
+        ctx.moveTo(tailX, centerY - 3);
+        ctx.lineTo(tailX - 4, centerY - 7);
+        ctx.lineTo(tailX + 5, centerY - 3);
+        ctx.moveTo(tailX, centerY + 3);
+        ctx.lineTo(tailX - 4, centerY + 7);
+        ctx.lineTo(tailX + 5, centerY + 3);
+        ctx.fill();
+
+        // Missile fuselage
+        ctx.fillStyle = '#f43f5e';
+        ctx.strokeStyle = '#fda4af';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(tailX, centerY - 3.2);
+        ctx.lineTo(tailX + bodyLen - 6, centerY - 3.2);
+        ctx.quadraticCurveTo(tailX + bodyLen + 4, centerY, tailX + bodyLen - 6, centerY + 3.2);
+        ctx.lineTo(tailX, centerY + 3.2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // "Missile (M)" label above
+        ctx.fillStyle = '#fda4af';
+        ctx.font = '600 11.5px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Missile (M)', tailX + 12, centerY - 14);
+
+        // Green velocity arrow to the right of missile
+        drawGreenArrow(ctx, tailX + bodyLen + 10, tailX + bodyLen + 56, centerY);
+
+        // Velocity equations underneath missile
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = '600 11px ui-monospace, monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(velShipLabel, tailX - 6, centerY + 21);
+        ctx.fillStyle = '#4ade80';
+        ctx.fillText(velEarthLabel, tailX - 6, centerY + 36);
+
+        ctx.restore();
+      }
+
+      function drawLightBeam(ctx, startX, endX, centerY, w, lightNewtStr) {
+        const beamLen = Math.max(0, endX - startX);
+        if (beamLen > 1) {
+          ctx.save();
+          // Outer soft yellow glow
+          ctx.shadowColor = '#facc15';
+          ctx.shadowBlur = 12;
+          ctx.fillStyle = 'rgba(250, 204, 21, 0.35)';
+          ctx.fillRect(startX, centerY - 5, beamLen, 10);
+
+          // Core yellow beam bar (matching textbook figure)
+          ctx.shadowBlur = 0;
+          ctx.fillStyle = '#fde047';
+          ctx.strokeStyle = '#eab308';
+          ctx.lineWidth = 1;
+          ctx.fillRect(startX, centerY - 3, beamLen, 6);
+          ctx.strokeRect(startX, centerY - 3, beamLen, 6);
+          ctx.restore();
+        }
+
+        // "Light beam (L)" label above beam
+        const labelX = Math.min(w - 75, Math.max(startX + 65, (startX + Math.max(endX, startX + 130)) / 2));
+        ctx.save();
+        ctx.fillStyle = '#fef08a';
+        ctx.font = '600 11.5px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Light beam (L)', labelX, centerY - 12);
+
+        // Velocity readout & crossed-out Galilean equation below beam
+        const eqX = startX + 26;
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = '600 11px ui-monospace, monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText('v(L/S\') = c', eqX, centerY + 21);
+
+        const line2Y = centerY + 37;
+        const prefixText = 'v(L/S) ';
+        const eqSymbol = '= ';
+        const wrongExpr = lightNewtStr;
+
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fillText(prefixText, eqX, line2Y);
+        const wPrefix = ctx.measureText(prefixText).width;
+
+        ctx.fillText(eqSymbol, eqX + wPrefix, line2Y);
+        const wEq = ctx.measureText(eqSymbol).width;
+
+        ctx.fillStyle = '#fda4af';
+        ctx.fillText(wrongExpr, eqX + wPrefix + wEq, line2Y);
+
+        // Bold crimson "X" over the "=" sign (just like the textbook figure!)
+        const xCenter = eqX + wPrefix + wEq * 0.42;
+        const yCenter = line2Y - 4;
+        ctx.strokeStyle = '#f43f5e';
+        ctx.lineWidth = 2.4;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(xCenter - 6, yCenter - 6);
+        ctx.lineTo(xCenter + 6, yCenter + 6);
+        ctx.moveTo(xCenter + 6, yCenter - 6);
+        ctx.lineTo(xCenter - 6, yCenter + 6);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      // =========================================================================
+      // RENDER PANEL (a) AND PANEL (b)
+      // =========================================================================
+      function renderSimulations(phys) {
+        // --- Panel (a): Missile M ---
+        const { w: wA, h: hA } = state.sizeA;
+        ctxA.clearRect(0, 0, wA, hA);
+        drawSpaceBackdrop(ctxA, wA, hA);
+        drawEarthAndObserver(ctxA, wA, hA);
+
+        const shipBaseNoseA = wA * 0.34;
+        const shipTravelA = state.progress * wA * phys.visShipRate;
+        const shipNoseA = shipBaseNoseA + shipTravelA;
+        const shipY = hA * 0.34;
+
+        // Missile starts just ahead of nose at t = 0 and advances at v_{M/S}
+        const missileStartA = shipBaseNoseA + 22;
+        const missileTravelA = state.progress * wA * phys.visMissileRate;
+        const missileTailA = missileStartA + missileTravelA;
+
+        drawDiscoverySpaceship(ctxA, shipNoseA, shipY, `v(S'/S) = ${phys.shipStr}`);
+        drawRedMissile(
+          ctxA,
+          missileTailA,
+          shipY,
+          `v(M/S') = ${phys.missShipStr}`,
+          `v(M/S)  = ${phys.isClassical ? phys.missNewtStr : phys.missRelStr}`
+        );
+
+        // --- Panel (b): Light Beam L ---
+        const { w: wB, h: hB } = state.sizeB;
+        ctxB.clearRect(0, 0, wB, hB);
+        drawSpaceBackdrop(ctxB, wB, hB);
+        drawEarthAndObserver(ctxB, wB, hB);
+
+        const shipBaseNoseB = wB * 0.34;
+        const shipTravelB = state.progress * wB * phys.visShipRate;
+        const shipNoseB = shipBaseNoseB + shipTravelB;
+
+        // Light beam starts at ship nose and propagates at invariant speed c
+        // At t = 0, show a short initial pulse bar so the beam is clearly visible before starting
+        const beamFrontB = state.progress <= 0
+          ? shipNoseB + Math.min(135, wB * 0.24)
+          : Math.min(wB - 8, shipBaseNoseB + state.progress * wB * phys.visLightRate + 28);
+
+        drawDiscoverySpaceship(ctxB, shipNoseB, shipY, `v(S'/S) = ${phys.shipStr}`);
+        drawLightBeam(ctxB, shipNoseB, beamFrontB, shipY, wB, phys.lightNewtStr);
+      }
+
+      // =========================================================================
+      // UPDATE UI & TELEMETRY
+      // =========================================================================
+      function updateUI(phys) {
+        valShipSlider.textContent = phys.shipStr;
+        valMissileSlider.textContent = phys.missShipStr;
+
+        tblMissileShip.textContent = phys.missShipStr;
+        tblMissileNewt.textContent = phys.missNewtStr;
+        tblMissileRel.textContent = phys.missRelStr;
+        tblMissileErr.textContent = phys.errStr;
+        tblLightNewt.textContent = phys.lightNewtStr;
+
+        if (phys.isClassical) {
+          tblMissileNewt.style.color = '#4ade80';
+          tblMissileNewt.style.textDecoration = 'none';
+          tblMissileErr.style.color = '#94a3b8';
+
+          verdictA.className = 'verdict-box verdict-holds';
+          verdictA.innerHTML =
+            `<strong>NEWTONIAN MECHANICS HOLDS:</strong> At everyday speeds (<span class="mono">v<sub>S'/S</sub> = ${phys.shipStr}</span>, <span class="mono">v<sub>M/S'</sub> = ${phys.missShipStr}</span>), Newtonian addition predicts <span class="mono">v<sub>M/S</sub> = ${phys.missNewtStr}</span> relative to Earth (<span class="mono">S</span>), matching Einstein's exact formula to high precision.`;
+        } else {
+          tblMissileNewt.style.color = '#fb7185';
+          tblMissileNewt.style.textDecoration = parseFloat(phys.missNewtStr) > 1.0 ? 'line-through' : 'none';
+          tblMissileErr.style.color = '#fbbf24';
+
+          verdictA.className = 'verdict-box verdict-fails';
+          verdictA.innerHTML =
+            `<strong>RELATIVISTIC REGIME:</strong> Simple addition predicts <span class="mono">${phys.missNewtStr}</span> (exceeding <span class="mono">c</span> when <span class="mono">v<sub>S'/S</sub> + v<sub>M/S'</sub> &gt; c</span>), whereas Einstein's velocity addition yields <span class="mono">v<sub>M/S</sub> = ${phys.missRelStr} &lt; c</span>.`;
+        }
+
+        verdictB.innerHTML =
+          `<strong>NEWTONIAN MECHANICS FAILS:</strong> Newtonian mechanics predicts <em>incorrectly</em> that the light beam moves at <span class="mono">${phys.lightNewtStr}</span> relative to Earth (<span class="mono">S</span>)—contradicting Einstein's second postulate that light always travels at invariant speed <span class="mono">v<sub>L/S</sub> = c</span>.`;
+
+        const pct = Math.round(state.progress * 100);
+        if (state.progress <= 0) {
+          badgePanelA.textContent = 'Ready (Press Start)';
+          badgePanelB.textContent = 'Ready (Press Start)';
+        } else if (state.progress >= 1) {
+          badgePanelA.textContent = `Complete (${phys.isClassical ? phys.missNewtStr : phys.missRelStr})`;
+          badgePanelB.textContent = 'Complete (v = c)';
+        } else {
+          badgePanelA.textContent = `In Flight (${pct}%)`;
+          badgePanelB.textContent = `Beam Propagating at c (${pct}%)`;
+        }
+      }
+
+      function updatePlayButtonState() {
+        if (state.isPlaying) {
+          lblStartPause.textContent = 'Pause';
+          btnStartPause.className = 'btn-primary paused';
+          iconPlay.style.display = 'none';
+          iconPause.style.display = 'inline';
+        } else if (state.progress >= 1) {
+          lblStartPause.textContent = 'Replay';
+          btnStartPause.className = 'btn-primary replay';
+          iconPlay.style.display = 'inline';
+          iconPause.style.display = 'none';
+        } else if (state.progress > 0) {
+          lblStartPause.textContent = 'Resume';
+          btnStartPause.className = 'btn-primary';
+          iconPlay.style.display = 'inline';
+          iconPause.style.display = 'none';
+        } else {
+          lblStartPause.textContent = 'Start Simulation';
+          btnStartPause.className = 'btn-primary';
+          iconPlay.style.display = 'inline';
+          iconPause.style.display = 'none';
+        }
+      }
+
+      // =========================================================================
+      // ANIMATION LOOP
+      // =========================================================================
+      function animate(timestamp) {
+        if (!state.lastTimestamp) state.lastTimestamp = timestamp;
+        const dt = Math.min((timestamp - state.lastTimestamp) / 1000, 0.1);
+        state.lastTimestamp = timestamp;
+
+        if (state.isPlaying) {
+          if (state.progress < 1) {
+            state.progress = Math.min(1, state.progress + dt * 0.34);
+            if (state.progress >= 1 && !state.autoLoop) {
+              state.isPlaying = false;
+              updatePlayButtonState();
+            }
+          } else if (state.autoLoop) {
+            state.loopWaitTimer += dt;
+            if (state.loopWaitTimer >= 0.65) {
+              state.loopWaitTimer = 0;
+              state.progress = 0;
+            }
+          }
+        }
+
+        const phys = computeVelocities();
+        renderSimulations(phys);
+        updateUI(phys);
+
+        requestAnimationFrame(animate);
+      }
+
+      // =========================================================================
+      // EVENT LISTENERS
+      // =========================================================================
+      function setRegime(newRegime) {
+        state.regime = newRegime;
+        state.progress = 0;
+        state.loopWaitTimer = 0;
+        state.isPlaying = false;
+        updatePlayButtonState();
+
+        if (newRegime === 'classical') {
+          btnRegimeClassical.classList.add('active');
+          btnRegimeRelativistic.classList.remove('active');
+          regimeIndicator.textContent = 'Classical Scale (m/s)';
+
+          sliderShip.min = 0;
+          sliderShip.max = 3000;
+          sliderShip.step = 100;
+          sliderShip.value = 1000;
+          state.shipSpeed = 1000;
+          ticksShip.innerHTML = '<span>0 m/s</span><span>1500 m/s</span><span>3000 m/s</span>';
+
+          sliderMissile.min = 500;
+          sliderMissile.max = 4000;
+          sliderMissile.step = 100;
+          sliderMissile.value = 2000;
+          state.missileSpeed = 2000;
+          ticksMissile.innerHTML = '<span>500 m/s</span><span>2250 m/s</span><span>4000 m/s</span>';
+        } else {
+          btnRegimeRelativistic.classList.add('active');
+          btnRegimeClassical.classList.remove('active');
+          regimeIndicator.textContent = 'Relativistic Scale (c)';
+
+          sliderShip.min = 0;
+          sliderShip.max = 0.90;
+          sliderShip.step = 0.05;
+          sliderShip.value = 0.50;
+          state.shipSpeed = 0.50;
+          ticksShip.innerHTML = '<span>0.00c</span><span>0.45c</span><span>0.90c</span>';
+
+          sliderMissile.min = 0.10;
+          sliderMissile.max = 0.95;
+          sliderMissile.step = 0.05;
+          sliderMissile.value = 0.80;
+          state.missileSpeed = 0.80;
+          ticksMissile.innerHTML = '<span>0.10c</span><span>0.50c</span><span>0.95c</span>';
+        }
+      }
+
+      btnStartPause.addEventListener('click', () => {
+        if (!state.isPlaying && state.progress >= 1) {
+          state.progress = 0;
+        }
+        state.isPlaying = !state.isPlaying;
+        updatePlayButtonState();
+      });
+
+      btnReset.addEventListener('click', () => {
+        state.progress = 0;
+        state.loopWaitTimer = 0;
+        state.isPlaying = false;
+        updatePlayButtonState();
+      });
+
+      chkLoop.addEventListener('change', (e) => {
+        state.autoLoop = e.target.checked;
+      });
+
+      btnRegimeClassical.addEventListener('click', () => setRegime('classical'));
+      btnRegimeRelativistic.addEventListener('click', () => setRegime('relativistic'));
+
+      sliderShip.addEventListener('input', (e) => {
+        state.shipSpeed = parseFloat(e.target.value);
+        state.progress = 0;
+        state.isPlaying = false;
+        updatePlayButtonState();
+      });
+
+      sliderMissile.addEventListener('input', (e) => {
+        state.missileSpeed = parseFloat(e.target.value);
+        state.progress = 0;
+        state.isPlaying = false;
+        updatePlayButtonState();
+      });
+
+      // Initialize immediately
+      updateCanvasSizes();
+      updatePlayButtonState();
+      requestAnimationFrame(animate);
+    })();
+  </script>
+</body>
+</html>
