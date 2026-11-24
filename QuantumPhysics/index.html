@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>College Physics Simulators</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --muted: #475569;
+      --accent: #2563eb;
+      --border: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 2.5rem 1rem;
+    }
+
+    .container {
+      max-width: 820px;
+      margin: 0 auto;
+    }
+
+    .page-header {
+      margin-bottom: 2.5rem;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 1.25rem;
+    }
+
+    .page-header h1 {
+      font-size: 2rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .page-header p {
+      color: var(--muted);
+    }
+
+    .topic-section {
+      margin-bottom: 2.5rem;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .section-header h2 {
+      font-size: 1.35rem;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--muted);
+      background: #e2e8f0;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+    }
+
+    .link-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      display: block;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent);
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+    }
+
+    .card h3 {
+      font-size: 1.1rem;
+      color: var(--accent);
+      margin-bottom: 0.35rem;
+    }
+
+    .card p {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .card.coming-soon {
+      opacity: 0.65;
+      pointer-events: none;
+      background: #f1f5f9;
+    }
+
+    .card.coming-soon h3 {
+      color: var(--muted);
+    }
+
+    footer {
+      margin-top: 3rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header class="page-header">
+      <h1>College Physics Simulators</h1>
+      <p>An interactive collection of physics visualizers for university and introductory physics courses.</p>
+    </header>
+
+    <!-- Block 1: Special Relativity -->
+    <section class="topic-section">
+      <div class="section-header">
+        <h2>Special Relativity</h2>
+        <span class="badge">Modern Physics</span>
+      </div>
+      <div class="link-grid">
+        
+        <a href="michelson_morley_simulator.html" class="card">
+          <h3>Michelson–Morley Simulator</h3>
+          <p>Interactive rotating interferometer demonstrating the 1887 aether wind test and relativistic null result.</p>
+        </a>
+
+        <a href="relativistic_velocity_addition.html" class="card">
+          <h3>Relativistic Velocity Addition</h3>
+          <p>Comparing Galilean addition for a projectile (M) vs. a light beam (L)</p>
+        </a>
+
+        <a href="faraday_law_relative_motion.html" class="card">
+          <h3>Faraday’s Law of Induction Simulator</h3>
+          <p>The same emf is induced in the coil whether the magnet moves or the coil moves</p>
+        </a>
+
+        <a href="time_dilation_mavis_stanley_light_clock.html" class="card">
+          <h3>Time Dilation — Mavis & Stanley's Light Clock </h3>
+          <p>Comparing proper time Δt0 in frame S′ with dilated time Δt = γΔt0 in frame S</p>
+        </a>
+
+        <a href="mavis_stanley_length_contraction.html" class="card">
+          <h3>Relativistic Length Contraction</h3>
+          <p>Round-trip light clock & ruler contraction across inertial reference frames</p>
+        </a>
+
+        <a href="relativistic_rod_array.html" class="card">
+          <h3>Array of 25 Square Rods</h3>
+          <p>Computer Simulation of an Array of 25 Square Rods </p>
+        </a>
+
+        <a href="special_relativity.html" class="card">
+          <h3>Lorentz Frames (S &amp; S')</h3>
+          <p>Side-by-side comparative visualizer for simultaneity, time dilation, and length contraction across rest and moving frames.</p>
+        </a>
+        
+      </div>
+    </section>
+    
+    <!-- Block 2: Quantum Physics -->
+    <section class="topic-section">
+      <div class="section-header">
+        <h2>Quantum Physics</h2>
+        <span class="badge">Modern Physics</span>
+      </div>
+      <div class="link-grid">
+        <a href="QuantumPhysics/BlackBodyRadiation.html" class="card">
+          <h3>Blackbody Radiation: Spectral Emittance Simulator</h3>
+          <p>Planck's Law, Wien's Displacement Law, and the Ultraviolet Catastrophe.</p>
+        </a>
+      </div>
+    </section>
+
+    <!-- Block 2: Optics & Light Waves -->
+    <section class="topic-section">
+      <div class="section-header">
+        <h2>Optics &amp; Light Waves</h2>
+        <span class="badge">Optics &amp; Waves</span>
+      </div>
+      <div class="link-grid">
+        <a href="optics.html" class="card">
+          <h3>Geometric &amp; Wave Optics</h3>
+          <p>Interactive ray tracing for thin lenses and mirrors, Snell's law refraction, and double-slit wave interference.</p>
+        </a>
+      </div>
+    </section>
+
+    <!-- Block 3: Classical Mechanics -->
+    <section class="topic-section">
+      <div class="section-header">
+        <h2>Classical Mechanics</h2>
+        <span class="badge">Coming Soon</span>
+      </div>
+      <div class="link-grid">
+        <div class="card coming-soon">
+          <h3>Kinematics &amp; Dynamics</h3>
+          <p>Simulations for projectile motion with air resistance, coupled harmonic oscillators, and orbital mechanics.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Block 4: Electromagnetism -->
+    <section class="topic-section">
+      <div class="section-header">
+        <h2>Electromagnetism</h2>
+        <span class="badge">Coming Soon</span>
+      </div>
+      <div class="link-grid">
+        <div class="card coming-soon">
+          <h3>Fields &amp; Circuits</h3>
+          <p>Visualizers for electric field lines, charged particle motion in Lorentz magnetic fields, and RLC circuits.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      College Physics Interactive Simulators &bull; Hosted on GitHub Pages
+    </footer>
+  </div>
+
+</body>
+</html>
