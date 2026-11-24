@@ -1,0 +1,2541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Photoelectric Effect Simulator — Quantum Optics Lab</title>
+  <style>
+    /* =========================================================================
+       1. SELF-CONTAINED DESIGN SYSTEM & DARK LABORATORY THEME
+       ========================================================================= */
+    :root {
+      --bg-base: #070b14;
+      --bg-panel: #0e1525;
+      --bg-card: #131c31;
+      --bg-input: #090f1d;
+      --border-subtle: #1e293b;
+      --border-strong: #334155;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-sky: #38bdf8;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --accent-purple: #a855f7;
+      --accent-cyan: #22d3ee;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.45;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Header */
+    .lab-header {
+      background: rgba(9, 14, 26, 0.94);
+      border-bottom: 1px solid var(--border-subtle);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      padding: 12px 20px;
+    }
+
+    .header-inner {
+      max-width: 1580px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: rgba(56, 189, 248, 0.14);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-sky);
+      flex-shrink: 0;
+    }
+
+    .brand-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .formula-pill {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.12);
+      color: #7dd3fc;
+      border: 1px solid rgba(56, 189, 248, 0.28);
+    }
+
+    .brand-sub {
+      font-size: 0.76rem;
+      color: var(--text-secondary);
+    }
+
+    .preset-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .preset-label {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-right: 4px;
+    }
+
+    .btn {
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 6px 11px;
+      border-radius: 8px;
+      border: 1px solid var(--border-strong);
+      background: #162036;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn:hover {
+      background: #1e2c4a;
+      border-color: #475569;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-amber { color: #fcd34d; }
+    .btn-sky { color: #7dd3fc; }
+    .btn-emerald { color: #6ee7b7; }
+    .btn-rose { color: #fda4af; }
+    .btn-purple { color: #d8b4fe; }
+
+    .btn-field {
+      background: rgba(56, 189, 248, 0.14);
+      border-color: rgba(56, 189, 248, 0.35);
+      color: #7dd3fc;
+    }
+
+    .dot-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-sky);
+      display: inline-block;
+    }
+
+    /* Main Workspace Layout */
+    .workspace {
+      max-width: 1580px;
+      margin: 0 auto;
+      padding: 18px 20px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .grid-top {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .grid-bottom {
+      display: grid;
+      grid-template-columns: 1fr 1.35fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    @media (max-width: 1120px) {
+      .grid-top,
+      .grid-bottom {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: linear-gradient(180deg, #0f172a 0%, #0b1120 100%);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 12px 28px -12px rgba(0, 0, 0, 0.75);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .panel-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .panel-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-banner {
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.14);
+      color: #6ee7b7;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+
+    /* Canvas Wrappers with Explicit Non-Zero Dimensions */
+    .canvas-box {
+      position: relative;
+      width: 100%;
+      height: 410px;
+      min-height: 360px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #050811;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .graph-box {
+      position: relative;
+      width: 100%;
+      height: 320px;
+      min-height: 280px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #050811;
+      border: 1px solid var(--border-subtle);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .canvas-overlay-bottom-left {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      background: rgba(7, 11, 20, 0.88);
+      border: 1px solid var(--border-subtle);
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 0.7rem;
+      color: #cbd5e1;
+      pointer-events: none;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .canvas-overlay-bottom-right {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      display: flex;
+      gap: 6px;
+    }
+
+    /* Control Cards */
+    .control-card {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .control-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+    }
+
+    .badge-amber {
+      background: rgba(245, 158, 11, 0.14);
+      color: #fcd34d;
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    .badge-emerald {
+      background: rgba(16, 185, 129, 0.15);
+      color: #6ee7b7;
+      border-color: rgba(16, 185, 129, 0.35);
+    }
+
+    .badge-rose {
+      background: rgba(244, 63, 94, 0.15);
+      color: #fda4af;
+      border-color: rgba(244, 63, 94, 0.35);
+    }
+
+    .badge-slate {
+      background: rgba(100, 116, 139, 0.2);
+      color: #cbd5e1;
+      border-color: rgba(100, 116, 139, 0.35);
+    }
+
+    select.lab-select {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border-strong);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.84rem;
+      color: var(--text-primary);
+      cursor: pointer;
+      outline: none;
+    }
+
+    select.lab-select:focus {
+      border-color: var(--accent-sky);
+    }
+
+    /* Range Sliders */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 7px;
+      border-radius: 999px;
+      background: #1e293b;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #f8fafc;
+      border: 3px solid #38bdf8;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+      cursor: pointer;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #f8fafc;
+      border: 3px solid #38bdf8;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+      cursor: pointer;
+    }
+
+    /* Frequency Spectrum Slider Track: 375 THz (IR) -> 3000 THz (Deep UV) */
+    #frequencySlider {
+      background: linear-gradient(
+        to right,
+        #7f1d1d 0%,
+        #ef4444 3%,
+        #f97316 5%,
+        #eab308 7%,
+        #22c55e 9%,
+        #06b6d4 11%,
+        #3b82f6 15%,
+        #a855f7 24%,
+        #6b21a8 100%
+      );
+    }
+
+    #intensitySlider {
+      background: linear-gradient(to right, #1e293b 0%, #f59e0b 100%);
+    }
+
+    #voltageSlider {
+      background: linear-gradient(to right, #f43f5e 0%, #334155 50%, #10b981 100%);
+    }
+
+    .slider-track-wrapper {
+      position: relative;
+      padding: 6px 0 14px;
+    }
+
+    .f0-marker {
+      position: absolute;
+      top: 0;
+      bottom: 4px;
+      transform: translateX(-50%);
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: left 0.15s ease;
+    }
+
+    .f0-line {
+      width: 2px;
+      height: 18px;
+      background: #fbbf24;
+      box-shadow: 0 0 8px #fbbf24;
+    }
+
+    .f0-tag {
+      margin-top: 2px;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: #090d16;
+      border: 1px solid rgba(245, 158, 11, 0.5);
+      font-family: var(--font-mono);
+      font-size: 0.64rem;
+      font-weight: 700;
+      color: #fcd34d;
+      white-space: nowrap;
+    }
+
+    .slider-axis-labels {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--text-secondary);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Telemetry Readout Cards */
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    @media (max-width: 540px) {
+      .telemetry-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .meter-card {
+      background: #080d1a;
+      border: 1px solid var(--border-subtle);
+      border-radius: 11px;
+      padding: 10px 12px;
+    }
+
+    .meter-card.highlight-sky {
+      border-color: rgba(56, 189, 248, 0.38);
+      box-shadow: inset 0 0 18px rgba(56, 189, 248, 0.06);
+    }
+
+    .meter-card.highlight-emerald {
+      border-color: rgba(16, 185, 129, 0.38);
+      box-shadow: inset 0 0 18px rgba(16, 185, 129, 0.06);
+    }
+
+    .meter-label {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .meter-value {
+      margin-top: 3px;
+      font-family: var(--font-mono);
+      font-size: 1.18rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .meter-unit {
+      font-size: 0.75rem;
+      font-weight: 400;
+      color: var(--text-secondary);
+    }
+
+    .meter-sub {
+      margin-top: 2px;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--text-muted);
+    }
+
+    .insight-box {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.75rem;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    /* Graph Tabs */
+    .tab-group {
+      display: inline-flex;
+      background: #070b14;
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+      gap: 4px;
+    }
+
+    .tab-btn {
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 7px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .tab-btn.active {
+      background: rgba(56, 189, 248, 0.18);
+      color: #7dd3fc;
+      border-color: rgba(56, 189, 248, 0.35);
+    }
+
+    .graph-legends {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Laboratory Header -->
+  <header class="lab-header">
+    <div class="header-inner">
+      <div class="brand-group">
+        <div class="brand-icon" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2"></path><path d="M12 20v2"></path>
+            <path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path>
+            <path d="M2 12h2"></path><path d="M20 12h2"></path>
+            <path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title">
+            <span>Photoelectric Effect Simulator</span>
+            <span class="formula-pill">K_max = hf − Φ</span>
+          </div>
+          <div class="brand-sub">Interactive Quantum Photoemission, Photon Flux &amp; I–V Characteristic Lab</div>
+        </div>
+      </div>
+
+      <div class="preset-bar">
+        <span class="preset-label">Presets:</span>
+        <button id="presetSubThresholdBtn" class="btn btn-amber">Below Threshold (f &lt; f₀)</button>
+        <button id="presetThresholdBtn" class="btn btn-sky">At Threshold (f ≈ f₀)</button>
+        <button id="presetEmissionBtn" class="btn btn-emerald">High-Freq UV (f &gt; f₀)</button>
+        <button id="presetStoppingBtn" class="btn btn-rose">Stopping Potential (-V<sub>s</sub>)</button>
+        <button id="presetHighIntensityBtn" class="btn btn-purple">High Intensity</button>
+        <button id="toggleFieldBtn" class="btn btn-field" title="Toggle Electric Field Vectors">
+          <span class="dot-indicator" id="fieldDot"></span>
+          <span>E-Field</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Simulation Workspace -->
+  <main class="workspace">
+
+    <!-- Top Row: Evacuated Quartz Phototube Apparatus + Interactive Controls -->
+    <section class="grid-top">
+
+      <!-- Left: Vacuum Tube Apparatus & Circuit Canvas -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="dot-indicator" id="statusIndicatorDot" style="background:#10b981;"></span>
+            <span>Evacuated Quartz Phototube &amp; Circuit</span>
+          </div>
+          <div id="emissionStatusBanner" class="status-banner tabular-nums">
+            Photoemission Active: K_max = 2.89 eV
+          </div>
+        </div>
+
+        <div id="simCanvasWrapper" class="canvas-box">
+          <canvas id="simCanvas" width="820" height="410"></canvas>
+
+          <div class="canvas-overlay-bottom-left">
+            <span class="legend-item">
+              <span style="width:12px;height:5px;border-radius:3px;background:#a855f7;display:inline-block;"></span>
+              <span>Photon Packet (hf)</span>
+            </span>
+            <span class="legend-item">
+              <span style="width:9px;height:9px;border-radius:50%;background:#67e8f9;box-shadow:0 0 6px #22d3ee;display:inline-block;"></span>
+              <span>Photoelectron (e⁻)</span>
+            </span>
+            <span class="legend-item" style="font-family:var(--font-mono);color:#94a3b8;">
+              e⁻ flow: Cathode → Anode
+            </span>
+          </div>
+
+          <div class="canvas-overlay-bottom-right">
+            <button id="pauseBtn" class="btn">Pause</button>
+            <button id="clearParticlesBtn" class="btn">Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Experimental Controls -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line>
+              <line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line>
+              <line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line>
+              <line x1="17" y1="16" x2="23" y2="16"></line>
+            </svg>
+            <span>Experimental Controls</span>
+          </div>
+          <span style="font-family:var(--font-mono);font-size:0.7rem;color:#94a3b8;">h = 4.136×10⁻¹⁵ eV·s</span>
+        </div>
+
+        <!-- 1. Target Cathode Metal -->
+        <div class="control-card">
+          <div class="control-row">
+            <label for="metalSelect" class="control-label">Target Cathode Metal</label>
+            <span class="badge badge-amber tabular-nums">
+              Φ = <span id="workFunctionBadge">2.28</span> eV (f₀ = <span id="thresholdFreqBadge">551</span> THz)
+            </span>
+          </div>
+          <select id="metalSelect" class="lab-select">
+            <option value="sodium" selected>Sodium (Na) — Φ = 2.28 eV (f₀ = 551 THz)</option>
+            <option value="potassium">Potassium (K) — Φ = 2.30 eV (f₀ = 556 THz)</option>
+            <option value="zinc">Zinc (Zn) — Φ = 4.30 eV (f₀ = 1040 THz)</option>
+            <option value="copper">Copper (Cu) — Φ = 4.70 eV (f₀ = 1136 THz)</option>
+            <option value="platinum">Platinum (Pt) — Φ = 6.35 eV (f₀ = 1535 THz)</option>
+            <option value="custom">Custom Work Function (1.50 – 7.00 eV)...</option>
+          </select>
+
+          <div id="customWorkFunctionRow" class="hidden" style="margin-top:6px;">
+            <div class="control-row" style="margin-bottom:4px;">
+              <span style="font-size:0.74rem;color:#94a3b8;">Custom Work Function (Φ)</span>
+              <span style="font-family:var(--font-mono);font-size:0.75rem;color:#fcd34d;font-weight:700;">
+                <span id="customPhiVal">3.50</span> eV
+              </span>
+            </div>
+            <input type="range" id="customPhiSlider" min="1.50" max="7.00" step="0.01" value="3.50" />
+          </div>
+        </div>
+
+        <!-- 2. Primary Control: Light Frequency (f) -->
+        <div class="control-card">
+          <div class="control-row">
+            <label for="frequencySlider" class="control-label">
+              <span>Light Frequency (f)</span>
+              <span id="spectrumBandTag" class="badge badge-slate">UV-C</span>
+              <span id="thresholdStateBadge" class="badge badge-emerald">f &gt; f₀ (Emitting)</span>
+            </label>
+            <div style="font-family:var(--font-mono);font-size:0.75rem;" class="tabular-nums">
+              <strong style="color:#7dd3fc;"><span id="freqTHzVal">1250</span> THz</strong>
+              <span style="color:#475569;"> | </span>
+              <span style="color:#cbd5e1;"><span id="freq14Val">12.50</span>×10¹⁴ Hz</span>
+              <span style="color:#475569;"> | </span>
+              <span style="color:#94a3b8;">λ=<span id="wavelengthBadgeVal" style="color:#f1f5f9;">240</span>nm</span>
+            </div>
+          </div>
+
+          <div class="slider-track-wrapper">
+            <input type="range" id="frequencySlider" min="375" max="3000" step="5" value="1250" />
+            <div id="f0TrackMarker" class="f0-marker" style="left: 6.7%;">
+              <div class="f0-line"></div>
+              <span class="f0-tag">f₀</span>
+            </div>
+          </div>
+
+          <div class="slider-axis-labels">
+            <span>375 THz (800 nm IR)</span>
+            <span style="color:#fcd34d;">Cutoff f₀ = <span id="f0AxisLabel">551</span> THz</span>
+            <span>3000 THz (100 nm UV)</span>
+          </div>
+        </div>
+
+        <!-- 3. Light Intensity / Optical Power -->
+        <div class="control-card">
+          <div class="control-row">
+            <label for="intensitySlider" class="control-label">
+              Light Intensity / Optical Power (P)
+            </label>
+            <div style="font-family:var(--font-mono);font-size:0.75rem;" class="tabular-nums">
+              <strong style="color:#fcd34d;"><span id="intensityVal">65</span>% (<span id="powerWm2Val">65</span> W/m²)</strong>
+              <span style="color:#475569;"> | </span>
+              <span style="color:#d8b4fe;"><span id="photonRateSliderVal">0.79</span>×10¹⁴ γ/s</span>
+            </div>
+          </div>
+          <input type="range" id="intensitySlider" min="0" max="100" step="1" value="65" />
+          <div class="slider-axis-labels">
+            <span>0% (Dark)</span>
+            <span>Ṅ<sub>γ</sub> = P / (hf)</span>
+            <span>100% (100 W/m²)</span>
+          </div>
+        </div>
+
+        <!-- 4. Applied Accelerating / Stopping Voltage -->
+        <div class="control-card">
+          <div class="control-row">
+            <label for="voltageSlider" class="control-label">
+              Applied Potential (V<sub>anode</sub> − V<sub>cathode</sub>)
+            </label>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span id="voltageModeBadge" class="badge badge-emerald">Accelerating</span>
+              <span id="voltageVal" class="tabular-nums" style="font-family:var(--font-mono);font-size:0.8rem;font-weight:700;color:#f8fafc;">+1.20 V</span>
+            </div>
+          </div>
+          <input type="range" id="voltageSlider" min="-5.00" max="5.00" step="0.05" value="1.20" />
+          <div class="slider-axis-labels">
+            <span style="color:#fda4af;">-5.0 V (Retarding)</span>
+            <div style="display:flex;gap:6px;">
+              <button id="zeroVoltageBtn" class="btn" style="padding:2px 8px;font-size:0.68rem;">Zero V</button>
+              <button id="setVsBtn" class="btn btn-rose" style="padding:2px 8px;font-size:0.68rem;">Set to -V<sub>s</sub></button>
+            </div>
+            <span style="color:#6ee7b7;">+5.0 V (Accelerating)</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bottom Row: 6 Digital Telemetry Cards + Live Characteristic Curves -->
+    <section class="grid-bottom">
+
+      <!-- Left: Digital Instrumentation Readouts -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+            <span>Digital Instrumentation Readouts</span>
+          </div>
+          <span style="font-family:var(--font-mono);font-size:0.7rem;color:#34d399;">● LIVE TELEMETRY</span>
+        </div>
+
+        <div class="telemetry-grid">
+          <!-- Card 1: Light Frequency -->
+          <div class="meter-card highlight-sky">
+            <div class="meter-label" style="color:#7dd3fc;">Light Frequency (f)</div>
+            <div class="meter-value tabular-nums" style="color:#38bdf8;">
+              <span id="readoutFreqTHz">1250</span> <span class="meter-unit">THz</span>
+            </div>
+            <div class="meter-sub tabular-nums">
+              <span id="readoutFreq14">12.50</span>×10¹⁴ Hz • λ = <span id="readoutLambda">240</span> nm
+            </div>
+          </div>
+
+          <!-- Card 2: Photon Energy -->
+          <div class="meter-card">
+            <div class="meter-label">Photon Energy (E = hf)</div>
+            <div class="meter-value tabular-nums" style="color:#a5b4fc;">
+              <span id="readoutPhotonE">5.17</span> <span class="meter-unit">eV</span>
+            </div>
+            <div class="meter-sub tabular-nums">
+              Quantum packet energy (h·f)
+            </div>
+          </div>
+
+          <!-- Card 3: Work Function & Cutoff -->
+          <div class="meter-card">
+            <div class="meter-label">Work Function (Φ) &amp; Cutoff</div>
+            <div class="meter-value tabular-nums" style="color:#fcd34d;">
+              <span id="readoutPhi">2.28</span> <span class="meter-unit">eV</span>
+            </div>
+            <div class="meter-sub tabular-nums">
+              Cutoff f₀ = <span id="readoutF0THz" style="color:#fcd34d;">551</span> THz (<span id="readoutF014">5.51</span>×10¹⁴ Hz)
+            </div>
+          </div>
+
+          <!-- Card 4: Photon Flux -->
+          <div class="meter-card">
+            <div class="meter-label">Incident Photon Flux (Ṅ<sub>γ</sub>)</div>
+            <div class="meter-value tabular-nums" style="color:#d8b4fe;">
+              <span id="readoutPhotonFlux">0.79</span> <span class="meter-unit">×10¹⁴ γ/s</span>
+            </div>
+            <div class="meter-sub tabular-nums">
+              Ṅ<sub>γ</sub> = P/(hf) • I<sub>sat</sub> = <span id="readoutIsat">1.26</span> µA
+            </div>
+          </div>
+
+          <!-- Card 5: Max Kinetic Energy & Stopping Potential -->
+          <div class="meter-card">
+            <div class="meter-label">Max Kinetic Energy &amp; V<sub>s</sub></div>
+            <div class="meter-value tabular-nums" style="color:#22d3ee;">
+              <span id="readoutKmax">2.89</span> <span class="meter-unit">eV</span>
+            </div>
+            <div class="meter-sub tabular-nums">
+              Stopping V<sub>s</sub> = <span id="readoutVs" style="color:#fda4af;">2.89</span> V • v<sub>max</sub> = <span id="readoutVmax">1.01</span>×10⁶ m/s
+            </div>
+          </div>
+
+          <!-- Card 6: Photocurrent -->
+          <div class="meter-card highlight-emerald">
+            <div class="meter-label" style="color:#6ee7b7;">Measured Photocurrent (I)</div>
+            <div class="meter-value tabular-nums" style="color:#10b981;">
+              <span id="readoutCurrent">1.10</span> <span class="meter-unit">µA</span>
+            </div>
+            <div class="meter-sub tabular-nums">
+              Anode collection: <span id="readoutEfficiency">87</span>% of emitted e⁻
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-box">
+          <strong style="color:#7dd3fc;">Quantum Observation:</strong> Each photon carries energy <span style="font-family:var(--font-mono);color:#f8fafc;">E = hf</span>. Electrons escape only when <span style="font-family:var(--font-mono);color:#6ee7b7;">f &gt; f₀</span>. At fixed light intensity <span style="font-family:var(--font-mono);color:#fcd34d;">P</span>, raising frequency <span style="font-family:var(--font-mono);color:#7dd3fc;">f</span> increases <span style="font-family:var(--font-mono);color:#22d3ee;">K<sub>max</sub></span> and <span style="font-family:var(--font-mono);color:#fda4af;">V<sub>s</sub></span>, while decreasing the photon arrival rate <span style="font-family:var(--font-mono);color:#d8b4fe;">Ṅ<sub>γ</sub> = P/(hf)</span>.
+        </div>
+      </div>
+
+      <!-- Right: Live Characteristic Curves (I-V Curve & K_max vs. f) -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="tab-group">
+            <button id="tabIVBtn" class="tab-btn active">I–V Characteristic Curve</button>
+            <button id="tabKfBtn" class="tab-btn">K<sub>max</sub> vs. Frequency (f)</button>
+          </div>
+
+          <div class="graph-legends">
+            <span id="graphLegendPrimary" class="legend-item">
+              <span style="width:9px;height:9px;border-radius:50%;background:#10b981;display:inline-block;"></span>
+              <span>Operating Point (V, I)</span>
+            </span>
+            <span id="graphLegendSecondary" class="legend-item">
+              <span style="width:9px;height:9px;border-radius:50%;background:#f43f5e;display:inline-block;"></span>
+              <span>Stopping Potential (-V<sub>s</sub>)</span>
+            </span>
+          </div>
+        </div>
+
+        <div id="graphCanvasWrapper" class="graph-box">
+          <canvas id="graphCanvas" width="760" height="320"></canvas>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // =========================================================================
+      // 1. PHYSICAL CONSTANTS & METAL DATABASE
+      // =========================================================================
+      const H_EV_S = 4.135667696e-15; // Planck's constant (eV·s)
+      const C_M_S = 2.99792458e8;     // Speed of light (m/s)
+      const E_CHARGE = 1.602176634e-19; // Elementary charge (C)
+      const M_ELECTRON = 9.1093837e-31; // Electron mass (kg)
+
+      // Reference flux at 100% intensity (100 W/m^2) and f = 1000 THz (10^15 Hz):
+      // N_dot = P / (h * f) scales inversely with f at fixed power P.
+      const REF_FREQ_HZ = 1.0e15;
+      const REF_PHOTON_FLUX = 1.5e14;
+      const QUANTUM_EFFICIENCY = 0.10;
+
+      const FREQ_MIN_THZ = 375;
+      const FREQ_MAX_THZ = 3000;
+
+      const METALS = {
+        sodium:    { name: 'Sodium (Na)',    phi: 2.28, color: '#cbd5e1', highlight: '#f8fafc' },
+        potassium: { name: 'Potassium (K)',  phi: 2.30, color: '#94a3b8', highlight: '#e2e8f0' },
+        zinc:      { name: 'Zinc (Zn)',      phi: 4.30, color: '#64748b', highlight: '#cbd5e1' },
+        copper:    { name: 'Copper (Cu)',    phi: 4.70, color: '#d97706', highlight: '#fbbf24' },
+        platinum:  { name: 'Platinum (Pt)',  phi: 6.35, color: '#e2e8f0', highlight: '#ffffff' },
+        custom:    { name: 'Custom Metal',   phi: 3.50, color: '#38bdf8', highlight: '#bae6fd' }
+      };
+
+      // =========================================================================
+      // 2. SIMULATION STATE
+      // =========================================================================
+      const state = {
+        metalKey: 'sodium',
+        workFunction: 2.28,
+        frequencyTHz: 1250,
+        intensity: 65,
+        voltage: 1.20,
+        showFieldLines: true,
+        paused: false,
+        activeGraphTab: 'IV',
+
+        frequencyHz: 1.25e15,
+        wavelength: 240,
+        photonEnergy: 5.17,
+        thresholdFreqHz: 5.51e14,
+        thresholdFreqTHz: 551,
+        kMax: 2.89,
+        stoppingPotential: 2.89,
+        photonFlux: 0.78e14,
+        saturationCurrentUA: 1.25,
+        measuredCurrentUA: 1.09,
+        collectionFraction: 0.87,
+        vMaxMs: 1.01e6,
+
+        photons: [],
+        electrons: [],
+        sparks: [],
+        photonSpawnAccumulator: 0,
+        ammeterNeedleAngle: 0
+      };
+
+      // =========================================================================
+      // 3. DOM REFERENCES
+      // =========================================================================
+      const dom = {
+        simCanvas: document.getElementById('simCanvas'),
+        simWrapper: document.getElementById('simCanvasWrapper'),
+        graphCanvas: document.getElementById('graphCanvas'),
+        graphWrapper: document.getElementById('graphCanvasWrapper'),
+
+        metalSelect: document.getElementById('metalSelect'),
+        customWorkFunctionRow: document.getElementById('customWorkFunctionRow'),
+        customPhiSlider: document.getElementById('customPhiSlider'),
+        customPhiVal: document.getElementById('customPhiVal'),
+        workFunctionBadge: document.getElementById('workFunctionBadge'),
+        thresholdFreqBadge: document.getElementById('thresholdFreqBadge'),
+
+        frequencySlider: document.getElementById('frequencySlider'),
+        freqTHzVal: document.getElementById('freqTHzVal'),
+        freq14Val: document.getElementById('freq14Val'),
+        wavelengthBadgeVal: document.getElementById('wavelengthBadgeVal'),
+        spectrumBandTag: document.getElementById('spectrumBandTag'),
+        thresholdStateBadge: document.getElementById('thresholdStateBadge'),
+        f0TrackMarker: document.getElementById('f0TrackMarker'),
+        f0AxisLabel: document.getElementById('f0AxisLabel'),
+
+        intensitySlider: document.getElementById('intensitySlider'),
+        intensityVal: document.getElementById('intensityVal'),
+        powerWm2Val: document.getElementById('powerWm2Val'),
+        photonRateSliderVal: document.getElementById('photonRateSliderVal'),
+
+        voltageSlider: document.getElementById('voltageSlider'),
+        voltageVal: document.getElementById('voltageVal'),
+        voltageModeBadge: document.getElementById('voltageModeBadge'),
+        zeroVoltageBtn: document.getElementById('zeroVoltageBtn'),
+        setVsBtn: document.getElementById('setVsBtn'),
+
+        statusIndicatorDot: document.getElementById('statusIndicatorDot'),
+        emissionStatusBanner: document.getElementById('emissionStatusBanner'),
+
+        readoutFreqTHz: document.getElementById('readoutFreqTHz'),
+        readoutFreq14: document.getElementById('readoutFreq14'),
+        readoutLambda: document.getElementById('readoutLambda'),
+        readoutPhotonE: document.getElementById('readoutPhotonE'),
+        readoutPhi: document.getElementById('readoutPhi'),
+        readoutF0THz: document.getElementById('readoutF0THz'),
+        readoutF014: document.getElementById('readoutF014'),
+        readoutPhotonFlux: document.getElementById('readoutPhotonFlux'),
+        readoutIsat: document.getElementById('readoutIsat'),
+        readoutKmax: document.getElementById('readoutKmax'),
+        readoutVs: document.getElementById('readoutVs'),
+        readoutVmax: document.getElementById('readoutVmax'),
+        readoutCurrent: document.getElementById('readoutCurrent'),
+        readoutEfficiency: document.getElementById('readoutEfficiency'),
+
+        presetSubThresholdBtn: document.getElementById('presetSubThresholdBtn'),
+        presetThresholdBtn: document.getElementById('presetThresholdBtn'),
+        presetEmissionBtn: document.getElementById('presetEmissionBtn'),
+        presetStoppingBtn: document.getElementById('presetStoppingBtn'),
+        presetHighIntensityBtn: document.getElementById('presetHighIntensityBtn'),
+        toggleFieldBtn: document.getElementById('toggleFieldBtn'),
+        fieldDot: document.getElementById('fieldDot'),
+        pauseBtn: document.getElementById('pauseBtn'),
+        clearParticlesBtn: document.getElementById('clearParticlesBtn'),
+        tabIVBtn: document.getElementById('tabIVBtn'),
+        tabKfBtn: document.getElementById('tabKfBtn'),
+        graphLegendPrimary: document.getElementById('graphLegendPrimary'),
+        graphLegendSecondary: document.getElementById('graphLegendSecondary')
+      };
+
+      const simCtx = dom.simCanvas.getContext('2d');
+      const graphCtx = dom.graphCanvas.getContext('2d');
+
+      // =========================================================================
+      // 4. SPECTRUM COLOR MAPPING & PHYSICS MODEL
+      // =========================================================================
+
+      /**
+       * Converts frequency (THz) and wavelength (nm) into accurate visual color + band label.
+       * - f < 400 THz (lambda > 750 nm): Near-IR (Deep Crimson indicator)
+       * - 400 THz <= f <= 750 THz (400–750 nm): Visible Spectrum
+       * - f > 750 THz (lambda < 400 nm): Ultraviolet (Violet/Purple indicator)
+       */
+      function frequencyToColorInfo(freqTHz) {
+        const wl = (C_M_S / (freqTHz * 1e12)) * 1e9;
+        let r = 0, g = 0, b = 0;
+        let band = 'Visible';
+
+        if (freqTHz < 400) {
+          r = 185; g = 28; b = 28;
+          band = 'Near-IR (f < 400 THz)';
+        } else if (freqTHz > 750) {
+          r = 168; g = 85; b = 247;
+          band = freqTHz > 1500 ? 'Deep UV' : 'Near UV';
+        } else {
+          // Visible spectrum 380 nm - 750 nm
+          if (wl >= 380 && wl < 440) {
+            r = -(wl - 440) / (440 - 380);
+            g = 0;
+            b = 1;
+            band = 'Violet';
+          } else if (wl >= 440 && wl < 490) {
+            r = 0;
+            g = (wl - 440) / (490 - 440);
+            b = 1;
+            band = wl < 470 ? 'Blue' : 'Cyan';
+          } else if (wl >= 490 && wl < 510) {
+            r = 0;
+            g = 1;
+            b = -(wl - 510) / (510 - 490);
+            band = 'Cyan-Green';
+          } else if (wl >= 510 && wl < 580) {
+            r = (wl - 510) / (580 - 510);
+            g = 1;
+            b = 0;
+            band = wl < 560 ? 'Green' : 'Yellow-Green';
+          } else if (wl >= 580 && wl < 645) {
+            r = 1;
+            g = -(wl - 645) / (645 - 580);
+            b = 0;
+            band = wl < 600 ? 'Yellow' : 'Orange';
+          } else {
+            r = 1;
+            g = 0;
+            b = 0;
+            band = 'Red';
+          }
+
+          let factor = 1.0;
+          if (wl >= 380 && wl < 420) {
+            factor = 0.35 + (0.65 * (wl - 380)) / (420 - 380);
+          } else if (wl > 700 && wl <= 750) {
+            factor = 0.35 + (0.65 * (750 - wl)) / (750 - 700);
+          }
+
+          r = Math.round(255 * Math.pow(r * factor, 0.8));
+          g = Math.round(255 * Math.pow(g * factor, 0.8));
+          b = Math.round(255 * Math.pow(b * factor, 0.8));
+        }
+
+        return {
+          rgb: `rgb(${r}, ${g}, ${b})`,
+          rgba: (a) => `rgba(${r}, ${g}, ${b}, ${a})`
+        };
+      }
+
+      /**
+       * Computes photocurrent I (in uA) as a function of applied voltage V, K_max, and I_sat.
+       */
+      function computePhotocurrent(voltage, kMax, iSat) {
+        if (kMax <= 0 || iSat <= 0) return 0;
+        const vs = kMax; // Stopping potential magnitude in Volts
+        if (voltage <= -vs) return 0;
+
+        if (voltage < 0) {
+          // Smooth physical energy distribution curve between -V_s and 0 V
+          const frac = (voltage + vs) / vs;
+          return iSat * 0.72 * Math.pow(frac, 1.45);
+        } else {
+          // Smooth approach to saturation current plateau for V >= 0
+          return iSat * (1 - 0.28 * Math.exp(-voltage / 0.85));
+        }
+      }
+
+      /**
+       * Updates all physical quantities and syncs DOM readouts.
+       */
+      function recalcPhysics() {
+        const phi = state.metalKey === 'custom'
+          ? parseFloat(dom.customPhiSlider.value)
+          : METALS[state.metalKey].phi;
+
+        state.workFunction = phi;
+        state.frequencyHz = state.frequencyTHz * 1e12;
+        state.wavelength = (C_M_S / state.frequencyHz) * 1e9;
+        state.photonEnergy = H_EV_S * state.frequencyHz;
+
+        state.thresholdFreqHz = phi / H_EV_S;
+        state.thresholdFreqTHz = state.thresholdFreqHz / 1e12;
+
+        const excess = state.photonEnergy - phi;
+        state.kMax = excess > 0 ? excess : 0;
+        state.stoppingPotential = state.kMax;
+
+        // Photon flux N_dot = P / (h * f)
+        state.photonFlux = (state.intensity / 100) * REF_PHOTON_FLUX * (REF_FREQ_HZ / state.frequencyHz);
+
+        state.saturationCurrentUA = state.kMax > 0
+          ? state.photonFlux * QUANTUM_EFFICIENCY * E_CHARGE * 1e6
+          : 0;
+
+        state.measuredCurrentUA = computePhotocurrent(
+          state.voltage,
+          state.kMax,
+          state.saturationCurrentUA
+        );
+
+        state.collectionFraction = state.saturationCurrentUA > 0
+          ? state.measuredCurrentUA / state.saturationCurrentUA
+          : 0;
+
+        state.vMaxMs = state.kMax > 0
+          ? Math.sqrt((2 * state.kMax * E_CHARGE) / M_ELECTRON)
+          : 0;
+
+        updateUIReadouts();
+      }
+
+      function updateUIReadouts() {
+        const cInfo = frequencyToColorInfo(state.frequencyTHz);
+
+        dom.workFunctionBadge.textContent = state.workFunction.toFixed(2);
+        dom.thresholdFreqBadge.textContent = Math.round(state.thresholdFreqTHz);
+        dom.f0AxisLabel.textContent = Math.round(state.thresholdFreqTHz);
+        if (state.metalKey === 'custom') {
+          dom.customPhiVal.textContent = state.workFunction.toFixed(2);
+        }
+
+        const f0Percent = Math.max(
+          0,
+          Math.min(100, ((state.thresholdFreqTHz - FREQ_MIN_THZ) / (FREQ_MAX_THZ - FREQ_MIN_THZ)) * 100)
+        );
+        dom.f0TrackMarker.style.left = `${f0Percent.toFixed(2)}%`;
+
+        dom.freqTHzVal.textContent = Math.round(state.frequencyTHz);
+        dom.freq14Val.textContent = (state.frequencyHz / 1e14).toFixed(2);
+        dom.wavelengthBadgeVal.textContent = Math.round(state.wavelength);
+
+        dom.spectrumBandTag.textContent = cInfo.band;
+        dom.spectrumBandTag.style.backgroundColor = cInfo.rgba(0.2);
+        dom.spectrumBandTag.style.borderColor = cInfo.rgba(0.45);
+        dom.spectrumBandTag.style.color = state.frequencyTHz < 400 ? '#fca5a5' : (state.frequencyTHz > 750 ? '#d8b4fe' : cInfo.rgb);
+
+        if (state.kMax > 0) {
+          dom.thresholdStateBadge.textContent = 'f > f₀ (Emitting)';
+          dom.thresholdStateBadge.className = 'badge badge-emerald';
+        } else {
+          dom.thresholdStateBadge.textContent = 'f < f₀ (Cutoff)';
+          dom.thresholdStateBadge.className = 'badge badge-rose';
+        }
+
+        dom.intensityVal.textContent = state.intensity;
+        dom.powerWm2Val.textContent = state.intensity;
+        dom.photonRateSliderVal.textContent = (state.photonFlux / 1e14).toFixed(2);
+
+        const vSign = state.voltage > 0.001 ? '+' : '';
+        dom.voltageVal.textContent = `${vSign}${state.voltage.toFixed(2)} V`;
+        if (state.voltage > 0.02) {
+          dom.voltageModeBadge.textContent = 'Accelerating';
+          dom.voltageModeBadge.className = 'badge badge-emerald';
+        } else if (state.voltage < -0.02) {
+          dom.voltageModeBadge.textContent = 'Retarding';
+          dom.voltageModeBadge.className = 'badge badge-rose';
+        } else {
+          dom.voltageModeBadge.textContent = 'Zero Bias';
+          dom.voltageModeBadge.className = 'badge badge-slate';
+        }
+
+        if (state.intensity === 0) {
+          dom.statusIndicatorDot.style.background = '#64748b';
+          dom.emissionStatusBanner.textContent = 'Light Source Off (Intensity = 0%)';
+          dom.emissionStatusBanner.style.background = 'rgba(100,116,139,0.16)';
+          dom.emissionStatusBanner.style.color = '#cbd5e1';
+          dom.emissionStatusBanner.style.borderColor = 'rgba(100,116,139,0.35)';
+        } else if (state.kMax <= 0) {
+          dom.statusIndicatorDot.style.background = '#f43f5e';
+          dom.emissionStatusBanner.textContent = `Below Cutoff: f (${Math.round(state.frequencyTHz)} THz) < f₀ (${Math.round(state.thresholdFreqTHz)} THz) → 0 e⁻`;
+          dom.emissionStatusBanner.style.background = 'rgba(244,63,94,0.16)';
+          dom.emissionStatusBanner.style.color = '#fda4af';
+          dom.emissionStatusBanner.style.borderColor = 'rgba(244,63,94,0.38)';
+        } else if (state.voltage <= -state.stoppingPotential) {
+          dom.statusIndicatorDot.style.background = '#f59e0b';
+          dom.emissionStatusBanner.textContent = `Stopped: V (${state.voltage.toFixed(2)} V) ≤ -V_s (-${state.stoppingPotential.toFixed(2)} V)`;
+          dom.emissionStatusBanner.style.background = 'rgba(245,158,11,0.16)';
+          dom.emissionStatusBanner.style.color = '#fcd34d';
+          dom.emissionStatusBanner.style.borderColor = 'rgba(245,158,11,0.38)';
+        } else {
+          dom.statusIndicatorDot.style.background = '#10b981';
+          dom.emissionStatusBanner.textContent = `Photoemission Active: K_max = ${state.kMax.toFixed(2)} eV | I = ${state.measuredCurrentUA.toFixed(2)} µA`;
+          dom.emissionStatusBanner.style.background = 'rgba(16,185,129,0.16)';
+          dom.emissionStatusBanner.style.color = '#6ee7b7';
+          dom.emissionStatusBanner.style.borderColor = 'rgba(16,185,129,0.38)';
+        }
+
+        dom.readoutFreqTHz.textContent = Math.round(state.frequencyTHz);
+        dom.readoutFreq14.textContent = (state.frequencyHz / 1e14).toFixed(2);
+        dom.readoutLambda.textContent = Math.round(state.wavelength);
+        dom.readoutPhotonE.textContent = state.photonEnergy.toFixed(2);
+        dom.readoutPhi.textContent = state.workFunction.toFixed(2);
+        dom.readoutF0THz.textContent = Math.round(state.thresholdFreqTHz);
+        dom.readoutF014.textContent = (state.thresholdFreqHz / 1e14).toFixed(2);
+        dom.readoutPhotonFlux.textContent = (state.photonFlux / 1e14).toFixed(2);
+        dom.readoutIsat.textContent = state.saturationCurrentUA.toFixed(2);
+        dom.readoutKmax.textContent = state.kMax.toFixed(2);
+        dom.readoutVs.textContent = state.stoppingPotential.toFixed(2);
+        dom.readoutVmax.textContent = (state.vMaxMs / 1e6).toFixed(2);
+        dom.readoutCurrent.textContent = state.measuredCurrentUA.toFixed(2);
+        dom.readoutEfficiency.textContent = Math.round(state.collectionFraction * 100);
+      }
+
+      // =========================================================================
+      // 5. GUARANTEED CANVAS SIZING & RESIZE OBSERVER
+      // =========================================================================
+      let simWidth = 820;
+      let simHeight = 410;
+      let graphWidth = 760;
+      let graphHeight = 320;
+
+      function resizeCanvases() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+        const simRect = dom.simWrapper.getBoundingClientRect();
+        simWidth = simRect.width > 50 ? simRect.width : (dom.simWrapper.clientWidth || 820);
+        simHeight = simRect.height > 50 ? simRect.height : (dom.simWrapper.clientHeight || 410);
+
+        dom.simCanvas.width = Math.round(simWidth * dpr);
+        dom.simCanvas.height = Math.round(simHeight * dpr);
+        simCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        const graphRect = dom.graphWrapper.getBoundingClientRect();
+        graphWidth = graphRect.width > 50 ? graphRect.width : (dom.graphWrapper.clientWidth || 760);
+        graphHeight = graphRect.height > 50 ? graphRect.height : (dom.graphWrapper.clientHeight || 320);
+
+        dom.graphCanvas.width = Math.round(graphWidth * dpr);
+        dom.graphCanvas.height = Math.round(graphHeight * dpr);
+        graphCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        // Immediately redraw both canvases whenever sized
+        renderSimulation(performance.now() / 1000);
+        renderGraph();
+      }
+
+      window.addEventListener('resize', resizeCanvases);
+      if (typeof ResizeObserver !== 'undefined') {
+        const ro = new ResizeObserver(() => resizeCanvases());
+        ro.observe(dom.simWrapper);
+        ro.observe(dom.graphWrapper);
+      }
+
+      // =========================================================================
+      // 6. APPARATUS LAYOUT & PARTICLE KINEMATICS
+      // =========================================================================
+      function getApparatusLayout() {
+        const w = simWidth;
+        const h = simHeight;
+
+        const tubeLeft = w * 0.16;
+        const tubeRight = w * 0.84;
+        const tubeTop = h * 0.17;
+        const tubeBottom = h * 0.64;
+        const tubeCenterY = (tubeTop + tubeBottom) * 0.5;
+        const tubeHeight = tubeBottom - tubeTop;
+
+        const cathodeX = tubeLeft + (tubeRight - tubeLeft) * 0.14;
+        const plateHalfH = tubeHeight * 0.34;
+        const cathodeTop = tubeCenterY - plateHalfH;
+        const cathodeBottom = tubeCenterY + plateHalfH;
+
+        const anodeX = tubeRight - (tubeRight - tubeLeft) * 0.14;
+        const anodeTop = tubeCenterY - plateHalfH;
+        const anodeBottom = tubeCenterY + plateHalfH;
+
+        const lampX = tubeLeft + (tubeRight - tubeLeft) * 0.52;
+        const lampY = h * 0.068;
+
+        const circuitBottomY = h * 0.83;
+        const batteryX = w * 0.36;
+        const voltmeterX = w * 0.50;
+        const ammeterX = w * 0.65;
+
+        return {
+          w, h,
+          tubeLeft, tubeRight, tubeTop, tubeBottom, tubeCenterY, tubeHeight,
+          cathodeX, cathodeTop, cathodeBottom,
+          anodeX, anodeTop, anodeBottom,
+          lampX, lampY,
+          circuitBottomY, batteryX, voltmeterX, ammeterX
+        };
+      }
+
+      function spawnPhoton(layout) {
+        const targetY = layout.cathodeTop + 10 + Math.random() * (layout.cathodeBottom - layout.cathodeTop - 20);
+        const startX = layout.lampX + (Math.random() - 0.5) * 16;
+        const startY = layout.lampY + 12;
+
+        const dx = layout.cathodeX - startX;
+        const dy = targetY - startY;
+        const dist = Math.hypot(dx, dy);
+        const speed = 340;
+
+        state.photons.push({
+          x: startX,
+          y: startY,
+          vx: (dx / dist) * speed,
+          vy: (dy / dist) * speed,
+          targetX: layout.cathodeX,
+          targetY: targetY,
+          freqTHz: state.frequencyTHz,
+          phase: Math.random() * Math.PI * 2,
+          alive: true
+        });
+      }
+
+      function spawnPhotoelectron(y, layout) {
+        if (state.kMax <= 0) return;
+
+        const r = Math.random();
+        const k0 = state.kMax * (0.12 + 0.88 * Math.pow(r, 0.65));
+        const vy = (Math.random() - 0.5) * 40;
+
+        state.electrons.push({
+          u: 0.002,
+          y: y,
+          k0: k0,
+          uDot: 0,
+          vy: vy,
+          trail: [{ x: layout.cathodeX + 2, y }],
+          alive: true,
+          turnedBack: false
+        });
+      }
+
+      function seedInitialParticles() {
+        const layout = getApparatusLayout();
+        if (state.intensity > 0) {
+          for (let i = 0; i < 8; i++) {
+            spawnPhoton(layout);
+            const p = state.photons[state.photons.length - 1];
+            const frac = (i + 1) / 9;
+            p.x += p.vx * frac * 0.45;
+            p.y += p.vy * frac * 0.45;
+          }
+        }
+        if (state.kMax > 0 && state.intensity > 0) {
+          for (let j = 0; j < 7; j++) {
+            const ry = layout.cathodeTop + 15 + Math.random() * (layout.cathodeBottom - layout.cathodeTop - 30);
+            spawnPhotoelectron(ry, layout);
+            const e = state.electrons[state.electrons.length - 1];
+            e.u = 0.08 + j * 0.11;
+          }
+        }
+      }
+
+      function updateSimulation(dt) {
+        if (state.paused) return;
+        const layout = getApparatusLayout();
+
+        // Spawn photons proportional to N_dot = P / (h * f)
+        if (state.intensity > 0) {
+          const normalizedFlux = state.photonFlux / REF_PHOTON_FLUX;
+          const spawnRate = 1.4 + normalizedFlux * 24;
+          state.photonSpawnAccumulator += spawnRate * dt;
+          while (state.photonSpawnAccumulator >= 1) {
+            state.photonSpawnAccumulator -= 1;
+            if (state.photons.length < 110) {
+              spawnPhoton(layout);
+            }
+          }
+        }
+
+        // Update Photons
+        for (let i = state.photons.length - 1; i >= 0; i--) {
+          const p = state.photons[i];
+          p.x += p.vx * dt;
+          p.y += p.vy * dt;
+          p.phase += dt * 26;
+
+          if (p.x <= p.targetX) {
+            p.alive = false;
+            const cInfo = frequencyToColorInfo(p.freqTHz);
+            state.sparks.push({
+              x: layout.cathodeX + 2,
+              y: p.targetY,
+              radius: 2,
+              maxRadius: state.kMax > 0 ? 15 : 9,
+              alpha: 0.85,
+              color: cInfo.rgb
+            });
+
+            if (state.kMax > 0 && state.electrons.length < 130 && Math.random() < 0.84) {
+              spawnPhotoelectron(p.targetY, layout);
+            }
+          }
+
+          if (!p.alive) {
+            state.photons.splice(i, 1);
+          }
+        }
+
+        // Update Photoelectrons (exact constant-acceleration kinematics)
+        const vScale = 0.78;
+        const plateSpan = layout.anodeX - layout.cathodeX;
+
+        for (let i = state.electrons.length - 1; i >= 0; i--) {
+          const e = state.electrons[i];
+          const accelU = 0.5 * vScale * vScale * state.voltage;
+
+          if (e.uDot === 0 && !e.turnedBack) {
+            e.uDot = vScale * Math.sqrt(Math.max(0.01, e.k0));
+          }
+
+          const prevUDot = e.uDot;
+          e.uDot += accelU * dt;
+          e.u += 0.5 * (prevUDot + e.uDot) * dt;
+          e.y += e.vy * dt;
+
+          if (e.y < layout.tubeTop + 14) {
+            e.y = layout.tubeTop + 14;
+            e.vy = Math.abs(e.vy) * 0.5;
+          } else if (e.y > layout.tubeBottom - 14) {
+            e.y = layout.tubeBottom - 14;
+            e.vy = -Math.abs(e.vy) * 0.5;
+          }
+
+          if (e.uDot < 0) {
+            e.turnedBack = true;
+          }
+
+          const worldX = layout.cathodeX + e.u * plateSpan;
+          e.trail.push({ x: worldX, y: e.y });
+          if (e.trail.length > 10) e.trail.shift();
+
+          if (e.u >= 1.0) {
+            e.alive = false;
+            state.sparks.push({
+              x: layout.anodeX - 2,
+              y: e.y,
+              radius: 2,
+              maxRadius: 11,
+              alpha: 0.7,
+              color: '#38bdf8'
+            });
+          } else if (e.u <= 0 && e.turnedBack) {
+            e.alive = false;
+          }
+
+          if (!e.alive) {
+            state.electrons.splice(i, 1);
+          }
+        }
+
+        // Update Impact Ripples
+        for (let i = state.sparks.length - 1; i >= 0; i--) {
+          const s = state.sparks[i];
+          s.radius += 38 * dt;
+          s.alpha -= 2.2 * dt;
+          if (s.alpha <= 0) {
+            state.sparks.splice(i, 1);
+          }
+        }
+
+        // Smooth ammeter needle response
+        const maxNeedleUA = 3.2;
+        const clampedUA = Math.min(state.measuredCurrentUA, maxNeedleUA);
+        const targetAngle = -0.65 + (clampedUA / maxNeedleUA) * 1.3;
+        state.ammeterNeedleAngle += (targetAngle - state.ammeterNeedleAngle) * Math.min(1, dt * 10);
+      }
+
+      // =========================================================================
+      // 7. APPARATUS & CIRCUIT RENDERING
+      // =========================================================================
+      function drawRoundedRect(ctx, x, y, w, h, r) {
+        const radius = Math.min(r, w * 0.5, h * 0.5);
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + w - radius, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
+        ctx.lineTo(x + w, y + h - radius);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+        ctx.lineTo(x + radius, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
+        ctx.lineTo(x, y + radius);
+        ctx.quadraticCurveTo(x, y, x + radius, y);
+        ctx.closePath();
+      }
+
+      function renderSimulation(nowSec) {
+        const ctx = simCtx;
+        const layout = getApparatusLayout();
+        const { w, h } = layout;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // Background grid
+        ctx.save();
+        ctx.strokeStyle = 'rgba(30, 41, 59, 0.32)';
+        ctx.lineWidth = 1;
+        for (let gx = 0; gx < w; gx += 28) {
+          ctx.beginPath();
+          ctx.moveTo(gx, 0);
+          ctx.lineTo(gx, h);
+          ctx.stroke();
+        }
+        for (let gy = 0; gy < h; gy += 28) {
+          ctx.beginPath();
+          ctx.moveTo(0, gy);
+          ctx.lineTo(w, gy);
+          ctx.stroke();
+        }
+        ctx.restore();
+
+        const cInfo = frequencyToColorInfo(state.frequencyTHz);
+
+        // A. Light Beam Cone & Lamp Housing
+        if (state.intensity > 0) {
+          const beamAlpha = 0.06 + (state.intensity / 100) * 0.24;
+          const beamGrad = ctx.createLinearGradient(
+            layout.lampX, layout.lampY,
+            layout.cathodeX, layout.tubeCenterY
+          );
+          beamGrad.addColorStop(0, cInfo.rgba(beamAlpha * 1.4));
+          beamGrad.addColorStop(0.7, cInfo.rgba(beamAlpha * 0.75));
+          beamGrad.addColorStop(1, cInfo.rgba(beamAlpha * 0.35));
+
+          ctx.save();
+          ctx.fillStyle = beamGrad;
+          ctx.beginPath();
+          ctx.moveTo(layout.lampX - 12, layout.lampY + 8);
+          ctx.lineTo(layout.lampX + 12, layout.lampY + 8);
+          ctx.lineTo(layout.cathodeX + 2, layout.cathodeBottom - 4);
+          ctx.lineTo(layout.cathodeX + 2, layout.cathodeTop + 4);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+        }
+
+        // Monochromatic Lamp Emitter
+        ctx.save();
+        const angleToCathode = Math.atan2(
+          layout.tubeCenterY - layout.lampY,
+          layout.cathodeX - layout.lampX
+        );
+        ctx.translate(layout.lampX, layout.lampY);
+        ctx.rotate(angleToCathode);
+
+        ctx.fillStyle = '#1e293b';
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 1.5;
+        drawRoundedRect(ctx, -18, -12, 34, 24, 6);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = state.intensity > 0 ? cInfo.rgb : '#0f172a';
+        if (state.intensity > 0) {
+          ctx.shadowColor = cInfo.rgb;
+          ctx.shadowBlur = 14;
+        }
+        drawRoundedRect(ctx, 12, -9, 6, 18, 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Lamp label
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '600 11px -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(
+          `Light Source: f = ${Math.round(state.frequencyTHz)} THz (${Math.round(state.wavelength)} nm)`,
+          layout.lampX + 24,
+          layout.lampY + 4
+        );
+
+        // B. External Electrical Circuit Wires, Battery, Voltmeter & Microammeter
+        ctx.save();
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 2.5;
+        ctx.lineJoin = 'round';
+
+        // Left wire: Cathode -> Left Feedthrough -> Down -> Battery
+        ctx.beginPath();
+        ctx.moveTo(layout.cathodeX, layout.tubeCenterY);
+        ctx.lineTo(layout.tubeLeft - 24, layout.tubeCenterY);
+        ctx.lineTo(layout.tubeLeft - 24, layout.circuitBottomY);
+        ctx.lineTo(layout.batteryX - 44, layout.circuitBottomY);
+        ctx.stroke();
+
+        // Wire: Battery -> Ammeter
+        ctx.beginPath();
+        ctx.moveTo(layout.batteryX + 44, layout.circuitBottomY);
+        ctx.lineTo(layout.ammeterX - 26, layout.circuitBottomY);
+        ctx.stroke();
+
+        // Right wire: Ammeter -> Right Feedthrough -> Anode
+        ctx.beginPath();
+        ctx.moveTo(layout.ammeterX + 26, layout.circuitBottomY);
+        ctx.lineTo(layout.tubeRight + 24, layout.circuitBottomY);
+        ctx.lineTo(layout.tubeRight + 24, layout.tubeCenterY);
+        ctx.lineTo(layout.anodeX, layout.tubeCenterY);
+        ctx.stroke();
+
+        // Parallel Voltmeter Tap Lines
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(layout.tubeLeft - 24, layout.circuitBottomY - 26);
+        ctx.lineTo(layout.voltmeterX - 24, layout.circuitBottomY - 26);
+        ctx.moveTo(layout.voltmeterX + 24, layout.circuitBottomY - 26);
+        ctx.lineTo(layout.tubeRight + 24, layout.circuitBottomY - 26);
+        ctx.stroke();
+
+        // Animated current pulses when I > 0
+        if (state.measuredCurrentUA > 0.01 && !state.paused) {
+          const speed = 35 + Math.min(160, state.measuredCurrentUA * 45);
+          const offset = (nowSec * speed) % 36;
+          ctx.strokeStyle = 'rgba(56, 189, 248, 0.72)';
+          ctx.lineWidth = 2.5;
+          ctx.setLineDash([6, 30]);
+          ctx.lineDashOffset = -offset;
+
+          ctx.beginPath();
+          ctx.moveTo(layout.anodeX, layout.tubeCenterY);
+          ctx.lineTo(layout.tubeRight + 24, layout.tubeCenterY);
+          ctx.lineTo(layout.tubeRight + 24, layout.circuitBottomY);
+          ctx.lineTo(layout.tubeLeft - 24, layout.circuitBottomY);
+          ctx.lineTo(layout.tubeLeft - 24, layout.tubeCenterY);
+          ctx.lineTo(layout.cathodeX, layout.tubeCenterY);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+        ctx.restore();
+
+        drawBatterySymbol(ctx, layout.batteryX, layout.circuitBottomY, state.voltage);
+        drawVoltmeterSymbol(ctx, layout.voltmeterX, layout.circuitBottomY - 26, state.voltage);
+        drawAmmeterSymbol(ctx, layout.ammeterX, layout.circuitBottomY, state.measuredCurrentUA, state.ammeterNeedleAngle);
+
+        // C. Electric Field Lines Inside Vacuum Tube
+        if (state.showFieldLines && Math.abs(state.voltage) > 0.02) {
+          ctx.save();
+          const fieldStrength = Math.min(1, Math.abs(state.voltage) / 5.0);
+          const isAccel = state.voltage > 0;
+          ctx.strokeStyle = isAccel
+            ? `rgba(16, 185, 129, ${0.16 + fieldStrength * 0.28})`
+            : `rgba(244, 63, 94, ${0.16 + fieldStrength * 0.28})`;
+          ctx.lineWidth = 1.3;
+          ctx.setLineDash([4, 4]);
+
+          const numLines = 5;
+          for (let k = 0; k < numLines; k++) {
+            const frac = (k + 0.5) / numLines;
+            const fy = layout.cathodeTop + 12 + frac * (layout.cathodeBottom - layout.cathodeTop - 24);
+            ctx.beginPath();
+            ctx.moveTo(layout.cathodeX + 12, fy);
+            ctx.lineTo(layout.anodeX - 12, fy);
+            ctx.stroke();
+
+            const midX = (layout.cathodeX + layout.anodeX) * 0.5;
+            const dir = isAccel ? -1 : 1; // E points from + to -
+            ctx.setLineDash([]);
+            ctx.beginPath();
+            ctx.moveTo(midX + dir * 5, fy);
+            ctx.lineTo(midX - dir * 4, fy - 3.5);
+            ctx.lineTo(midX - dir * 4, fy + 3.5);
+            ctx.closePath();
+            ctx.fillStyle = ctx.strokeStyle;
+            ctx.fill();
+            ctx.setLineDash([4, 4]);
+          }
+          ctx.restore();
+        }
+
+        // D. Evacuated Quartz Glass Envelope
+        ctx.save();
+        const tubeRadius = layout.tubeHeight * 0.48;
+        const tubeGrad = ctx.createLinearGradient(0, layout.tubeTop, 0, layout.tubeBottom);
+        tubeGrad.addColorStop(0, 'rgba(148, 163, 184, 0.16)');
+        tubeGrad.addColorStop(0.2, 'rgba(30, 41, 59, 0.12)');
+        tubeGrad.addColorStop(0.85, 'rgba(15, 23, 42, 0.26)');
+        tubeGrad.addColorStop(1, 'rgba(148, 163, 184, 0.18)');
+
+        ctx.fillStyle = tubeGrad;
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.45)';
+        ctx.lineWidth = 2;
+        drawRoundedRect(
+          ctx,
+          layout.tubeLeft,
+          layout.tubeTop,
+          layout.tubeRight - layout.tubeLeft,
+          layout.tubeHeight,
+          tubeRadius
+        );
+        ctx.fill();
+        ctx.stroke();
+
+        // Glass specular highlight
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.16)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(layout.tubeLeft + tubeRadius, layout.tubeTop + 6);
+        ctx.lineTo(layout.tubeRight - tubeRadius, layout.tubeTop + 6);
+        ctx.stroke();
+        ctx.restore();
+
+        // E. Cathode (Emitter) & Anode (Collector) Plates
+        const metalInfo = METALS[state.metalKey];
+
+        ctx.save();
+        const catGrad = ctx.createLinearGradient(layout.cathodeX - 6, 0, layout.cathodeX + 6, 0);
+        catGrad.addColorStop(0, '#334155');
+        catGrad.addColorStop(0.5, metalInfo.highlight);
+        catGrad.addColorStop(1, metalInfo.color);
+        ctx.fillStyle = catGrad;
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1;
+        drawRoundedRect(ctx, layout.cathodeX - 5, layout.cathodeTop, 10, layout.cathodeBottom - layout.cathodeTop, 3);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = '600 11px -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Cathode (Emitter)', layout.cathodeX, layout.cathodeTop - 10);
+        ctx.fillStyle = '#fcd34d';
+        ctx.font = '10px monospace';
+        ctx.fillText(`Φ=${state.workFunction.toFixed(2)}eV`, layout.cathodeX, layout.cathodeBottom + 14);
+
+        const anoGrad = ctx.createLinearGradient(layout.anodeX - 5, 0, layout.anodeX + 5, 0);
+        anoGrad.addColorStop(0, '#94a3b8');
+        anoGrad.addColorStop(0.5, '#cbd5e1');
+        anoGrad.addColorStop(1, '#475569');
+        ctx.fillStyle = anoGrad;
+        drawRoundedRect(ctx, layout.anodeX - 5, layout.anodeTop, 10, layout.anodeBottom - layout.anodeTop, 3);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = '600 11px -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.fillText('Anode (Collector)', layout.anodeX, layout.anodeTop - 10);
+
+        if (Math.abs(state.voltage) > 0.02) {
+          const isPos = state.voltage > 0;
+          ctx.fillStyle = isPos ? '#34d399' : '#fb7185';
+          ctx.font = 'bold 12px monospace';
+          ctx.fillText(isPos ? '(+)' : '(−)', layout.anodeX, layout.anodeBottom + 15);
+          ctx.fillStyle = isPos ? '#fb7185' : '#34d399';
+          ctx.fillText(isPos ? '(−)' : '(+)', layout.cathodeX, layout.cathodeBottom + 27);
+        }
+        ctx.restore();
+
+        // F. Photon Wave-Packets
+        for (const p of state.photons) {
+          const pColor = frequencyToColorInfo(p.freqTHz);
+          const angle = Math.atan2(p.vy, p.vx);
+
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(angle);
+
+          ctx.strokeStyle = pColor.rgb;
+          ctx.shadowColor = pColor.rgb;
+          ctx.shadowBlur = 8;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+
+          const freqVisual = 0.45 + ((p.freqTHz - FREQ_MIN_THZ) / (FREQ_MAX_THZ - FREQ_MIN_THZ)) * 0.65;
+          const packetLen = 22;
+          for (let lx = -packetLen; lx <= 4; lx += 2) {
+            const env = Math.cos(((lx + 9) / 14) * (Math.PI * 0.5));
+            const amp = 4.2 * Math.max(0, env);
+            const ly = Math.sin(lx * freqVisual - p.phase) * amp;
+            if (lx === -packetLen) ctx.moveTo(lx, ly);
+            else ctx.lineTo(lx, ly);
+          }
+          ctx.stroke();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(4, 0, 2.2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        // G. Impact Ripples & Photoelectrons
+        for (const s of state.sparks) {
+          ctx.save();
+          ctx.strokeStyle = s.color;
+          ctx.globalAlpha = Math.max(0, s.alpha);
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.radius, -Math.PI * 0.5, Math.PI * 0.5);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        const plateSpan = layout.anodeX - layout.cathodeX;
+        for (const e of state.electrons) {
+          const ex = layout.cathodeX + e.u * plateSpan;
+          const ey = e.y;
+
+          if (e.trail.length > 1) {
+            ctx.save();
+            ctx.strokeStyle = e.turnedBack
+              ? 'rgba(251, 113, 133, 0.38)'
+              : 'rgba(56, 189, 248, 0.38)';
+            ctx.lineWidth = 1.6;
+            ctx.beginPath();
+            ctx.moveTo(e.trail[0].x, e.trail[0].y);
+            for (let t = 1; t < e.trail.length; t++) {
+              ctx.lineTo(e.trail[t].x, e.trail[t].y);
+            }
+            ctx.stroke();
+            ctx.restore();
+          }
+
+          ctx.save();
+          const coreColor = e.turnedBack ? '#fda4af' : '#67e8f9';
+          const haloColor = e.turnedBack ? '#f43f5e' : '#0284c7';
+          ctx.shadowColor = haloColor;
+          ctx.shadowBlur = 10;
+          ctx.fillStyle = coreColor;
+          ctx.beginPath();
+          ctx.arc(ex, ey, 3.8, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.shadowBlur = 0;
+          ctx.strokeStyle = '#070b14';
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.moveTo(ex - 2, ey);
+          ctx.lineTo(ex + 2, ey);
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+
+      function drawBatterySymbol(ctx, cx, cy, voltage) {
+        ctx.save();
+        ctx.fillStyle = '#0f172a';
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1.5;
+        drawRoundedRect(ctx, cx - 44, cy - 22, 88, 44, 9);
+        ctx.fill();
+        ctx.stroke();
+
+        const isPos = voltage >= 0;
+        const leftLong = !isPos;
+        const rightLong = isPos;
+
+        ctx.strokeStyle = leftLong ? '#34d399' : '#fb7185';
+        ctx.lineWidth = leftLong ? 2.5 : 3.5;
+        ctx.beginPath();
+        ctx.moveTo(cx - 8, cy - (leftLong ? 11 : 6));
+        ctx.lineTo(cx - 8, cy + (leftLong ? 11 : 6));
+        ctx.stroke();
+
+        ctx.strokeStyle = rightLong ? '#34d399' : '#fb7185';
+        ctx.lineWidth = rightLong ? 2.5 : 3.5;
+        ctx.beginPath();
+        ctx.moveTo(cx + 8, cy - (rightLong ? 11 : 6));
+        ctx.lineTo(cx + 8, cy + (rightLong ? 11 : 6));
+        ctx.stroke();
+
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(cx - 24, cy);
+        ctx.lineTo(cx - 8, cy);
+        ctx.moveTo(cx + 8, cy);
+        ctx.lineTo(cx + 24, cy);
+        ctx.stroke();
+
+        ctx.font = 'bold 11px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = leftLong ? '#34d399' : '#fb7185';
+        ctx.fillText(leftLong ? '+' : '−', cx - 17, cy - 7);
+        ctx.fillStyle = rightLong ? '#34d399' : '#fb7185';
+        ctx.fillText(rightLong ? '+' : '−', cx + 17, cy - 7);
+
+        const sign = voltage > 0.001 ? '+' : '';
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = '600 11px monospace';
+        ctx.fillText(`DC ${sign}${voltage.toFixed(2)}V`, cx, cy + 36);
+        ctx.restore();
+      }
+
+      function drawVoltmeterSymbol(ctx, cx, cy, voltage) {
+        ctx.save();
+        ctx.fillStyle = '#0f172a';
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 1.6;
+        drawRoundedRect(ctx, cx - 24, cy - 13, 48, 26, 7);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#7dd3fc';
+        ctx.font = 'bold 10px monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const sign = voltage > 0.001 ? '+' : '';
+        ctx.fillText(`${sign}${voltage.toFixed(1)}V`, cx, cy);
+        ctx.restore();
+      }
+
+      function drawAmmeterSymbol(ctx, cx, cy, currentUA, needleAngle) {
+        ctx.save();
+        ctx.fillStyle = '#0f172a';
+        ctx.strokeStyle = currentUA > 0.01 ? '#10b981' : '#475569';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 25, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(cx, cy + 6, 14, Math.PI + 0.75, Math.PI * 2 - 0.75);
+        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(cx, cy + 8);
+        ctx.rotate(needleAngle);
+        ctx.strokeStyle = currentUA > 0.01 ? '#34d399' : '#94a3b8';
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(0, -16);
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.fillStyle = '#e2e8f0';
+        ctx.beginPath();
+        ctx.arc(cx, cy + 8, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = 'bold 9px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('µA', cx, cy - 9);
+
+        ctx.fillStyle = currentUA > 0.01 ? '#34d399' : '#94a3b8';
+        ctx.font = '600 11px monospace';
+        ctx.fillText(`${currentUA.toFixed(2)} µA`, cx, cy + 38);
+        ctx.restore();
+      }
+
+      // =========================================================================
+      // 8. LIVE CHARACTERISTIC PLOTS (I-V CURVE & K_max vs. FREQUENCY)
+      // =========================================================================
+      function renderGraph() {
+        const ctx = graphCtx;
+        const w = graphWidth;
+        const h = graphHeight;
+
+        ctx.clearRect(0, 0, w, h);
+
+        if (state.activeGraphTab === 'IV') {
+          renderIVCurve(ctx, w, h);
+        } else {
+          renderKmaxFreqCurve(ctx, w, h);
+        }
+      }
+
+      function renderIVCurve(ctx, w, h) {
+        const padLeft = 56;
+        const padRight = 24;
+        const padTop = 26;
+        const padBottom = 42;
+        const plotW = w - padLeft - padRight;
+        const plotH = h - padTop - padBottom;
+
+        const vMin = -5.0;
+        const vMax = 5.0;
+        const iMax = Math.max(3.5, Math.ceil(state.saturationCurrentUA * 1.25 * 2) / 2);
+
+        const toX = (v) => padLeft + ((v - vMin) / (vMax - vMin)) * plotW;
+        const toY = (curr) => padTop + plotH - (curr / iMax) * plotH;
+
+        ctx.save();
+        ctx.strokeStyle = 'rgba(30, 41, 59, 0.75)';
+        ctx.lineWidth = 1;
+        ctx.font = '11px monospace';
+        ctx.fillStyle = '#94a3b8';
+
+        const ySteps = 5;
+        for (let s = 0; s <= ySteps; s++) {
+          const val = (iMax / ySteps) * s;
+          const py = toY(val);
+          ctx.beginPath();
+          ctx.moveTo(padLeft, py);
+          ctx.lineTo(padLeft + plotW, py);
+          ctx.stroke();
+
+          ctx.textAlign = 'right';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(val.toFixed(1), padLeft - 8, py);
+        }
+
+        for (let v = -5; v <= 5; v += 1) {
+          const px = toX(v);
+          ctx.strokeStyle = v === 0 ? 'rgba(148, 163, 184, 0.5)' : 'rgba(30, 41, 59, 0.75)';
+          ctx.lineWidth = v === 0 ? 1.5 : 1;
+          ctx.beginPath();
+          ctx.moveTo(px, padTop);
+          ctx.lineTo(px, padTop + plotH);
+          ctx.stroke();
+
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          ctx.fillStyle = v === 0 ? '#e2e8f0' : '#94a3b8';
+          ctx.fillText(`${v > 0 ? '+' : ''}${v}V`, px, padTop + plotH + 8);
+        }
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '600 11px -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Applied Voltage V (Volts)', padLeft + plotW * 0.5, h - 12);
+
+        ctx.save();
+        ctx.translate(15, padTop + plotH * 0.5);
+        ctx.rotate(-Math.PI * 0.5);
+        ctx.fillText('Photocurrent I (µA)', 0, 0);
+        ctx.restore();
+
+        // Saturation Current Plateau Line
+        if (state.saturationCurrentUA > 0.01) {
+          const satY = toY(state.saturationCurrentUA);
+          ctx.strokeStyle = 'rgba(245, 158, 11, 0.5)';
+          ctx.setLineDash([5, 5]);
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.moveTo(padLeft, satY);
+          ctx.lineTo(padLeft + plotW, satY);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          ctx.fillStyle = '#fbbf24';
+          ctx.font = '10px monospace';
+          ctx.textAlign = 'right';
+          ctx.fillText(`I_sat = ${state.saturationCurrentUA.toFixed(2)} µA`, padLeft + plotW - 6, satY - 6);
+        }
+
+        // I-V Curve
+        ctx.strokeStyle = state.kMax > 0 && state.intensity > 0 ? '#38bdf8' : '#64748b';
+        ctx.lineWidth = 2.8;
+        ctx.beginPath();
+        const samples = 240;
+        for (let i = 0; i <= samples; i++) {
+          const v = vMin + (i / samples) * (vMax - vMin);
+          const curr = computePhotocurrent(v, state.kMax, state.saturationCurrentUA);
+          const px = toX(v);
+          const py = toY(curr);
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        ctx.lineTo(toX(vMax), toY(0));
+        ctx.lineTo(toX(vMin), toY(0));
+        ctx.closePath();
+        ctx.fillStyle = state.kMax > 0 && state.intensity > 0
+          ? 'rgba(56, 189, 248, 0.12)'
+          : 'rgba(100, 116, 139, 0.06)';
+        ctx.fill();
+
+        // Stopping Potential (-V_s) Marker
+        if (state.kMax > 0 && state.stoppingPotential <= 5.0) {
+          const vsX = toX(-state.stoppingPotential);
+          const vsY = toY(0);
+
+          ctx.fillStyle = '#f43f5e';
+          ctx.beginPath();
+          ctx.arc(vsX, vsY, 5, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#fda4af';
+          ctx.font = '600 10px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText(`-V_s = -${state.stoppingPotential.toFixed(2)}V`, vsX, vsY - 11);
+        }
+
+        // Live Operating Point
+        const opX = toX(state.voltage);
+        const opY = toY(state.measuredCurrentUA);
+
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.45)';
+        ctx.setLineDash([3, 3]);
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(opX, padTop + plotH);
+        ctx.lineTo(opX, opY);
+        ctx.lineTo(padLeft, opY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.shadowColor = '#10b981';
+        ctx.shadowBlur = 12;
+        ctx.fillStyle = '#10b981';
+        ctx.beginPath();
+        ctx.arc(opX, opY, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.arc(opX, opY, 6, 0, Math.PI * 2);
+        ctx.stroke();
+
+        const labelText = `(${state.voltage >= 0 ? '+' : ''}${state.voltage.toFixed(2)}V, ${state.measuredCurrentUA.toFixed(2)}µA)`;
+        ctx.font = '600 10px monospace';
+        const textW = ctx.measureText(labelText).width;
+        const boxX = Math.min(padLeft + plotW - textW - 10, Math.max(padLeft + 6, opX - textW * 0.5 - 4));
+        const boxY = Math.max(padTop + 6, opY - 26);
+
+        ctx.fillStyle = 'rgba(7, 11, 20, 0.92)';
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.55)';
+        ctx.lineWidth = 1;
+        drawRoundedRect(ctx, boxX, boxY, textW + 8, 18, 4);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#6ee7b7';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(labelText, boxX + 4, boxY + 9);
+
+        ctx.restore();
+      }
+
+      function renderKmaxFreqCurve(ctx, w, h) {
+        const padLeft = 56;
+        const padRight = 24;
+        const padTop = 26;
+        const padBottom = 42;
+        const plotW = w - padLeft - padRight;
+        const plotH = h - padTop - padBottom;
+
+        const fMin = 350;  // THz
+        const fMax = 3050; // THz
+        const kCeiling = 10.5; // eV
+
+        const toX = (fTHz) => padLeft + ((fTHz - fMin) / (fMax - fMin)) * plotW;
+        const toY = (kEv) => padTop + plotH - (kEv / kCeiling) * plotH;
+
+        ctx.save();
+        ctx.strokeStyle = 'rgba(30, 41, 59, 0.75)';
+        ctx.lineWidth = 1;
+        ctx.font = '11px monospace';
+        ctx.fillStyle = '#94a3b8';
+
+        for (let k = 0; k <= 10; k += 2) {
+          const py = toY(k);
+          ctx.beginPath();
+          ctx.moveTo(padLeft, py);
+          ctx.lineTo(padLeft + plotW, py);
+          ctx.stroke();
+
+          ctx.textAlign = 'right';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(`${k} eV`, padLeft - 8, py);
+        }
+
+        for (let f = 500; f <= 3000; f += 500) {
+          const px = toX(f);
+          ctx.beginPath();
+          ctx.moveTo(px, padTop);
+          ctx.lineTo(px, padTop + plotH);
+          ctx.stroke();
+
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          ctx.fillText(`${f}`, px, padTop + plotH + 8);
+        }
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '600 11px -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Light Frequency f (THz)', padLeft + plotW * 0.5, h - 12);
+
+        ctx.save();
+        ctx.translate(15, padTop + plotH * 0.5);
+        ctx.rotate(-Math.PI * 0.5);
+        ctx.fillText('Max Kinetic Energy K_max (eV)', 0, 0);
+        ctx.restore();
+
+        const f0THz = state.thresholdFreqTHz;
+        const kAtFmax = H_EV_S * (fMax * 1e12) - state.workFunction;
+
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2.8;
+        ctx.beginPath();
+        ctx.moveTo(toX(fMin), toY(0));
+        if (f0THz > fMin && f0THz < fMax) {
+          ctx.lineTo(toX(f0THz), toY(0));
+          ctx.lineTo(toX(fMax), toY(Math.min(kCeiling, kAtFmax)));
+        } else if (f0THz <= fMin) {
+          const kAtFmin = H_EV_S * (fMin * 1e12) - state.workFunction;
+          ctx.lineTo(toX(fMin), toY(kAtFmin));
+          ctx.lineTo(toX(fMax), toY(Math.min(kCeiling, kAtFmax)));
+        }
+        ctx.stroke();
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '10px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText('Slope = h = 4.136×10⁻¹⁵ eV·s', padLeft + 12, padTop + 14);
+
+        if (f0THz >= fMin && f0THz <= fMax) {
+          const f0X = toX(f0THz);
+          const f0Y = toY(0);
+          ctx.fillStyle = '#f59e0b';
+          ctx.beginPath();
+          ctx.arc(f0X, f0Y, 5, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#fcd34d';
+          ctx.font = '600 10px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText(`f₀ = ${Math.round(f0THz)} THz`, f0X, f0Y - 11);
+        }
+
+        const opX = toX(state.frequencyTHz);
+        const opY = toY(state.kMax);
+
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.45)';
+        ctx.setLineDash([3, 3]);
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(opX, padTop + plotH);
+        ctx.lineTo(opX, opY);
+        ctx.lineTo(padLeft, opY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.shadowColor = '#10b981';
+        ctx.shadowBlur = 12;
+        ctx.fillStyle = '#10b981';
+        ctx.beginPath();
+        ctx.arc(opX, opY, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.arc(opX, opY, 6, 0, Math.PI * 2);
+        ctx.stroke();
+
+        const labelText = `(${Math.round(state.frequencyTHz)} THz, ${state.kMax.toFixed(2)} eV)`;
+        ctx.font = '600 10px monospace';
+        const textW = ctx.measureText(labelText).width;
+        const boxX = Math.min(padLeft + plotW - textW - 10, Math.max(padLeft + 6, opX - textW * 0.5 - 4));
+        const boxY = Math.max(padTop + 6, opY - 26);
+
+        ctx.fillStyle = 'rgba(7, 11, 20, 0.92)';
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.55)';
+        drawRoundedRect(ctx, boxX, boxY, textW + 8, 18, 4);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#6ee7b7';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(labelText, boxX + 4, boxY + 9);
+
+        ctx.restore();
+      }
+
+      // =========================================================================
+      // 9. EVENT LISTENERS & PRESETS
+      // =========================================================================
+      dom.metalSelect.addEventListener('change', (e) => {
+        state.metalKey = e.target.value;
+        if (state.metalKey === 'custom') {
+          dom.customWorkFunctionRow.classList.remove('hidden');
+        } else {
+          dom.customWorkFunctionRow.classList.add('hidden');
+        }
+        recalcPhysics();
+        renderGraph();
+      });
+
+      dom.customPhiSlider.addEventListener('input', () => {
+        recalcPhysics();
+        renderGraph();
+      });
+
+      dom.frequencySlider.addEventListener('input', (e) => {
+        state.frequencyTHz = parseFloat(e.target.value);
+        recalcPhysics();
+        renderGraph();
+      });
+
+      dom.intensitySlider.addEventListener('input', (e) => {
+        state.intensity = parseInt(e.target.value, 10);
+        recalcPhysics();
+        renderGraph();
+      });
+
+      dom.voltageSlider.addEventListener('input', (e) => {
+        state.voltage = parseFloat(e.target.value);
+        recalcPhysics();
+        renderGraph();
+      });
+
+      dom.zeroVoltageBtn.addEventListener('click', () => {
+        state.voltage = 0.0;
+        dom.voltageSlider.value = '0.00';
+        recalcPhysics();
+        renderGraph();
+      });
+
+      dom.setVsBtn.addEventListener('click', () => {
+        if (state.kMax <= 0) {
+          state.frequencyTHz = 1150;
+          dom.frequencySlider.value = '1150';
+          recalcPhysics();
+        }
+        const targetV = Math.max(-5.0, -Number(state.stoppingPotential.toFixed(2)));
+        state.voltage = targetV;
+        dom.voltageSlider.value = targetV.toFixed(2);
+        recalcPhysics();
+        renderGraph();
+      });
+
+      dom.presetSubThresholdBtn.addEventListener('click', () => {
+        state.metalKey = 'zinc';
+        dom.metalSelect.value = 'zinc';
+        dom.customWorkFunctionRow.classList.add('hidden');
+        state.frequencyTHz = 580;
+        dom.frequencySlider.value = '580';
+        state.intensity = 85;
+        dom.intensitySlider.value = '85';
+        state.voltage = 2.00;
+        dom.voltageSlider.value = '2.00';
+        recalcPhysics();
+        renderGraph();
+      });
+
+      dom.presetThresholdBtn.addEventListener('click', () => {
+        state.metalKey = 'sodium';
+        dom.metalSelect.value = 'sodium';
+        dom.customWorkFunctionRow.classList.add('hidden');
+        state.frequencyTHz = 560;
+        dom.frequencySlider.value = '560';
+        state.intensity = 75;
+        dom.intensitySlider.value = '75';
+        state.voltage = 1.00;
+        dom.voltageSlider.value = '1.00';
+        recalcPhysics();
+        renderGraph();
+      });
+
+      dom.presetEmissionBtn.addEventListener('click', () => {
+        state.metalKey = 'sodium';
+        dom.metalSelect.value = 'sodium';
+        dom.customWorkFunctionRow.classList.add('hidden');
+        state.frequencyTHz = 1450;
+        dom.frequencySlider.value = '1450';
+        state.intensity = 70;
+        dom.intensitySlider.value = '70';
+        state.voltage = 1.50;
+        dom.voltageSlider.value = '1.50';
+        recalcPhysics();
+        renderGraph();
+      });
+
+      dom.presetStoppingBtn.addEventListener('click', () => {
+        if (state.kMax <= 0) {
+          state.frequencyTHz = 1150;
+          dom.frequencySlider.value = '1150';
+          recalcPhysics();
+        }
+        const targetV = Math.max(-5.0, -Number(state.stoppingPotential.toFixed(2)));
+        state.voltage = targetV;
+        dom.voltageSlider.value = targetV.toFixed(2);
+        recalcPhysics();
+        renderGraph();
+      });
+
+      dom.presetHighIntensityBtn.addEventListener('click', () => {
+        state.metalKey = 'sodium';
+        dom.metalSelect.value = 'sodium';
+        dom.customWorkFunctionRow.classList.add('hidden');
+        state.frequencyTHz = 820;
+        dom.frequencySlider.value = '820';
+        state.intensity = 100;
+        dom.intensitySlider.value = '100';
+        state.voltage = 2.50;
+        dom.voltageSlider.value = '2.50';
+        recalcPhysics();
+        renderGraph();
+      });
+
+      dom.toggleFieldBtn.addEventListener('click', () => {
+        state.showFieldLines = !state.showFieldLines;
+        dom.fieldDot.style.background = state.showFieldLines ? '#38bdf8' : '#475569';
+      });
+
+      dom.pauseBtn.addEventListener('click', () => {
+        state.paused = !state.paused;
+        dom.pauseBtn.textContent = state.paused ? 'Resume' : 'Pause';
+        dom.pauseBtn.style.color = state.paused ? '#fcd34d' : '#f1f5f9';
+      });
+
+      dom.clearParticlesBtn.addEventListener('click', () => {
+        state.photons = [];
+        state.electrons = [];
+        state.sparks = [];
+      });
+
+      dom.tabIVBtn.addEventListener('click', () => {
+        state.activeGraphTab = 'IV';
+        dom.tabIVBtn.classList.add('active');
+        dom.tabKfBtn.classList.remove('active');
+        dom.graphLegendPrimary.innerHTML = '<span style="width:9px;height:9px;border-radius:50%;background:#10b981;display:inline-block;"></span><span>Operating Point (V, I)</span>';
+        dom.graphLegendSecondary.innerHTML = '<span style="width:9px;height:9px;border-radius:50%;background:#f43f5e;display:inline-block;"></span><span>Stopping Potential (-V<sub>s</sub>)</span>';
+        renderGraph();
+      });
+
+      dom.tabKfBtn.addEventListener('click', () => {
+        state.activeGraphTab = 'KF';
+        dom.tabKfBtn.classList.add('active');
+        dom.tabIVBtn.classList.remove('active');
+        dom.graphLegendPrimary.innerHTML = '<span style="width:9px;height:9px;border-radius:50%;background:#10b981;display:inline-block;"></span><span>Current (f, K<sub>max</sub>)</span>';
+        dom.graphLegendSecondary.innerHTML = '<span style="width:9px;height:9px;border-radius:50%;background:#f59e0b;display:inline-block;"></span><span>Threshold Frequency (f<sub>0</sub>)</span>';
+        renderGraph();
+      });
+
+      // =========================================================================
+      // 10. IMMEDIATE INITIALIZATION & ANIMATION LOOP
+      // =========================================================================
+      let lastTimeMs = performance.now();
+      let initialized = false;
+
+      function animate(nowMs) {
+        const dt = Math.min(0.05, Math.max(0.001, (nowMs - lastTimeMs) / 1000));
+        lastTimeMs = nowMs;
+
+        updateSimulation(dt);
+        renderSimulation(nowMs / 1000);
+        renderGraph();
+
+        requestAnimationFrame(animate);
+      }
+
+      function initSimulator() {
+        if (initialized) {
+          resizeCanvases();
+          return;
+        }
+        initialized = true;
+        recalcPhysics();
+        resizeCanvases();
+        seedInitialParticles();
+        renderSimulation(performance.now() / 1000);
+        renderGraph();
+        requestAnimationFrame(animate);
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initSimulator);
+      } else {
+        initSimulator();
+      }
+      window.addEventListener('load', resizeCanvases);
+    })();
+  </script>
+</body>
+</html>
