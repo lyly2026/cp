@@ -1,0 +1,2216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Compton Scattering Simulator — Relativistic Quantum Kinematics Lab</title>
+  <style>
+    /* =========================================================================
+       1. SELF-CONTAINED LABORATORY DESIGN SYSTEM (ZERO EXTERNAL DEPENDENCIES)
+       ========================================================================= */
+    :root {
+      --bg-base: #060a13;
+      --bg-panel: #0d1424;
+      --bg-card: #111a2e;
+      --bg-input: #080d1a;
+      --border-subtle: #1e293b;
+      --border-strong: #334155;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-sky: #38bdf8;
+      --accent-cyan: #22d3ee;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --accent-violet: #a855f7;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.45;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Header Bar */
+    .lab-header {
+      background: rgba(8, 13, 25, 0.95);
+      border-bottom: 1px solid var(--border-subtle);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      padding: 12px 20px;
+    }
+
+    .header-inner {
+      max-width: 1600px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: rgba(56, 189, 248, 0.14);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-sky);
+      flex-shrink: 0;
+    }
+
+    .brand-title {
+      font-size: 1.06rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .formula-pill {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 9px;
+      border-radius: 999px;
+      background: rgba(168, 85, 247, 0.14);
+      color: #d8b4fe;
+      border: 1px solid rgba(168, 85, 247, 0.32);
+    }
+
+    .brand-sub {
+      font-size: 0.76rem;
+      color: var(--text-secondary);
+    }
+
+    .preset-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .preset-label {
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+      margin-right: 2px;
+    }
+
+    .btn {
+      font-family: var(--font-sans);
+      font-size: 0.74rem;
+      font-weight: 600;
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border-strong);
+      background: #141e33;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .btn:hover {
+      background: #1d2b47;
+      border-color: #475569;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-cyan { color: #67e8f9; }
+    .btn-sky { color: #7dd3fc; }
+    .btn-violet { color: #d8b4fe; }
+    .btn-amber { color: #fcd34d; }
+    .btn-emerald { color: #6ee7b7; }
+    .btn-rose { color: #fda4af; }
+
+    .btn-active {
+      background: rgba(56, 189, 248, 0.18);
+      border-color: rgba(56, 189, 248, 0.45);
+      color: #7dd3fc;
+    }
+
+    .dot-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-sky);
+      display: inline-block;
+    }
+
+    /* Main Workspace Grid */
+    .workspace {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 18px 20px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .grid-top {
+      display: grid;
+      grid-template-columns: 1.42fr 1fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .grid-bottom {
+      display: grid;
+      grid-template-columns: 1fr 1.42fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    @media (max-width: 1140px) {
+      .grid-top,
+      .grid-bottom {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: linear-gradient(180deg, #0f172a 0%, #0a101f 100%);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 12px 28px -12px rgba(0, 0, 0, 0.75);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .panel-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .panel-title {
+      font-size: 0.79rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-banner {
+      font-family: var(--font-mono);
+      font-size: 0.73rem;
+      font-weight: 600;
+      padding: 4px 11px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.14);
+      color: #7dd3fc;
+      border: 1px solid rgba(56, 189, 248, 0.35);
+    }
+
+    /* Canvas Wrappers with Explicit Non-Zero Dimensions */
+    .canvas-box {
+      position: relative;
+      width: 100%;
+      height: 430px;
+      min-height: 380px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #050811;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .graph-box {
+      position: relative;
+      width: 100%;
+      height: 330px;
+      min-height: 290px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #050811;
+      border: 1px solid var(--border-subtle);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .canvas-overlay-bottom-left {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      background: rgba(6, 10, 19, 0.9);
+      border: 1px solid var(--border-subtle);
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 0.7rem;
+      color: #cbd5e1;
+      pointer-events: none;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .canvas-overlay-bottom-right {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      display: flex;
+      gap: 6px;
+    }
+
+    /* Control Cards */
+    .control-card {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .control-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+    }
+
+    .badge-sky {
+      background: rgba(56, 189, 248, 0.14);
+      color: #7dd3fc;
+      border-color: rgba(56, 189, 248, 0.32);
+    }
+
+    .badge-violet {
+      background: rgba(168, 85, 247, 0.15);
+      color: #d8b4fe;
+      border-color: rgba(168, 85, 247, 0.35);
+    }
+
+    .badge-amber {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fcd34d;
+      border-color: rgba(245, 158, 11, 0.35);
+    }
+
+    .badge-emerald {
+      background: rgba(16, 185, 129, 0.15);
+      color: #6ee7b7;
+      border-color: rgba(16, 185, 129, 0.35);
+    }
+
+    /* Range Sliders */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 7px;
+      border-radius: 999px;
+      background: #1e293b;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #f8fafc;
+      border: 3px solid #38bdf8;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+      cursor: pointer;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #f8fafc;
+      border: 3px solid #38bdf8;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+      cursor: pointer;
+    }
+
+    #energySlider {
+      background: linear-gradient(to right, #06b6d4 0%, #3b82f6 35%, #8b5cf6 70%, #ec4899 100%);
+    }
+
+    #angleSlider {
+      background: linear-gradient(to right, #10b981 0%, #38bdf8 50%, #f43f5e 100%);
+    }
+
+    .slider-axis-labels {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--text-secondary);
+    }
+
+    .quick-angle-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 2px;
+    }
+
+    .toggle-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    @media (max-width: 520px) {
+      .toggle-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .toggle-btn {
+      justify-content: space-between;
+      padding: 8px 10px;
+      font-size: 0.74rem;
+    }
+
+    /* Digital Telemetry Cards */
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    @media (max-width: 540px) {
+      .telemetry-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .meter-card {
+      background: #080d1a;
+      border: 1px solid var(--border-subtle);
+      border-radius: 11px;
+      padding: 10px 12px;
+    }
+
+    .meter-card.highlight-sky {
+      border-color: rgba(56, 189, 248, 0.38);
+      box-shadow: inset 0 0 18px rgba(56, 189, 248, 0.06);
+    }
+
+    .meter-card.highlight-amber {
+      border-color: rgba(245, 158, 11, 0.38);
+      box-shadow: inset 0 0 18px rgba(245, 158, 11, 0.06);
+    }
+
+    .meter-label {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .meter-value {
+      margin-top: 3px;
+      font-family: var(--font-mono);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .meter-unit {
+      font-size: 0.74rem;
+      font-weight: 400;
+      color: var(--text-secondary);
+    }
+
+    .meter-sub {
+      margin-top: 2px;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--text-muted);
+    }
+
+    .insight-box {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.75rem;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    /* Graph Tabs */
+    .tab-group {
+      display: inline-flex;
+      background: #060a13;
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+      gap: 4px;
+    }
+
+    .tab-btn {
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 7px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .tab-btn.active {
+      background: rgba(56, 189, 248, 0.18);
+      color: #7dd3fc;
+      border-color: rgba(56, 189, 248, 0.35);
+    }
+
+    .graph-legends {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Laboratory Header -->
+  <header class="lab-header">
+    <div class="header-inner">
+      <div class="brand-group">
+        <div class="brand-icon" aria-hidden="true">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M2 12h7"></path>
+            <path d="M14.5 9.8 21 4"></path>
+            <path d="M14.5 14.2 19 20"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title">
+            <span>Compton Scattering Simulator</span>
+            <span class="formula-pill">Δλ = λ' − λ = (h / mₑc)(1 − cos θ)</span>
+          </div>
+          <div class="brand-sub">Relativistic Photon–Electron Collision Kinematics, Wavelength Shift &amp; Momentum Conservation</div>
+        </div>
+      </div>
+
+      <div class="preset-bar">
+        <span class="preset-label">Sources:</span>
+        <button id="presetMoBtn" class="btn btn-cyan">Mo Kα (17.4 keV)</button>
+        <button id="presetDiagBtn" class="btn btn-sky">Diagnostic X-Ray (50 keV)</button>
+        <button id="presetTcBtn" class="btn btn-emerald">⁹⁹ᵐTc Gamma (140 keV)</button>
+        <button id="presetAnnihBtn" class="btn btn-violet">511 keV Annihilation</button>
+        <button id="presetCsBtn" class="btn btn-amber">¹³⁷Cs Gamma (662 keV)</button>
+        <button id="presetCoBtn" class="btn btn-rose">⁶⁰Co Gamma (1.25 MeV)</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="workspace">
+
+    <!-- Top Row: Collision Chamber Canvas + Relativistic Controls -->
+    <section class="grid-top">
+
+      <!-- Left: Collision & Kinematics Chamber -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="dot-indicator" style="background:#38bdf8;"></span>
+            <span>Relativistic Collision &amp; Kinematics Chamber</span>
+          </div>
+          <div id="collisionStatusBanner" class="status-banner tabular-nums">
+            Δλ = +2.43 pm | E' = 255.5 keV | Kₑ = 255.5 keV
+          </div>
+        </div>
+
+        <div id="simCanvasWrapper" class="canvas-box">
+          <canvas id="simCanvas" width="840" height="430"></canvas>
+
+          <div class="canvas-overlay-bottom-left">
+            <span class="legend-item">
+              <span style="width:12px;height:5px;border-radius:3px;background:#38bdf8;display:inline-block;"></span>
+              <span>Incident γ (E, λ)</span>
+            </span>
+            <span class="legend-item">
+              <span style="width:12px;height:5px;border-radius:3px;background:#c084fc;display:inline-block;"></span>
+              <span>Scattered γ' (E', λ')</span>
+            </span>
+            <span class="legend-item">
+              <span style="width:9px;height:9px;border-radius:50%;background:#fbbf24;box-shadow:0 0 6px #f59e0b;display:inline-block;"></span>
+              <span>Recoil Electron e⁻ (Kₑ, φ)</span>
+            </span>
+          </div>
+
+          <div class="canvas-overlay-bottom-right">
+            <button id="singleShotBtn" class="btn btn-emerald">Fire Single γ</button>
+            <button id="pauseBtn" class="btn">Pause</button>
+            <button id="clearBtn" class="btn">Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Experimental Controls -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line>
+              <line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line>
+              <line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line>
+              <line x1="17" y1="16" x2="23" y2="16"></line>
+            </svg>
+            <span>Collision Parameters</span>
+          </div>
+          <span style="font-family:var(--font-mono);font-size:0.7rem;color:#94a3b8;">λ_C = h/(mₑc) = 2.426 pm</span>
+        </div>
+
+        <!-- 1. Incident Photon Energy (E) -->
+        <div class="control-card">
+          <div class="control-row">
+            <label for="energySlider" class="control-label">
+              <span>Incident Photon Energy (E)</span>
+              <span id="regimeBadge" class="badge badge-violet">Relativistic (α = 1.00)</span>
+            </label>
+            <div style="font-family:var(--font-mono);font-size:0.76rem;" class="tabular-nums">
+              <strong style="color:#7dd3fc;"><span id="energyVal">511.0</span> keV</strong>
+              <span style="color:#475569;"> | </span>
+              <span style="color:#cbd5e1;">λ = <span id="lambdaSliderVal" style="color:#f1f5f9;">2.43</span> pm</span>
+            </div>
+          </div>
+
+          <input type="range" id="energySlider" min="0" max="1000" step="1" value="742" />
+
+          <div class="slider-axis-labels">
+            <span>10 keV (Soft X-Ray)</span>
+            <span>α = E / mₑc² = <span id="alphaAxisVal" style="color:#d8b4fe;">1.000</span></span>
+            <span>2000 keV (2.0 MeV γ)</span>
+          </div>
+        </div>
+
+        <!-- 2. Photon Scattering Angle (theta) -->
+        <div class="control-card">
+          <div class="control-row">
+            <label for="angleSlider" class="control-label">
+              <span>Photon Scattering Angle (θ)</span>
+              <span id="angleRegimeBadge" class="badge badge-sky">Orthogonal Scatter</span>
+            </label>
+            <div style="font-family:var(--font-mono);font-size:0.78rem;" class="tabular-nums">
+              <strong style="color:#6ee7b7;"><span id="thetaVal">90</span>°</strong>
+              <span style="color:#475569;"> | </span>
+              <span style="color:#fcd34d;">Recoil φ = <span id="phiSliderVal">26.6</span>°</span>
+            </div>
+          </div>
+
+          <input type="range" id="angleSlider" min="0" max="180" step="1" value="90" />
+
+          <div class="slider-axis-labels">
+            <span>0° (Forward)</span>
+            <span>90° (Δλ = λ_C)</span>
+            <span>180° (Backscatter / Edge)</span>
+          </div>
+
+          <div class="quick-angle-row">
+            <button class="btn angle-preset-btn" data-angle="0">0° Forward</button>
+            <button class="btn angle-preset-btn" data-angle="45">45°</button>
+            <button class="btn angle-preset-btn" data-angle="90">90° Orthogonal</button>
+            <button class="btn angle-preset-btn" data-angle="135">135°</button>
+            <button class="btn btn-rose angle-preset-btn" data-angle="180">180° Compton Edge</button>
+          </div>
+        </div>
+
+        <!-- 3. Visualization & Vector Overlays -->
+        <div class="control-card">
+          <div class="control-row">
+            <span class="control-label">Kinematics &amp; Wave Overlays</span>
+            <span style="font-family:var(--font-mono);font-size:0.68rem;color:#94a3b8;">p⃗_γ = p⃗_γ' + p⃗_e</span>
+          </div>
+
+          <div class="toggle-grid">
+            <button id="toggleVectorsBtn" class="btn btn-active toggle-btn">
+              <span>Momentum Triangle (p⃗)</span>
+              <span id="vectorsStateText" style="font-family:var(--font-mono);font-size:0.68rem;">ON</span>
+            </button>
+            <button id="toggleWaveCompareBtn" class="btn btn-active toggle-btn">
+              <span>Wave Stretch (λ → λ')</span>
+              <span id="waveCompareStateText" style="font-family:var(--font-mono);font-size:0.68rem;">ON</span>
+            </button>
+            <button id="toggleElectronBtn" class="btn btn-active toggle-btn">
+              <span>Recoil Electron (e⁻)</span>
+              <span id="electronStateText" style="font-family:var(--font-mono);font-size:0.68rem;">ON</span>
+            </button>
+            <button id="toggleStreamBtn" class="btn btn-active toggle-btn">
+              <span>Continuous Beam</span>
+              <span id="streamStateText" style="font-family:var(--font-mono);font-size:0.68rem;">ON</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bottom Row: 6 Digital Telemetry Cards + Dual Characteristic Plots -->
+    <section class="grid-bottom">
+
+      <!-- Left: Digital Instrumentation Readouts -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+            <span>Relativistic Kinematics Telemetry</span>
+          </div>
+          <span style="font-family:var(--font-mono);font-size:0.7rem;color:#34d399;">● EXACT KINEMATICS</span>
+        </div>
+
+        <div class="telemetry-grid">
+          <!-- Card 1: Incident Photon -->
+          <div class="meter-card highlight-sky">
+            <div class="meter-label" style="color:#7dd3fc;">Incident Photon (E, λ)</div>
+            <div class="meter-value tabular-nums" style="color:#38bdf8;">
+              <span id="readoutE">511.0</span> <span class="meter-unit">keV</span>
+            </div>
+            <div class="meter-sub tabular-nums">
+              λ = <span id="readoutLambdaPm">2.426</span> pm (<span id="readoutLambdaA">0.0243</span> Å)
+            </div>
+          </div>
+
+          <!-- Card 2: Scattered Photon -->
+          <div class="meter-card">
+            <div class="meter-label">Scattered Photon (E', λ')</div>
+            <div class="meter-value tabular-nums" style="color:#c084fc;">
+              <span id="readoutEPrime">255.5</span> <span class="meter-unit">keV</span>
+            </div>
+            <div class="meter-sub tabular-nums">
+              λ' = <span id="readoutLambdaPrimePm">4.853</span> pm (<span id="readoutEnergyRetained">50.0</span>% E)
+            </div>
+          </div>
+
+          <!-- Card 3: Compton Wavelength Shift -->
+          <div class="meter-card">
+            <div class="meter-label">Compton Shift (Δλ = λ' − λ)</div>
+            <div class="meter-value tabular-nums" style="color:#6ee7b7;">
+              +<span id="readoutDeltaLambdaPm">2.426</span> <span class="meter-unit">pm</span>
+            </div>
+            <div class="meter-sub tabular-nums">
+              +<span id="readoutDeltaLambdaA">0.0243</span> Å (<span id="readoutComptonMultiple">1.00</span> × λ_C)
+            </div>
+          </div>
+
+          <!-- Card 4: Recoil Electron Kinetic Energy & Compton Edge -->
+          <div class="meter-card highlight-amber">
+            <div class="meter-label" style="color:#fcd34d;">Recoil Electron Kₑ &amp; Compton Edge</div>
+            <div class="meter-value tabular-nums" style="color:#fbbf24;">
+              <span id="readoutKe">255.5</span> <span class="meter-unit">keV</span>
+            </div>
+            <div class="meter-sub tabular-nums">
+              Compton Edge K_max(180°) = <span id="readoutKmax" style="color:#fda4af;">340.7</span> keV
+            </div>
+          </div>
+
+          <!-- Card 5: Recoil Angle & Relativistic Speed -->
+          <div class="meter-card">
+            <div class="meter-label">Electron Recoil Angle (φ) &amp; Speed</div>
+            <div class="meter-value tabular-nums" style="color:#22d3ee;">
+              <span id="readoutPhi">26.6</span><span class="meter-unit">°</span>
+            </div>
+            <div class="meter-sub tabular-nums">
+              β = v/c = <span id="readoutBeta" style="color:#67e8f9;">0.745</span> (γ = <span id="readoutGamma">1.500</span>)
+            </div>
+          </div>
+
+          <!-- Card 6: Relativistic Momenta -->
+          <div class="meter-card">
+            <div class="meter-label">Relativistic Momenta (p = E/c)</div>
+            <div class="meter-value tabular-nums" style="color:#f1f5f9;">
+              pₑ = <span id="readoutPe" style="color:#fcd34d;">571.3</span> <span class="meter-unit">keV/c</span>
+            </div>
+            <div class="meter-sub tabular-nums">
+              p_γ = <span id="readoutPi">511.0</span> • p_γ' = <span id="readoutPf">255.5</span> keV/c
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-box">
+          <strong style="color:#7dd3fc;">Conservation Laws:</strong> Relativistic energy (<span style="font-family:var(--font-mono);color:#f8fafc;">E + mₑc² = E' + γmₑc²</span>) and vector momentum (<span style="font-family:var(--font-mono);color:#d8b4fe;">p⃗_γ = p⃗_γ' + p⃗_e</span>) force the scattered photon wavelength to stretch by <span style="font-family:var(--font-mono);color:#6ee7b7;">Δλ = λ_C(1 − cos θ)</span>, independent of initial photon energy <span style="font-family:var(--font-mono);color:#38bdf8;">E</span>.
+        </div>
+      </div>
+
+      <!-- Right: Dual Interactive Graphs -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="tab-group">
+            <button id="tabShiftBtn" class="tab-btn active">Δλ(θ) &amp; E'(θ) vs. Angle</button>
+            <button id="tabRecoilBtn" class="tab-btn">Recoil Energy Kₑ(θ) &amp; Compton Edge</button>
+          </div>
+
+          <div class="graph-legends">
+            <span id="graphLegendPrimary" class="legend-item">
+              <span style="width:9px;height:9px;border-radius:50%;background:#10b981;display:inline-block;"></span>
+              <span>Δλ(θ) Shift (pm)</span>
+            </span>
+            <span id="graphLegendSecondary" class="legend-item">
+              <span style="width:9px;height:9px;border-radius:50%;background:#c084fc;display:inline-block;"></span>
+              <span>Scattered E'(θ) (keV)</span>
+            </span>
+          </div>
+        </div>
+
+        <div id="graphCanvasWrapper" class="graph-box">
+          <canvas id="graphCanvas" width="800" height="330"></canvas>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // =========================================================================
+      // 1. EXACT RELATIVISTIC PHYSICAL CONSTANTS
+      // =========================================================================
+      const E0_KEV = 510.99895;       // Electron rest mass energy m_e c^2 (keV)
+      const LAMBDA_C_PM = 2.4263102;  // Compton wavelength h / (m_e c) in picometers (pm)
+      const HC_KEV_PM = 1239.84198;   // Planck constant * speed of light (keV·pm)
+
+      // Logarithmic energy slider bounds: 10 keV to 2000 keV
+      const E_MIN_KEV = 10.0;
+      const E_MAX_KEV = 2000.0;
+
+      // =========================================================================
+      // 2. SIMULATION STATE
+      // =========================================================================
+      const state = {
+        energyKeV: 511.0,
+        thetaDeg: 90,
+
+        // Derived Relativistic Kinematics
+        alpha: 1.0,
+        lambdaPm: 2.426,
+        deltaLambdaPm: 2.426,
+        lambdaPrimePm: 4.853,
+        ePrimeKeV: 255.5,
+        keKeV: 255.5,
+        kMaxKeV: 340.67,
+        phiDeg: 26.57,
+        gamma: 1.5,
+        beta: 0.745,
+        pInitial: 511.0,
+        pFinal: 255.5,
+        pElectron: 571.3,
+
+        // Display & Animation Toggles
+        showVectors: true,
+        showWaveCompare: true,
+        showElectron: true,
+        continuousStream: true,
+        paused: false,
+        activeGraphTab: 'SHIFT', // 'SHIFT' or 'RECOIL'
+
+        // Particle & Wave-Packet Pools
+        incidentPackets: [],
+        scatteredPackets: [],
+        recoilElectrons: [],
+        vertexFlashes: [],
+        spawnTimer: 0,
+        targetRecoilPulse: 0
+      };
+
+      // =========================================================================
+      // 3. DOM ELEMENT REFERENCES
+      // =========================================================================
+      const dom = {
+        simCanvas: document.getElementById('simCanvas'),
+        simWrapper: document.getElementById('simCanvasWrapper'),
+        graphCanvas: document.getElementById('graphCanvas'),
+        graphWrapper: document.getElementById('graphCanvasWrapper'),
+
+        energySlider: document.getElementById('energySlider'),
+        energyVal: document.getElementById('energyVal'),
+        lambdaSliderVal: document.getElementById('lambdaSliderVal'),
+        regimeBadge: document.getElementById('regimeBadge'),
+        alphaAxisVal: document.getElementById('alphaAxisVal'),
+
+        angleSlider: document.getElementById('angleSlider'),
+        thetaVal: document.getElementById('thetaVal'),
+        phiSliderVal: document.getElementById('phiSliderVal'),
+        angleRegimeBadge: document.getElementById('angleRegimeBadge'),
+
+        collisionStatusBanner: document.getElementById('collisionStatusBanner'),
+
+        // Telemetry Readouts
+        readoutE: document.getElementById('readoutE'),
+        readoutLambdaPm: document.getElementById('readoutLambdaPm'),
+        readoutLambdaA: document.getElementById('readoutLambdaA'),
+        readoutEPrime: document.getElementById('readoutEPrime'),
+        readoutLambdaPrimePm: document.getElementById('readoutLambdaPrimePm'),
+        readoutEnergyRetained: document.getElementById('readoutEnergyRetained'),
+        readoutDeltaLambdaPm: document.getElementById('readoutDeltaLambdaPm'),
+        readoutDeltaLambdaA: document.getElementById('readoutDeltaLambdaA'),
+        readoutComptonMultiple: document.getElementById('readoutComptonMultiple'),
+        readoutKe: document.getElementById('readoutKe'),
+        readoutKmax: document.getElementById('readoutKmax'),
+        readoutPhi: document.getElementById('readoutPhi'),
+        readoutBeta: document.getElementById('readoutBeta'),
+        readoutGamma: document.getElementById('readoutGamma'),
+        readoutPe: document.getElementById('readoutPe'),
+        readoutPi: document.getElementById('readoutPi'),
+        readoutPf: document.getElementById('readoutPf'),
+
+        // Presets & Action Buttons
+        presetMoBtn: document.getElementById('presetMoBtn'),
+        presetDiagBtn: document.getElementById('presetDiagBtn'),
+        presetTcBtn: document.getElementById('presetTcBtn'),
+        presetAnnihBtn: document.getElementById('presetAnnihBtn'),
+        presetCsBtn: document.getElementById('presetCsBtn'),
+        presetCoBtn: document.getElementById('presetCoBtn'),
+
+        singleShotBtn: document.getElementById('singleShotBtn'),
+        pauseBtn: document.getElementById('pauseBtn'),
+        clearBtn: document.getElementById('clearBtn'),
+
+        toggleVectorsBtn: document.getElementById('toggleVectorsBtn'),
+        vectorsStateText: document.getElementById('vectorsStateText'),
+        toggleWaveCompareBtn: document.getElementById('toggleWaveCompareBtn'),
+        waveCompareStateText: document.getElementById('waveCompareStateText'),
+        toggleElectronBtn: document.getElementById('toggleElectronBtn'),
+        electronStateText: document.getElementById('electronStateText'),
+        toggleStreamBtn: document.getElementById('toggleStreamBtn'),
+        streamStateText: document.getElementById('streamStateText'),
+
+        tabShiftBtn: document.getElementById('tabShiftBtn'),
+        tabRecoilBtn: document.getElementById('tabRecoilBtn'),
+        graphLegendPrimary: document.getElementById('graphLegendPrimary'),
+        graphLegendSecondary: document.getElementById('graphLegendSecondary')
+      };
+
+      const simCtx = dom.simCanvas.getContext('2d');
+      const graphCtx = dom.graphCanvas.getContext('2d');
+
+      // =========================================================================
+      // 4. LOGARITHMIC SLIDER MAPPING & EXACT RELATIVISTIC PHYSICS
+      // =========================================================================
+      function sliderToEnergy(sliderVal) {
+        const t = sliderVal / 1000;
+        const logMin = Math.log(E_MIN_KEV);
+        const logMax = Math.log(E_MAX_KEV);
+        const raw = Math.exp(logMin + t * (logMax - logMin));
+        if (raw < 100) return Math.round(raw * 10) / 10;
+        return Math.round(raw);
+      }
+
+      function energyToSlider(energyKeV) {
+        const clamped = Math.max(E_MIN_KEV, Math.min(E_MAX_KEV, energyKeV));
+        const logMin = Math.log(E_MIN_KEV);
+        const logMax = Math.log(E_MAX_KEV);
+        const t = (Math.log(clamped) - logMin) / (logMax - logMin);
+        return Math.round(t * 1000);
+      }
+
+      /**
+       * Maps high-energy X-ray / gamma photon energy (keV) to a distinct visual hue.
+       */
+      function energyToColor(energyKeV) {
+        const t = Math.max(0, Math.min(1, (Math.log(energyKeV) - Math.log(5)) / (Math.log(2000) - Math.log(5))));
+        // Interpolate from emerald/cyan (low keV) -> sky blue -> violet -> magenta/rose (high MeV)
+        const hue = 185 + t * 145; // 185 deg (cyan) to 330 deg (magenta-rose)
+        return {
+          hue,
+          rgb: `hsl(${hue.toFixed(0)}, 90%, 62%)`,
+          rgba: (a) => `hsla(${hue.toFixed(0)}, 90%, 62%, ${a})`
+        };
+      }
+
+      /**
+       * Computes exact relativistic Compton scattering kinematics for given (E, thetaDeg).
+       */
+      function computeComptonKinematics(energyKeV, thetaDeg) {
+        const thetaRad = (thetaDeg * Math.PI) / 180;
+        const oneMinusCos = 1 - Math.cos(thetaRad);
+        const alpha = energyKeV / E0_KEV;
+
+        const lambdaPm = HC_KEV_PM / energyKeV;
+        const deltaLambdaPm = LAMBDA_C_PM * oneMinusCos;
+        const lambdaPrimePm = lambdaPm + deltaLambdaPm;
+
+        const ePrimeKeV = energyKeV / (1 + alpha * oneMinusCos);
+        const keKeV = energyKeV - ePrimeKeV;
+        const kMaxKeV = (energyKeV * (2 * alpha)) / (1 + 2 * alpha);
+
+        // Electron recoil angle phi (below horizontal): cot(phi) = (1 + alpha) * tan(theta/2)
+        let phiDeg;
+        if (thetaDeg <= 0.0001) {
+          phiDeg = 90.0;
+        } else if (thetaDeg >= 179.9999) {
+          phiDeg = 0.0;
+        } else {
+          const phiRad = Math.atan2(1, (1 + alpha) * Math.tan(thetaRad * 0.5));
+          phiDeg = (phiRad * 180) / Math.PI;
+        }
+
+        // Relativistic Lorentz factor gamma and speed beta = v/c
+        const gamma = 1 + keKeV / E0_KEV;
+        const beta = keKeV > 1e-7 ? Math.sqrt(Math.max(0, 1 - 1 / (gamma * gamma))) : 0;
+
+        // Relativistic momenta in keV/c
+        const pInitial = energyKeV;
+        const pFinal = ePrimeKeV;
+        const pElectron = keKeV > 1e-7 ? Math.sqrt(keKeV * keKeV + 2 * keKeV * E0_KEV) : 0;
+
+        return {
+          alpha,
+          lambdaPm,
+          deltaLambdaPm,
+          lambdaPrimePm,
+          ePrimeKeV,
+          keKeV,
+          kMaxKeV,
+          phiDeg,
+          gamma,
+          beta,
+          pInitial,
+          pFinal,
+          pElectron
+        };
+      }
+
+      function recalcPhysics() {
+        const res = computeComptonKinematics(state.energyKeV, state.thetaDeg);
+        Object.assign(state, res);
+        updateDOMReadouts();
+      }
+
+      function formatEnergy(keV) {
+        if (keV >= 1000) return `${(keV / 1000).toFixed(3)} MeV`;
+        if (keV >= 100) return `${keV.toFixed(1)} keV`;
+        return `${keV.toFixed(2)} keV`;
+      }
+
+      function updateDOMReadouts() {
+        dom.energyVal.textContent = state.energyKeV >= 100 ? state.energyKeV.toFixed(1) : state.energyKeV.toFixed(1);
+        dom.lambdaSliderVal.textContent = state.lambdaPm.toFixed(2);
+        dom.alphaAxisVal.textContent = state.alpha.toFixed(3);
+
+        if (state.alpha < 0.15) {
+          dom.regimeBadge.textContent = `Thomson / Low-α (α = ${state.alpha.toFixed(3)})`;
+          dom.regimeBadge.className = 'badge badge-sky';
+        } else if (state.alpha < 1.2) {
+          dom.regimeBadge.textContent = `Relativistic (α = ${state.alpha.toFixed(2)})`;
+          dom.regimeBadge.className = 'badge badge-violet';
+        } else {
+          dom.regimeBadge.textContent = `Ultra-Relativistic (α = ${state.alpha.toFixed(2)})`;
+          dom.regimeBadge.className = 'badge badge-amber';
+        }
+
+        dom.thetaVal.textContent = state.thetaDeg;
+        dom.phiSliderVal.textContent = state.phiDeg.toFixed(1);
+
+        if (state.thetaDeg === 0) {
+          dom.angleRegimeBadge.textContent = 'Forward Scatter (Δλ = 0)';
+          dom.angleRegimeBadge.className = 'badge badge-emerald';
+        } else if (state.thetaDeg === 180) {
+          dom.angleRegimeBadge.textContent = 'Backscatter / Compton Edge';
+          dom.angleRegimeBadge.className = 'badge badge-amber';
+        } else if (state.thetaDeg === 90) {
+          dom.angleRegimeBadge.textContent = 'Orthogonal (Δλ = λ_C)';
+          dom.angleRegimeBadge.className = 'badge badge-sky';
+        } else if (state.thetaDeg < 90) {
+          dom.angleRegimeBadge.textContent = 'Forward Hemisphere';
+          dom.angleRegimeBadge.className = 'badge badge-sky';
+        } else {
+          dom.angleRegimeBadge.textContent = 'Backward Hemisphere';
+          dom.angleRegimeBadge.className = 'badge badge-violet';
+        }
+
+        dom.collisionStatusBanner.textContent =
+          `Δλ = +${state.deltaLambdaPm.toFixed(2)} pm | E' = ${formatEnergy(state.ePrimeKeV)} | Kₑ = ${formatEnergy(state.keKeV)}`;
+
+        dom.readoutE.textContent = state.energyKeV.toFixed(1);
+        dom.readoutLambdaPm.textContent = state.lambdaPm.toFixed(3);
+        dom.readoutLambdaA.textContent = (state.lambdaPm / 100).toFixed(4);
+
+        dom.readoutEPrime.textContent = state.ePrimeKeV.toFixed(1);
+        dom.readoutLambdaPrimePm.textContent = state.lambdaPrimePm.toFixed(3);
+        dom.readoutEnergyRetained.textContent = ((state.ePrimeKeV / state.energyKeV) * 100).toFixed(1);
+
+        dom.readoutDeltaLambdaPm.textContent = state.deltaLambdaPm.toFixed(3);
+        dom.readoutDeltaLambdaA.textContent = (state.deltaLambdaPm / 100).toFixed(4);
+        dom.readoutComptonMultiple.textContent = (state.deltaLambdaPm / LAMBDA_C_PM).toFixed(2);
+
+        dom.readoutKe.textContent = state.keKeV.toFixed(1);
+        dom.readoutKmax.textContent = state.kMaxKeV.toFixed(1);
+
+        dom.readoutPhi.textContent = state.phiDeg.toFixed(1);
+        dom.readoutBeta.textContent = state.beta.toFixed(3);
+        dom.readoutGamma.textContent = state.gamma.toFixed(3);
+
+        dom.readoutPe.textContent = state.pElectron.toFixed(1);
+        dom.readoutPi.textContent = state.pInitial.toFixed(1);
+        dom.readoutPf.textContent = state.pFinal.toFixed(1);
+      }
+
+      // =========================================================================
+      // 5. GUARANTEED CANVAS SIZING & RESIZE OBSERVER
+      // =========================================================================
+      let simWidth = 840;
+      let simHeight = 430;
+      let graphWidth = 800;
+      let graphHeight = 330;
+
+      function resizeCanvases() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+        const simRect = dom.simWrapper.getBoundingClientRect();
+        simWidth = simRect.width > 50 ? simRect.width : (dom.simWrapper.clientWidth || 840);
+        simHeight = simRect.height > 50 ? simRect.height : (dom.simWrapper.clientHeight || 430);
+
+        dom.simCanvas.width = Math.round(simWidth * dpr);
+        dom.simCanvas.height = Math.round(simHeight * dpr);
+        simCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        const graphRect = dom.graphWrapper.getBoundingClientRect();
+        graphWidth = graphRect.width > 50 ? graphRect.width : (dom.graphWrapper.clientWidth || 800);
+        graphHeight = graphRect.height > 50 ? graphRect.height : (dom.graphWrapper.clientHeight || 330);
+
+        dom.graphCanvas.width = Math.round(graphWidth * dpr);
+        dom.graphCanvas.height = Math.round(graphHeight * dpr);
+        graphCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        renderSimulation(performance.now() / 1000);
+        renderGraph();
+      }
+
+      window.addEventListener('resize', resizeCanvases);
+      if (typeof ResizeObserver !== 'undefined') {
+        const ro = new ResizeObserver(() => resizeCanvases());
+        ro.observe(dom.simWrapper);
+        ro.observe(dom.graphWrapper);
+      }
+
+      // =========================================================================
+      // 6. COLLISION CHAMBER KINEMATICS & PARTICLE MANAGEMENT
+      // =========================================================================
+      function getChamberGeometry() {
+        const w = simWidth;
+        const h = simHeight;
+        // Place scattering vertex slightly left-of-center so scattered & recoil paths have ample room
+        const cx = w * 0.42;
+        const cy = h * 0.47;
+        const sourceX = Math.max(36, w * 0.06);
+        return { w, h, cx, cy, sourceX };
+      }
+
+      /**
+       * Computes visually clear spatial wavelength (in pixels) that faithfully stretches
+       * proportionally to the actual fractional wavelength shift (lambda' / lambda).
+       */
+      function getVisualWavelengthPx(lambdaPm, baseLambdaPm) {
+        // Map base incident wavelength into a crisp 10px - 18px visual spatial period
+        const t = Math.max(0, Math.min(1, (Math.log(baseLambdaPm) - Math.log(0.6)) / (Math.log(124) - Math.log(0.6))));
+        const basePx = 10 + t * 8;
+        const stretchRatio = Math.min(3.6, lambdaPm / baseLambdaPm);
+        return basePx * stretchRatio;
+      }
+
+      function spawnIncidentPhoton(startOffsetFrac = 0) {
+        const geom = getChamberGeometry();
+        const travelDist = geom.cx - geom.sourceX;
+        state.incidentPackets.push({
+          x: geom.sourceX + travelDist * startOffsetFrac,
+          y: geom.cy,
+          speed: 310,
+          energyKeV: state.energyKeV,
+          lambdaPm: state.lambdaPm,
+          phase: Math.random() * Math.PI * 2,
+          alive: true
+        });
+      }
+
+      function triggerCollisionEvent() {
+        const geom = getChamberGeometry();
+        const thetaRad = (state.thetaDeg * Math.PI) / 180;
+        const phiRad = (state.phiDeg * Math.PI) / 180;
+
+        // 1. Spawn scattered photon moving upward-right/left at angle -theta
+        const photonSpeed = 310;
+        state.scatteredPackets.push({
+          x: geom.cx,
+          y: geom.cy,
+          vx: Math.cos(thetaRad) * photonSpeed,
+          vy: -Math.sin(thetaRad) * photonSpeed,
+          thetaRad: thetaRad,
+          energyKeV: state.ePrimeKeV,
+          baseLambdaPm: state.lambdaPm,
+          lambdaPrimePm: state.lambdaPrimePm,
+          phase: 0,
+          alive: true
+        });
+
+        // 2. Spawn recoil electron moving downward-right at angle +phi (if K_e > 0)
+        if (state.keKeV > 0.05) {
+          const eSpeed = 75 + state.beta * 290;
+          state.recoilElectrons.push({
+            x: geom.cx,
+            y: geom.cy,
+            vx: Math.cos(phiRad) * eSpeed,
+            vy: Math.sin(phiRad) * eSpeed,
+            keKeV: state.keKeV,
+            beta: state.beta,
+            trail: [{ x: geom.cx, y: geom.cy }],
+            alive: true
+          });
+        }
+
+        // 3. Vertex interaction flash
+        state.vertexFlashes.push({
+          x: geom.cx,
+          y: geom.cy,
+          radius: 4,
+          alpha: 0.9
+        });
+        state.targetRecoilPulse = 1.0;
+      }
+
+      function seedInitialStream() {
+        state.incidentPackets = [];
+        state.scatteredPackets = [];
+        state.recoilElectrons = [];
+        spawnIncidentPhoton(0.25);
+        spawnIncidentPhoton(0.75);
+        triggerCollisionEvent();
+        // Advance initial scattered & electron slightly so frame 1 shows active trajectories
+        updateSimulation(0.28);
+      }
+
+      function updateSimulation(dt) {
+        if (state.paused) return;
+        const geom = getChamberGeometry();
+
+        if (state.continuousStream) {
+          state.spawnTimer += dt;
+          if (state.spawnTimer >= 0.85) {
+            state.spawnTimer = 0;
+            if (state.incidentPackets.length < 6) {
+              spawnIncidentPhoton(0);
+            }
+          }
+        }
+
+        // Update incident photons
+        for (let i = state.incidentPackets.length - 1; i >= 0; i--) {
+          const p = state.incidentPackets[i];
+          p.x += p.speed * dt;
+          p.phase += dt * 24;
+
+          if (p.x >= geom.cx) {
+            p.alive = false;
+            triggerCollisionEvent();
+          }
+          if (!p.alive) state.incidentPackets.splice(i, 1);
+        }
+
+        // Update scattered photons
+        for (let i = state.scatteredPackets.length - 1; i >= 0; i--) {
+          const sp = state.scatteredPackets[i];
+          sp.x += sp.vx * dt;
+          sp.y += sp.vy * dt;
+          sp.phase += dt * 20;
+
+          if (sp.x < -60 || sp.x > geom.w + 60 || sp.y < -60 || sp.y > geom.h + 60) {
+            sp.alive = false;
+          }
+          if (!sp.alive) state.scatteredPackets.splice(i, 1);
+        }
+
+        // Update recoil electrons
+        for (let i = state.recoilElectrons.length - 1; i >= 0; i--) {
+          const el = state.recoilElectrons[i];
+          el.x += el.vx * dt;
+          el.y += el.vy * dt;
+          el.trail.push({ x: el.x, y: el.y });
+          if (el.trail.length > 26) el.trail.shift();
+
+          if (el.x < -60 || el.x > geom.w + 60 || el.y < -60 || el.y > geom.h + 60) {
+            el.alive = false;
+          }
+          if (!el.alive) state.recoilElectrons.splice(i, 1);
+        }
+
+        // Update vertex flashes
+        for (let i = state.vertexFlashes.length - 1; i >= 0; i--) {
+          const f = state.vertexFlashes[i];
+          f.radius += 55 * dt;
+          f.alpha -= 2.4 * dt;
+          if (f.alpha <= 0) state.vertexFlashes.splice(i, 1);
+        }
+
+        state.targetRecoilPulse = Math.max(0, state.targetRecoilPulse - dt * 3.2);
+      }
+
+      // =========================================================================
+      // 7. COLLISION CHAMBER CANVAS RENDERER
+      // =========================================================================
+      function drawRoundedRect(ctx, x, y, w, h, r) {
+        const radius = Math.min(r, w * 0.5, h * 0.5);
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + w - radius, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
+        ctx.lineTo(x + w, y + h - radius);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+        ctx.lineTo(x + radius, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
+        ctx.lineTo(x, y + radius);
+        ctx.quadraticCurveTo(x, y, x + radius, y);
+        ctx.closePath();
+      }
+
+      function drawWavePacket(ctx, x, y, angleRad, spatialLambdaPx, amplitudePx, lengthPx, colorStr, phase) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angleRad);
+
+        ctx.strokeStyle = colorStr;
+        ctx.shadowColor = colorStr;
+        ctx.shadowBlur = 9;
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+
+        const halfLen = lengthPx * 0.5;
+        const k = (Math.PI * 2) / spatialLambdaPx;
+        for (let lx = -halfLen; lx <= halfLen; lx += 1.5) {
+          const envelope = Math.cos((lx / halfLen) * (Math.PI * 0.5));
+          const amp = amplitudePx * Math.max(0, envelope * envelope);
+          const ly = Math.sin(lx * k - phase) * amp;
+          if (lx === -halfLen) ctx.moveTo(lx, ly);
+          else ctx.lineTo(lx, ly);
+        }
+        ctx.stroke();
+
+        // Leading photon quantum dot
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(halfLen, 0, 2.4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      function renderSimulation(nowSec) {
+        const ctx = simCtx;
+        const geom = getChamberGeometry();
+        const { w, h, cx, cy, sourceX } = geom;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // 1. Laboratory Grid & Coordinate Axes
+        ctx.save();
+        ctx.strokeStyle = 'rgba(30, 41, 59, 0.34)';
+        ctx.lineWidth = 1;
+        const gridStep = 30;
+        for (let gx = cx % gridStep; gx < w; gx += gridStep) {
+          ctx.beginPath();
+          ctx.moveTo(gx, 0);
+          ctx.lineTo(gx, h);
+          ctx.stroke();
+        }
+        for (let gy = cy % gridStep; gy < h; gy += gridStep) {
+          ctx.beginPath();
+          ctx.moveTo(0, gy);
+          ctx.lineTo(w, gy);
+          ctx.stroke();
+        }
+
+        // Principal Horizontal Reference Axis (0 deg line)
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.32)';
+        ctx.setLineDash([6, 6]);
+        ctx.lineWidth = 1.3;
+        ctx.beginPath();
+        ctx.moveTo(sourceX, cy);
+        ctx.lineTo(w - 24, cy);
+        ctx.stroke();
+
+        // Vertical Target Axis
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.18)';
+        ctx.beginPath();
+        ctx.moveTo(cx, 24);
+        ctx.lineTo(cx, h - 44);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+
+        // 2. X-Ray / Gamma Collimator Source Nozzle on Left
+        const incColor = energyToColor(state.energyKeV);
+        const scatColor = energyToColor(state.ePrimeKeV);
+
+        ctx.save();
+        ctx.fillStyle = '#1e293b';
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 1.5;
+        drawRoundedRect(ctx, sourceX - 24, cy - 16, 28, 32, 6);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = incColor.rgb;
+        ctx.shadowColor = incColor.rgb;
+        ctx.shadowBlur = 12;
+        drawRoundedRect(ctx, sourceX + 1, cy - 8, 5, 16, 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '600 11px -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`γ Source (${formatEnergy(state.energyKeV)})`, sourceX - 22, cy - 24);
+        ctx.restore();
+
+        // 3. Trajectory Guide Rays & Angle Arcs (theta and phi)
+        const thetaRad = (state.thetaDeg * Math.PI) / 180;
+        const phiRad = (state.phiDeg * Math.PI) / 180;
+        const rayLen = Math.min(w - cx - 30, cy - 28, 240);
+
+        ctx.save();
+        // Scattered photon ray guide
+        const scatEndX = cx + Math.cos(thetaRad) * rayLen;
+        const scatEndY = cy - Math.sin(thetaRad) * rayLen;
+        ctx.strokeStyle = scatColor.rgba(0.35);
+        ctx.setLineDash([4, 4]);
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(scatEndX, scatEndY);
+        ctx.stroke();
+
+        // Recoil electron ray guide (when K_e > 0)
+        if (state.showElectron && state.keKeV > 0.05) {
+          const recEndX = cx + Math.cos(phiRad) * (rayLen * 0.88);
+          const recEndY = cy + Math.sin(phiRad) * (rayLen * 0.88);
+          ctx.strokeStyle = 'rgba(251, 191, 36, 0.35)';
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(recEndX, recEndY);
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+
+        // Scattering Angle Arc (theta, above horizontal)
+        if (state.thetaDeg > 0) {
+          const arcR = 46;
+          ctx.strokeStyle = '#38bdf8';
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          ctx.arc(cx, cy, arcR, -thetaRad, 0);
+          ctx.stroke();
+
+          const midTheta = -thetaRad * 0.5;
+          const labelR = arcR + 16;
+          ctx.fillStyle = '#7dd3fc';
+          ctx.font = '600 11px monospace';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(`θ=${state.thetaDeg}°`, cx + Math.cos(midTheta) * labelR, cy + Math.sin(midTheta) * labelR);
+        }
+
+        // Recoil Angle Arc (phi, below horizontal)
+        if (state.showElectron && state.keKeV > 0.05 && state.phiDeg > 1) {
+          const arcR2 = 38;
+          ctx.strokeStyle = '#fbbf24';
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          ctx.arc(cx, cy, arcR2, 0, phiRad);
+          ctx.stroke();
+
+          const midPhi = phiRad * 0.5;
+          const labelR2 = arcR2 + 16;
+          ctx.fillStyle = '#fcd34d';
+          ctx.font = '600 11px monospace';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(`φ=${state.phiDeg.toFixed(1)}°`, cx + Math.cos(midPhi) * labelR2, cy + Math.sin(midPhi) * labelR2);
+        }
+        ctx.restore();
+
+        // 4. Vertex Interaction Flashes
+        for (const f of state.vertexFlashes) {
+          ctx.save();
+          ctx.strokeStyle = '#38bdf8';
+          ctx.globalAlpha = Math.max(0, f.alpha);
+          ctx.lineWidth = 1.6;
+          ctx.beginPath();
+          ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // 5. Incident & Scattered Photon Wave-Packets
+        const incSpatialPx = getVisualWavelengthPx(state.lambdaPm, state.lambdaPm);
+        for (const p of state.incidentPackets) {
+          drawWavePacket(ctx, p.x, p.y, 0, incSpatialPx, 6.2, 46, incColor.rgb, p.phase);
+        }
+
+        const scatSpatialPx = getVisualWavelengthPx(state.lambdaPrimePm, state.lambdaPm);
+        const ampRatio = Math.max(0.55, Math.sqrt(state.ePrimeKeV / state.energyKeV));
+        for (const sp of state.scatteredPackets) {
+          drawWavePacket(
+            ctx,
+            sp.x,
+            sp.y,
+            -sp.thetaRad,
+            scatSpatialPx,
+            6.2 * ampRatio,
+            52,
+            scatColor.rgb,
+            sp.phase
+          );
+        }
+
+        // 6. Recoil Electron Particles & Trails
+        if (state.showElectron) {
+          for (const el of state.recoilElectrons) {
+            if (el.trail.length > 1) {
+              ctx.save();
+              ctx.strokeStyle = 'rgba(251, 191, 36, 0.42)';
+              ctx.lineWidth = 2;
+              ctx.beginPath();
+              ctx.moveTo(el.trail[0].x, el.trail[0].y);
+              for (let t = 1; t < el.trail.length; t++) {
+                ctx.lineTo(el.trail[t].x, el.trail[t].y);
+              }
+              ctx.stroke();
+              ctx.restore();
+            }
+
+            ctx.save();
+            ctx.shadowColor = '#f59e0b';
+            ctx.shadowBlur = 12;
+            ctx.fillStyle = '#fde68a';
+            ctx.beginPath();
+            ctx.arc(el.x, el.y, 4.8, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#060a13';
+            ctx.font = 'bold 9px monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('−', el.x, el.y + 0.5);
+            ctx.restore();
+          }
+        }
+
+        // 7. Target Electron at Scattering Vertex (cx, cy)
+        ctx.save();
+        const shellR = 16 + state.targetRecoilPulse * 4;
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.28)';
+        ctx.setLineDash([3, 3]);
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.arc(cx, cy, shellR, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.shadowColor = '#38bdf8';
+        ctx.shadowBlur = 12;
+        ctx.fillStyle = '#0ea5e9';
+        ctx.beginPath();
+        ctx.arc(cx, cy, 6.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 10px monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('e⁻', cx, cy + 0.5);
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '10px monospace';
+        ctx.fillText('Target e⁻ (at rest)', cx, cy - 23);
+        ctx.restore();
+
+        // 8. Corner Overlay A: Momentum Vector Conservation Triangle (Top-Right)
+        if (state.showVectors) {
+          drawMomentumTriangleOverlay(ctx, w - 218, 12, 204, 134);
+        }
+
+        // 9. Corner Overlay B: Direct Wavelength Comparison Strip (Top-Left)
+        if (state.showWaveCompare) {
+          drawWaveComparisonOverlay(ctx, 12, 12, 224, 96, incColor.rgb, scatColor.rgb, nowSec);
+        }
+      }
+
+      /**
+       * Renders a crisp inset box illustrating vector conservation of momentum: p_i = p_f + p_e
+       */
+      function drawMomentumTriangleOverlay(ctx, boxX, boxY, boxW, boxH) {
+        ctx.save();
+        ctx.fillStyle = 'rgba(6, 10, 19, 0.9)';
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 1.2;
+        drawRoundedRect(ctx, boxX, boxY, boxW, boxH, 10);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '600 10px -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('Momentum Triangle: p⃗_γ = p⃗_γ\' + p⃗_e', boxX + 10, boxY + 15);
+
+        const maxP = Math.max(state.pInitial, state.pElectron, 1);
+        const scale = (boxW - 44) / maxP;
+
+        const thetaRad = (state.thetaDeg * Math.PI) / 180;
+        const phiRad = (state.phiDeg * Math.PI) / 180;
+
+        // Origin of triangle
+        const ox = boxX + 20;
+        const oy = boxY + boxH * 0.62;
+
+        // Vector 1: p_i (horizontal right)
+        const pix = ox + state.pInitial * scale;
+        const piy = oy;
+
+        // Vector 2: p_f (from origin, angled upward by theta)
+        const pfx = ox + Math.cos(thetaRad) * state.pFinal * scale;
+        const pfy = oy - Math.sin(thetaRad) * state.pFinal * scale;
+
+        // Draw p_i (Cyan)
+        drawArrow(ctx, ox, oy, pix, piy, '#38bdf8', 2);
+        // Draw p_f (Violet)
+        drawArrow(ctx, ox, oy, pfx, pfy, '#c084fc', 2);
+        // Draw p_e closing vector from tip of p_f to tip of p_i (Amber)
+        if (state.keKeV > 0.05) {
+          drawArrow(ctx, pfx, pfy, pix, piy, '#fbbf24', 2);
+        }
+
+        // Legend footer
+        ctx.font = '10px monospace';
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillText(`p_γ:${state.pInitial.toFixed(0)}`, boxX + 10, boxY + boxH - 10);
+        ctx.fillStyle = '#c084fc';
+        ctx.fillText(`p_γ':${state.pFinal.toFixed(0)}`, boxX + 74, boxY + boxH - 10);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`pₑ:${state.pElectron.toFixed(0)}`, boxX + 142, boxY + boxH - 10);
+
+        ctx.restore();
+      }
+
+      function drawArrow(ctx, x1, y1, x2, y2, color, width) {
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const len = Math.hypot(dx, dy);
+        if (len < 2) return;
+        const angle = Math.atan2(dy, dx);
+
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = width;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+
+        const headLen = Math.min(7, len * 0.4);
+        ctx.beginPath();
+        ctx.moveTo(x2, y2);
+        ctx.lineTo(x2 - headLen * Math.cos(angle - 0.45), y2 - headLen * Math.sin(angle - 0.45));
+        ctx.lineTo(x2 - headLen * Math.cos(angle + 0.45), y2 - headLen * Math.sin(angle + 0.45));
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+
+      /**
+       * Renders a side-by-side spatial waveform comparison of incident lambda vs. scattered lambda'.
+       */
+      function drawWaveComparisonOverlay(ctx, boxX, boxY, boxW, boxH, incColor, scatColor, nowSec) {
+        ctx.save();
+        ctx.fillStyle = 'rgba(6, 10, 19, 0.9)';
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 1.2;
+        drawRoundedRect(ctx, boxX, boxY, boxW, boxH, 10);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '600 10px -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Wavelength Stretch (+${state.deltaLambdaPm.toFixed(2)} pm)`, boxX + 10, boxY + 15);
+
+        const waveStartX = boxX + 76;
+        const waveW = boxW - 88;
+        const incPeriod = getVisualWavelengthPx(state.lambdaPm, state.lambdaPm) * 1.15;
+        const scatPeriod = getVisualWavelengthPx(state.lambdaPrimePm, state.lambdaPm) * 1.15;
+
+        // Row 1: Incident Wave
+        const y1 = boxY + 38;
+        ctx.fillStyle = incColor;
+        ctx.font = '10px monospace';
+        ctx.fillText(`λ=${state.lambdaPm.toFixed(2)}pm`, boxX + 10, y1 + 3);
+
+        ctx.strokeStyle = incColor;
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        for (let dx = 0; dx <= waveW; dx += 1.5) {
+          const wy = y1 + Math.sin((dx / incPeriod) * Math.PI * 2 - nowSec * 12) * 6.5;
+          if (dx === 0) ctx.moveTo(waveStartX + dx, wy);
+          else ctx.lineTo(waveStartX + dx, wy);
+        }
+        ctx.stroke();
+
+        // Row 2: Scattered Wave
+        const y2 = boxY + 70;
+        ctx.fillStyle = scatColor;
+        ctx.fillText(`λ'=${state.lambdaPrimePm.toFixed(2)}pm`, boxX + 10, y2 + 3);
+
+        ctx.strokeStyle = scatColor;
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        for (let dx = 0; dx <= waveW; dx += 1.5) {
+          const wy = y2 + Math.sin((dx / scatPeriod) * Math.PI * 2 - nowSec * 12) * 6.5;
+          if (dx === 0) ctx.moveTo(waveStartX + dx, wy);
+          else ctx.lineTo(waveStartX + dx, wy);
+        }
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      // =========================================================================
+      // 8. DUAL CHARACTERISTIC CURVES (SHIFT & RECOIL ENERGY SPECTRUM)
+      // =========================================================================
+      function renderGraph() {
+        const ctx = graphCtx;
+        const w = graphWidth;
+        const h = graphHeight;
+
+        ctx.clearRect(0, 0, w, h);
+
+        if (state.activeGraphTab === 'SHIFT') {
+          renderShiftAndEnergyGraph(ctx, w, h);
+        } else {
+          renderRecoilEnergyGraph(ctx, w, h);
+        }
+      }
+
+      function renderShiftAndEnergyGraph(ctx, w, h) {
+        const padLeft = 58;
+        const padRight = 58;
+        const padTop = 26;
+        const padBottom = 42;
+        const plotW = w - padLeft - padRight;
+        const plotH = h - padTop - padBottom;
+
+        const maxShift = 5.0; // pm (2 * lambda_C = 4.853 pm)
+        const maxE = state.energyKeV;
+
+        const toX = (deg) => padLeft + (deg / 180) * plotW;
+        const toYShift = (dLam) => padTop + plotH - (dLam / maxShift) * plotH;
+        const toYEnergy = (eVal) => padTop + plotH - (eVal / maxE) * plotH;
+
+        ctx.save();
+        ctx.strokeStyle = 'rgba(30, 41, 59, 0.75)';
+        ctx.lineWidth = 1;
+        ctx.font = '11px monospace';
+
+        // Horizontal grid & Left Y-Axis (Delta Lambda in pm)
+        for (let s = 0; s <= 5; s++) {
+          const val = s * 1.0;
+          const py = toYShift(val);
+          ctx.beginPath();
+          ctx.moveTo(padLeft, py);
+          ctx.lineTo(padLeft + plotW, py);
+          ctx.stroke();
+
+          ctx.fillStyle = '#6ee7b7';
+          ctx.textAlign = 'right';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(`${val.toFixed(1)}`, padLeft - 8, py);
+
+          // Right Y-Axis (Scattered Photon Energy E' in keV)
+          const eTick = (s / 5) * maxE;
+          ctx.fillStyle = '#d8b4fe';
+          ctx.textAlign = 'left';
+          ctx.fillText(eTick >= 100 ? eTick.toFixed(0) : eTick.toFixed(1), padLeft + plotW + 8, py);
+        }
+
+        // Vertical grid & X-Axis (Scattering Angle theta 0 to 180 deg)
+        for (let deg = 0; deg <= 180; deg += 30) {
+          const px = toX(deg);
+          ctx.beginPath();
+          ctx.moveTo(px, padTop);
+          ctx.lineTo(px, padTop + plotH);
+          ctx.stroke();
+
+          ctx.fillStyle = '#94a3b8';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          ctx.fillText(`${deg}°`, px, padTop + plotH + 8);
+        }
+
+        // Axis Titles
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '600 11px -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Photon Scattering Angle θ (Degrees)', padLeft + plotW * 0.5, h - 12);
+
+        ctx.save();
+        ctx.translate(15, padTop + plotH * 0.5);
+        ctx.rotate(-Math.PI * 0.5);
+        ctx.fillStyle = '#6ee7b7';
+        ctx.fillText('Wavelength Shift Δλ (pm)', 0, 0);
+        ctx.restore();
+
+        ctx.save();
+        ctx.translate(w - 14, padTop + plotH * 0.5);
+        ctx.rotate(Math.PI * 0.5);
+        ctx.fillStyle = '#d8b4fe';
+        ctx.fillText('Scattered Energy E\' (keV)', 0, 0);
+        ctx.restore();
+
+        // Curve 1: Universal Delta Lambda(theta) = lambda_C * (1 - cos theta)
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 2.6;
+        ctx.beginPath();
+        for (let d = 0; d <= 180; d += 1) {
+          const dLam = LAMBDA_C_PM * (1 - Math.cos((d * Math.PI) / 180));
+          const px = toX(d);
+          const py = toYShift(dLam);
+          if (d === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        // Curve 2: Scattered Photon Energy E'(theta)
+        ctx.strokeStyle = '#c084fc';
+        ctx.lineWidth = 2.4;
+        ctx.setLineDash([6, 4]);
+        ctx.beginPath();
+        for (let d = 0; d <= 180; d += 1) {
+          const res = computeComptonKinematics(state.energyKeV, d);
+          const px = toX(d);
+          const py = toYEnergy(res.ePrimeKeV);
+          if (d === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Vertical Operating Line at current theta
+        const opX = toX(state.thetaDeg);
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
+        ctx.setLineDash([3, 3]);
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(opX, padTop);
+        ctx.lineTo(opX, padTop + plotH);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Operating Marker on Delta Lambda
+        const opYShift = toYShift(state.deltaLambdaPm);
+        ctx.fillStyle = '#10b981';
+        ctx.beginPath();
+        ctx.arc(opX, opYShift, 5.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+
+        // Operating Marker on E'
+        const opYEnergy = toYEnergy(state.ePrimeKeV);
+        ctx.fillStyle = '#c084fc';
+        ctx.beginPath();
+        ctx.arc(opX, opYEnergy, 5.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+
+        // Callout pill
+        const infoText = `θ=${state.thetaDeg}° | Δλ=+${state.deltaLambdaPm.toFixed(2)}pm | E'=${state.ePrimeKeV.toFixed(1)}keV`;
+        ctx.font = '600 10px monospace';
+        const tw = ctx.measureText(infoText).width;
+        const bx = Math.min(padLeft + plotW - tw - 12, Math.max(padLeft + 6, opX - tw * 0.5));
+        ctx.fillStyle = 'rgba(6, 10, 19, 0.92)';
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.5)';
+        drawRoundedRect(ctx, bx, padTop + 4, tw + 10, 18, 4);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#7dd3fc';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(infoText, bx + 5, padTop + 13);
+
+        ctx.restore();
+      }
+
+      function renderRecoilEnergyGraph(ctx, w, h) {
+        const padLeft = 60;
+        const padRight = 26;
+        const padTop = 26;
+        const padBottom = 42;
+        const plotW = w - padLeft - padRight;
+        const plotH = h - padTop - padBottom;
+
+        const yMax = Math.max(1.0, state.kMaxKeV * 1.18);
+
+        const toX = (deg) => padLeft + (deg / 180) * plotW;
+        const toY = (ke) => padTop + plotH - (ke / yMax) * plotH;
+
+        ctx.save();
+        ctx.strokeStyle = 'rgba(30, 41, 59, 0.75)';
+        ctx.lineWidth = 1;
+        ctx.font = '11px monospace';
+        ctx.fillStyle = '#94a3b8';
+
+        for (let s = 0; s <= 5; s++) {
+          const val = (yMax / 5) * s;
+          const py = toY(val);
+          ctx.beginPath();
+          ctx.moveTo(padLeft, py);
+          ctx.lineTo(padLeft + plotW, py);
+          ctx.stroke();
+
+          ctx.textAlign = 'right';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(val >= 100 ? val.toFixed(0) : val.toFixed(1), padLeft - 8, py);
+        }
+
+        for (let deg = 0; deg <= 180; deg += 30) {
+          const px = toX(deg);
+          ctx.beginPath();
+          ctx.moveTo(px, padTop);
+          ctx.lineTo(px, padTop + plotH);
+          ctx.stroke();
+
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          ctx.fillText(`${deg}°`, px, padTop + plotH + 8);
+        }
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '600 11px -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Photon Scattering Angle θ (Degrees)', padLeft + plotW * 0.5, h - 12);
+
+        ctx.save();
+        ctx.translate(15, padTop + plotH * 0.5);
+        ctx.rotate(-Math.PI * 0.5);
+        ctx.fillText('Recoil Electron Kinetic Energy Kₑ (keV)', 0, 0);
+        ctx.restore();
+
+        // Compton Edge Horizontal Reference Line (K_max at 180 deg)
+        const edgeY = toY(state.kMaxKeV);
+        ctx.strokeStyle = 'rgba(244, 63, 94, 0.6)';
+        ctx.setLineDash([5, 5]);
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(padLeft, edgeY);
+        ctx.lineTo(padLeft + plotW, edgeY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = '#fda4af';
+        ctx.font = '600 10px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Compton Edge K_max(180°) = ${state.kMaxKeV.toFixed(1)} keV`, padLeft + 8, edgeY - 6);
+
+        // Curve: K_e(theta)
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 2.8;
+        ctx.beginPath();
+        for (let d = 0; d <= 180; d += 1) {
+          const res = computeComptonKinematics(state.energyKeV, d);
+          const px = toX(d);
+          const py = toY(res.keKeV);
+          if (d === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        ctx.lineTo(toX(180), toY(0));
+        ctx.lineTo(toX(0), toY(0));
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(251, 191, 36, 0.12)';
+        ctx.fill();
+
+        // Live Operating Point
+        const opX = toX(state.thetaDeg);
+        const opY = toY(state.keKeV);
+
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.45)';
+        ctx.setLineDash([3, 3]);
+        ctx.lineWidth = 1.1;
+        ctx.beginPath();
+        ctx.moveTo(opX, padTop + plotH);
+        ctx.lineTo(opX, opY);
+        ctx.lineTo(padLeft, opY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.shadowColor = '#10b981';
+        ctx.shadowBlur = 10;
+        ctx.fillStyle = '#10b981';
+        ctx.beginPath();
+        ctx.arc(opX, opY, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.8;
+        ctx.stroke();
+
+        const labelText = `(${state.thetaDeg}°, Kₑ = ${state.keKeV.toFixed(1)} keV)`;
+        ctx.font = '600 10px monospace';
+        const tw = ctx.measureText(labelText).width;
+        const bx = Math.min(padLeft + plotW - tw - 10, Math.max(padLeft + 6, opX - tw * 0.5));
+        const by = Math.max(padTop + 6, opY - 26);
+
+        ctx.fillStyle = 'rgba(6, 10, 19, 0.92)';
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.55)';
+        drawRoundedRect(ctx, bx, by, tw + 8, 18, 4);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#6ee7b7';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(labelText, bx + 4, by + 9);
+
+        ctx.restore();
+      }
+
+      // =========================================================================
+      // 9. EVENT LISTENERS & SOURCE PRESETS
+      // =========================================================================
+      function setEnergyPreset(keV) {
+        state.energyKeV = keV;
+        dom.energySlider.value = energyToSlider(keV);
+        recalcPhysics();
+        renderGraph();
+      }
+
+      dom.energySlider.addEventListener('input', (e) => {
+        state.energyKeV = sliderToEnergy(parseInt(e.target.value, 10));
+        recalcPhysics();
+        renderGraph();
+      });
+
+      dom.angleSlider.addEventListener('input', (e) => {
+        state.thetaDeg = parseInt(e.target.value, 10);
+        recalcPhysics();
+        renderGraph();
+      });
+
+      document.querySelectorAll('.angle-preset-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const deg = parseInt(btn.getAttribute('data-angle'), 10);
+          state.thetaDeg = deg;
+          dom.angleSlider.value = deg;
+          recalcPhysics();
+          renderGraph();
+        });
+      });
+
+      dom.presetMoBtn.addEventListener('click', () => setEnergyPreset(17.4));
+      dom.presetDiagBtn.addEventListener('click', () => setEnergyPreset(50.0));
+      dom.presetTcBtn.addEventListener('click', () => setEnergyPreset(140.5));
+      dom.presetAnnihBtn.addEventListener('click', () => setEnergyPreset(511.0));
+      dom.presetCsBtn.addEventListener('click', () => setEnergyPreset(661.7));
+      dom.presetCoBtn.addEventListener('click', () => setEnergyPreset(1250.0));
+
+      dom.singleShotBtn.addEventListener('click', () => {
+        spawnIncidentPhoton(0);
+      });
+
+      dom.pauseBtn.addEventListener('click', () => {
+        state.paused = !state.paused;
+        dom.pauseBtn.textContent = state.paused ? 'Resume' : 'Pause';
+        dom.pauseBtn.style.color = state.paused ? '#fcd34d' : '#f1f5f9';
+      });
+
+      dom.clearBtn.addEventListener('click', () => {
+        state.incidentPackets = [];
+        state.scatteredPackets = [];
+        state.recoilElectrons = [];
+        state.vertexFlashes = [];
+      });
+
+      function updateToggleStyle(btn, textEl, active) {
+        textEl.textContent = active ? 'ON' : 'OFF';
+        if (active) btn.classList.add('btn-active');
+        else btn.classList.remove('btn-active');
+      }
+
+      dom.toggleVectorsBtn.addEventListener('click', () => {
+        state.showVectors = !state.showVectors;
+        updateToggleStyle(dom.toggleVectorsBtn, dom.vectorsStateText, state.showVectors);
+      });
+
+      dom.toggleWaveCompareBtn.addEventListener('click', () => {
+        state.showWaveCompare = !state.showWaveCompare;
+        updateToggleStyle(dom.toggleWaveCompareBtn, dom.waveCompareStateText, state.showWaveCompare);
+      });
+
+      dom.toggleElectronBtn.addEventListener('click', () => {
+        state.showElectron = !state.showElectron;
+        updateToggleStyle(dom.toggleElectronBtn, dom.electronStateText, state.showElectron);
+      });
+
+      dom.toggleStreamBtn.addEventListener('click', () => {
+        state.continuousStream = !state.continuousStream;
+        updateToggleStyle(dom.toggleStreamBtn, dom.streamStateText, state.continuousStream);
+        if (state.continuousStream && state.incidentPackets.length === 0) {
+          spawnIncidentPhoton(0);
+        }
+      });
+
+      dom.tabShiftBtn.addEventListener('click', () => {
+        state.activeGraphTab = 'SHIFT';
+        dom.tabShiftBtn.classList.add('active');
+        dom.tabRecoilBtn.classList.remove('active');
+        dom.graphLegendPrimary.innerHTML = '<span style="width:9px;height:9px;border-radius:50%;background:#10b981;display:inline-block;"></span><span>Δλ(θ) Shift (pm)</span>';
+        dom.graphLegendSecondary.innerHTML = '<span style="width:9px;height:9px;border-radius:50%;background:#c084fc;display:inline-block;"></span><span>Scattered E\'(θ) (keV)</span>';
+        renderGraph();
+      });
+
+      dom.tabRecoilBtn.addEventListener('click', () => {
+        state.activeGraphTab = 'RECOIL';
+        dom.tabRecoilBtn.classList.add('active');
+        dom.tabShiftBtn.classList.remove('active');
+        dom.graphLegendPrimary.innerHTML = '<span style="width:9px;height:9px;border-radius:50%;background:#fbbf24;display:inline-block;"></span><span>Recoil Kₑ(θ) (keV)</span>';
+        dom.graphLegendSecondary.innerHTML = '<span style="width:9px;height:9px;border-radius:50%;background:#f43f5e;display:inline-block;"></span><span>Compton Edge K_max</span>';
+        renderGraph();
+      });
+
+      // =========================================================================
+      // 10. IMMEDIATE INITIALIZATION & ANIMATION LOOP
+      // =========================================================================
+      let lastTimeMs = performance.now();
+      let initialized = false;
+
+      function animate(nowMs) {
+        const dt = Math.min(0.05, Math.max(0.001, (nowMs - lastTimeMs) / 1000));
+        lastTimeMs = nowMs;
+
+        updateSimulation(dt);
+        renderSimulation(nowMs / 1000);
+        renderGraph();
+
+        requestAnimationFrame(animate);
+      }
+
+      function initSimulator() {
+        if (initialized) {
+          resizeCanvases();
+          return;
+        }
+        initialized = true;
+        dom.energySlider.value = energyToSlider(state.energyKeV);
+        recalcPhysics();
+        resizeCanvases();
+        seedInitialStream();
+        renderSimulation(performance.now() / 1000);
+        renderGraph();
+        requestAnimationFrame(animate);
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initSimulator);
+      } else {
+        initSimulator();
+      }
+      window.addEventListener('load', resizeCanvases);
+    })();
+  </script>
+</body>
+</html>
