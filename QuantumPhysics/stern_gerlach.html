@@ -1,0 +1,2212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stern–Gerlach Experiment — Quantum Space Quantization Simulator</title>
+  <style>
+    :root {
+      --bg-app: #090d16;
+      --bg-panel: #101726;
+      --bg-card: #162033;
+      --bg-card-hover: #1d2942;
+      --border-subtle: #24324d;
+      --border-strong: #344970;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-cyan: #38bdf8;
+      --accent-teal: #2dd4bf;
+      --accent-amber: #fbbf24;
+      --accent-rose: #fb7185;
+      --accent-indigo: #818cf8;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.45;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(180deg, #0f172a 0%, #090d16 100%);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 0.9rem 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(45, 212, 191, 0.12));
+      border: 1px solid rgba(56, 189, 248, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--accent-cyan);
+      box-shadow: 0 0 18px rgba(56, 189, 248, 0.15);
+    }
+
+    .brand h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--text-primary);
+    }
+
+    .brand p {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+
+    .header-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .pill-tag {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      padding: 0.28rem 0.65rem;
+      border-radius: 999px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+    }
+
+    .pill-tag strong {
+      color: var(--accent-teal);
+    }
+
+    /* Main Grid Layout */
+    .lab-container {
+      max-width: 1580px;
+      margin: 0 auto;
+      padding: 1rem 1.25rem 1.75rem;
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 1.1rem;
+      align-items: start;
+    }
+
+    @media (max-width: 1180px) {
+      .lab-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .left-column {
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+      min-width: 0;
+    }
+
+    .right-column {
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+      min-width: 0;
+    }
+
+    /* Panel Styling */
+    .panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.32);
+    }
+
+    .panel-header {
+      padding: 0.75rem 1.1rem;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+      background: rgba(22, 32, 51, 0.55);
+    }
+
+    .panel-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .panel-title .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-cyan);
+      box-shadow: 0 0 8px var(--accent-cyan);
+    }
+
+    /* Regime Status Badge */
+    .regime-badge {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.25rem 0.7rem;
+      border-radius: 6px;
+      letter-spacing: 0.03em;
+      border: 1px solid rgba(56, 189, 248, 0.45);
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--accent-cyan);
+      transition: all 0.2s ease;
+    }
+
+    .regime-badge.classical {
+      border-color: rgba(251, 191, 36, 0.5);
+      background: rgba(251, 191, 36, 0.14);
+      color: var(--accent-amber);
+    }
+
+    .regime-badge.sequential {
+      border-color: rgba(129, 140, 248, 0.5);
+      background: rgba(129, 140, 248, 0.16);
+      color: var(--accent-indigo);
+    }
+
+    /* Apparatus Toolbar */
+    .apparatus-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+      padding: 0.6rem 1.1rem;
+      background: #0d1422;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .toolbar-group {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      font-family: var(--font-sans);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.42rem 0.8rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-strong);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      user-select: none;
+    }
+
+    .btn:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--accent-cyan);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn.active {
+      background: rgba(56, 189, 248, 0.18);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    .btn.primary {
+      background: linear-gradient(135deg, #0284c7, #0d9488);
+      border-color: rgba(56, 189, 248, 0.6);
+      color: #ffffff;
+    }
+
+    .btn.primary:hover {
+      filter: brightness(1.1);
+    }
+
+    .btn.danger {
+      border-color: rgba(251, 113, 133, 0.45);
+      color: var(--accent-rose);
+    }
+
+    .btn.danger:hover {
+      background: rgba(251, 113, 133, 0.14);
+      border-color: var(--accent-rose);
+    }
+
+    /* Canvas Wrapper */
+    .canvas-wrap {
+      position: relative;
+      width: 100%;
+      background: #070b12;
+      display: block;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    /* Panel 4: Telemetry Readouts Grid */
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      padding: 0.95rem 1.1rem;
+    }
+
+    @media (max-width: 780px) {
+      .telemetry-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .telemetry-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .telemetry-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 0.75rem 0.9rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 0.25rem;
+    }
+
+    .telemetry-label {
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .telemetry-value {
+      font-family: var(--font-mono);
+      font-size: 1.22rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+    }
+
+    .telemetry-value span.unit {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--accent-cyan);
+      margin-left: 0.22rem;
+    }
+
+    .telemetry-formula {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    /* Panel 3: Characteristic Curves Grid */
+    .plots-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.9rem;
+      padding: 0.95rem 1.1rem;
+    }
+
+    @media (max-width: 780px) {
+      .plots-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .plot-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .plot-header {
+      padding: 0.55rem 0.8rem;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .plot-header span.tag {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--accent-teal);
+    }
+
+    /* Panel 2: Controls & Presets */
+    .controls-body {
+      padding: 1rem 1.1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.05rem;
+    }
+
+    .control-section-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      margin-bottom: 0.45rem;
+    }
+
+    .segmented-control {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: #0b111e;
+      border: 1px solid var(--border-subtle);
+      border-radius: 9px;
+      padding: 3px;
+      gap: 3px;
+    }
+
+    .seg-btn {
+      font-family: var(--font-sans);
+      font-size: 0.76rem;
+      font-weight: 600;
+      padding: 0.45rem 0.5rem;
+      border-radius: 7px;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .seg-btn.active {
+      background: var(--bg-card-hover);
+      color: var(--text-primary);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+    }
+
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 0.68rem 0.85rem;
+    }
+
+    .slider-group.disabled {
+      opacity: 0.45;
+      pointer-events: none;
+    }
+
+    .slider-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+    }
+
+    .slider-label {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .slider-val {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      background: #0b111e;
+      border-radius: 999px;
+      outline: none;
+      border: 1px solid var(--border-subtle);
+      margin: 0.25rem 0;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent-cyan);
+      cursor: pointer;
+      border: 2px solid #090d16;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent-cyan);
+      cursor: pointer;
+      border: 2px solid #090d16;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+    }
+
+    .slider-bounds {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--text-muted);
+    }
+
+    /* Toggle switches */
+    .toggle-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 9px;
+      padding: 0.55rem 0.8rem;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .toggle-row:hover {
+      border-color: var(--border-strong);
+    }
+
+    .toggle-row input {
+      accent-color: var(--accent-cyan);
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    /* Classroom Presets */
+    .presets-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+
+    .preset-btn {
+      text-align: left;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 9px;
+      padding: 0.6rem 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    .preset-btn:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--accent-cyan);
+    }
+
+    .preset-btn.active {
+      border-color: var(--accent-teal);
+      background: rgba(45, 212, 191, 0.1);
+    }
+
+    .preset-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .preset-desc {
+      font-size: 0.71rem;
+      color: var(--text-secondary);
+    }
+
+    /* Physics Reference Footer Note */
+    .physics-note {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 0.75rem 0.9rem;
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .physics-note code {
+      font-family: var(--font-mono);
+      color: var(--accent-teal);
+      background: rgba(45, 212, 191, 0.08);
+      padding: 0.1rem 0.3rem;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-badge">SG½</div>
+      <div>
+        <h1>Stern–Gerlach Experiment Simulator</h1>
+        <p>Space Quantization, Electron Spin-1/2 Eigenstates &amp; Sequential Quantum Measurement</p>
+      </div>
+    </div>
+    <div class="header-meta">
+      <span class="pill-tag">Beam: <strong>¹⁰⁷Ag (5s¹)</strong></span>
+      <span class="pill-tag">μ<sub>B</sub> = <strong>9.274 × 10⁻²⁴ J/T</strong></span>
+      <span class="pill-tag">m<sub>Ag</sub> = <strong>1.791 × 10⁻²⁵ kg</strong></span>
+    </div>
+  </header>
+
+  <main class="lab-container">
+    <!-- LEFT COLUMN: Apparatus, Readouts, Characteristic Curves -->
+    <div class="left-column">
+      <!-- PANEL 1: Interactive Apparatus Chamber -->
+      <section class="panel" aria-label="Interactive Apparatus Chamber">
+        <div class="panel-header">
+          <div class="panel-title"><span class="dot"></span>1. Vacuum Beamline &amp; Inhomogeneous Magnet Chamber</div>
+          <div id="regimeBadge" class="regime-badge">QUANTUM SPACE QUANTIZATION: 2 DISCRETE EIGENSTATES</div>
+        </div>
+
+        <div class="apparatus-toolbar">
+          <div class="toolbar-group">
+            <button id="btnBeamMode" class="btn active" title="Toggle between continuous atomic beam and single-atom firing">
+              <span>● Continuous Beam</span>
+            </button>
+            <button id="btnFireSingle" class="btn primary" title="Emit a single silver atom wavepacket">
+              <span>+ Emit Single Ag Atom</span>
+            </button>
+            <button id="btnPause" class="btn" title="Pause or resume simulation">
+              <span>⏸ Pause</span>
+            </button>
+          </div>
+          <div class="toolbar-group">
+            <span id="detectedCountLabel" class="pill-tag">Detected: <strong>0</strong> atoms</span>
+            <button id="btnClearPlate" class="btn danger" title="Clear accumulated silver deposits on detector glass plate">
+              <span>✕ Clear Plate</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="canvas-wrap">
+          <canvas id="apparatusCanvas" width="1040" height="430"></canvas>
+        </div>
+      </section>
+
+      <!-- PANEL 4: Digital Instrumentation Readouts -->
+      <section class="panel" aria-label="Digital Instrumentation Readouts">
+        <div class="panel-header">
+          <div class="panel-title"><span class="dot" style="background: var(--accent-teal); box-shadow: 0 0 8px var(--accent-teal);"></span>4. Digital Laboratory Telemetry</div>
+          <span class="pill-tag">Drift Length L<sub>drift</sub> = <strong>12.0 cm</strong></span>
+        </div>
+        <div class="telemetry-grid">
+          <div class="telemetry-card">
+            <div class="telemetry-label"><span>Mean Beam Speed v<sub>x</sub></span></div>
+            <div class="telemetry-value" id="readoutVx">481.2<span class="unit">m/s</span></div>
+            <div class="telemetry-formula">v<sub>x</sub> = √(3 k<sub>B</sub> T / m<sub>Ag</sub>)</div>
+          </div>
+
+          <div class="telemetry-card">
+            <div class="telemetry-label"><span>Magnetic Force |F<sub>z</sub>|</span></div>
+            <div class="telemetry-value" id="readoutFz">1.113e-20<span class="unit">N</span></div>
+            <div class="telemetry-formula">|F<sub>z</sub>| = μ<sub>B</sub> |∂B<sub>z</sub>/∂z|</div>
+          </div>
+
+          <div class="telemetry-card">
+            <div class="telemetry-label"><span>Peak Deflection Δz</span></div>
+            <div class="telemetry-value" id="readoutDz">1.92<span class="unit">mm</span></div>
+            <div class="telemetry-formula">Δz = ½ a<sub>z</sub> t₁(t₁ + 2t₂)</div>
+          </div>
+
+          <div class="telemetry-card">
+            <div class="telemetry-label"><span>Peak Separation 2Δz</span></div>
+            <div class="telemetry-value" id="readoutSep">3.84<span class="unit">mm</span></div>
+            <div class="telemetry-formula">Δz<sub>+</sub> − Δz<sub>−</sub> at detector</div>
+          </div>
+
+          <div class="telemetry-card">
+            <div class="telemetry-label"><span>Magnet Transit Time t₁</span></div>
+            <div class="telemetry-value" id="readoutT1">103.9<span class="unit">μs</span></div>
+            <div class="telemetry-formula">t₁ = L<sub>mag</sub> / v<sub>x</sub></div>
+          </div>
+
+          <div class="telemetry-card">
+            <div class="telemetry-label"><span>Spin Split Ratio (+ / −)</span></div>
+            <div class="telemetry-value" id="readoutRatio">50.0% / 50.0%</div>
+            <div class="telemetry-formula" id="ratioFormula">N<sub>+</sub> vs N<sub>−</sub> on collector</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PANEL 3: Live Characteristic Curves -->
+      <section class="panel" aria-label="Live Characteristic Curves">
+        <div class="panel-header">
+          <div class="panel-title"><span class="dot" style="background: var(--accent-amber); box-shadow: 0 0 8px var(--accent-amber);"></span>3. Live Characteristic Curves &amp; Detector Histogram</div>
+          <span class="pill-tag">Real-Time Statistical Accumulation</span>
+        </div>
+        <div class="plots-grid">
+          <div class="plot-box">
+            <div class="plot-header">
+              <span>Plot A: Detector Deposit Intensity I(z)</span>
+              <span class="tag" id="plotATag">Histogram vs Theory</span>
+            </div>
+            <div class="canvas-wrap">
+              <canvas id="plotACanvas" width="490" height="240"></canvas>
+            </div>
+          </div>
+
+          <div class="plot-box">
+            <div class="plot-header">
+              <span id="plotBTitle">Plot B: Deflection Δz vs Gradient ∂B<sub>z</sub>/∂z</span>
+              <span class="tag" id="plotBTag">Operating Point</span>
+            </div>
+            <div class="canvas-wrap">
+              <canvas id="plotBCanvas" width="490" height="240"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- RIGHT COLUMN: Parameter Controls & Classroom Presets -->
+    <aside class="right-column">
+      <section class="panel" aria-label="Parameter Controls and Classroom Presets">
+        <div class="panel-header">
+          <div class="panel-title"><span class="dot" style="background: var(--accent-indigo); box-shadow: 0 0 8px var(--accent-indigo);"></span>2. Controls &amp; Presets</div>
+        </div>
+
+        <div class="controls-body">
+          <!-- Physics Model Selector -->
+          <div>
+            <div class="control-section-title">Physical Hypothesis</div>
+            <div class="segmented-control">
+              <button id="modeQuantum" class="seg-btn active">Quantum Spin-1/2</button>
+              <button id="modeClassical" class="seg-btn">Classical Dipoles</button>
+            </div>
+          </div>
+
+          <!-- Apparatus Topology Selector -->
+          <div>
+            <div class="control-section-title">Apparatus Stage Configuration</div>
+            <div class="segmented-control">
+              <button id="stageSingle" class="seg-btn active">Single-Stage (SG-1)</button>
+              <button id="stageSequential" class="seg-btn">Sequential (SG-1 → SG-2)</button>
+            </div>
+          </div>
+
+          <!-- Sliders -->
+          <div class="slider-group">
+            <div class="slider-top">
+              <span class="slider-label">Field Gradient ∂B<sub>z</sub>/∂z</span>
+              <span class="slider-val" id="valGrad">1200 T/m</span>
+            </div>
+            <input type="range" id="sliderGrad" min="0" max="2000" step="10" value="1200" />
+            <div class="slider-bounds"><span>0 T/m</span><span>1000 T/m</span><span>2000 T/m</span></div>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-top">
+              <span class="slider-label">Oven Temperature T</span>
+              <span class="slider-val" id="valTemp">1000 K</span>
+            </div>
+            <input type="range" id="sliderTemp" min="300" max="1800" step="10" value="1000" />
+            <div class="slider-bounds"><span>300 K</span><span>1050 K</span><span>1800 K</span></div>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-top">
+              <span class="slider-label">Magnet Length L<sub>mag</sub></span>
+              <span class="slider-val" id="valLmag">5.0 cm</span>
+            </div>
+            <input type="range" id="sliderLmag" min="2.0" max="10.0" step="0.1" value="5.0" />
+            <div class="slider-bounds"><span>2.0 cm</span><span>6.0 cm</span><span>10.0 cm</span></div>
+          </div>
+
+          <div class="slider-group disabled" id="alphaControlGroup">
+            <div class="slider-top">
+              <span class="slider-label">SG-2 Analyzer Angle α</span>
+              <span class="slider-val" id="valAlpha">90°</span>
+            </div>
+            <input type="range" id="sliderAlpha" min="0" max="180" step="1" value="90" />
+            <div class="slider-bounds"><span>0° (Parallel)</span><span>90° (Orthogonal)</span><span>180° (Anti)</span></div>
+          </div>
+
+          <!-- Auxiliary Toggles -->
+          <div>
+            <div class="control-section-title">Beam &amp; Field Options</div>
+            <div class="toggle-list">
+              <label class="toggle-row">
+                <span>Maxwell–Boltzmann Velocity Spread</span>
+                <input type="checkbox" id="toggleThermalSpread" checked />
+              </label>
+              <label class="toggle-row">
+                <span>Show ∇B Field &amp; Spin Vector Overlay</span>
+                <input type="checkbox" id="toggleVectors" checked />
+              </label>
+            </div>
+          </div>
+
+          <!-- 5 Classroom Presets -->
+          <div>
+            <div class="control-section-title">Classroom Experiment Presets</div>
+            <div class="presets-grid">
+              <button class="preset-btn active" data-preset="classic1922">
+                <div class="preset-title"><span>1. 1922 Classic Discovery</span><span class="pill-tag">Quantum</span></div>
+                <div class="preset-desc">T = 1000 K, ∂B/∂z = 1400 T/m — Splits silver beam into 2 sharp lines.</div>
+              </button>
+
+              <button class="preset-btn" data-preset="classical">
+                <div class="preset-title"><span>2. Classical Prediction</span><span class="pill-tag">Classical</span></div>
+                <div class="preset-desc">Continuous μ<sub>z</sub> = μ<sub>B</sub> cosθ ∈ [−μ<sub>B</sub>, +μ<sub>B</sub>] smear on glass plate.</div>
+              </button>
+
+              <button class="preset-btn" data-preset="zeroField">
+                <div class="preset-title"><span>3. Zero Field (Undeflected)</span><span class="pill-tag">Control</span></div>
+                <div class="preset-desc">∂B/∂z = 0 T/m — Reference undeflected central collimated spot.</div>
+              </button>
+
+              <button class="preset-btn" data-preset="highTemp">
+                <div class="preset-title"><span>4. High-Temp Fast Beam</span><span class="pill-tag">Kinematics</span></div>
+                <div class="preset-desc">T = 1750 K — Higher v<sub>x</sub> shortens transit time t₁, reducing Δz ∝ 1/T.</div>
+              </button>
+
+              <button class="preset-btn" data-preset="sequential90">
+                <div class="preset-title"><span>5. Sequential 90° (S<sub>z</sub> → S<sub>x</sub>)</span><span class="pill-tag">Sequential</span></div>
+                <div class="preset-desc">Blocks |−⟩<sub>z</sub>; rotated SG-2 (α = 90°) yields 50/50 |±⟩<sub>x</sub> split.</div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Pedagogical Reference -->
+          <div class="physics-note">
+            <strong>Physical Mechanism:</strong> Neutral <sup>107</sup>Ag atoms have 46 core electrons in closed shells (L=0, S=0) and one <code>5s¹</code> valence electron (<code>l=0, s=1/2</code>). Thus magnetic moment comes purely from electron spin: <code>μ_z = -g_s μ_B m_s ≈ ∓μ_B</code>.
+          </div>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // =========================================================================
+      // 1. CANONICAL PHYSICAL CONSTANTS (CODATA 2018 / SI Exact)
+      // =========================================================================
+      const MU_B = 9.2740100783e-24; // Bohr magneton (J/T)
+      const K_B = 1.380649e-23;      // Boltzmann constant (J/K)
+      const M_AG = 1.79119e-25;      // Silver-107/109 average atomic mass (107.8682 u in kg)
+      const L_DRIFT = 0.12;          // Post-magnet drift distance to collector plate (m = 12.0 cm)
+      const Z_MAX_DISPLAY_MM = 8.5;  // Vertical scale half-range on collector plate (mm)
+
+      // =========================================================================
+      // 2. SIMULATION STATE
+      // =========================================================================
+      const state = {
+        physicsMode: "quantum",     // "quantum" | "classical"
+        stageMode: "single",        // "single" | "sequential"
+        gradient: 1200,             // ∂Bz/∂z in T/m (0 .. 2000)
+        temperature: 1000,          // Oven temperature T in K (300 .. 1800)
+        lMagCm: 5.0,                // Magnet pole length L_mag in cm (2.0 .. 10.0)
+        alphaDeg: 90,               // SG-2 relative angle α in degrees (0 .. 180)
+        thermalSpread: true,        // Maxwell-Boltzmann speed dispersion
+        showVectors: true,          // Field gradient & spin vector overlay
+        continuousBeam: true,       // Continuous emission vs single-shot
+        paused: false,
+        activePreset: "classic1922",
+
+        // Particle & Histogram Accumulation
+        atoms: [],
+        bins: new Float64Array(120), // Vertical detector bins covering [-Z_MAX_DISPLAY_MM, +Z_MAX_DISPLAY_MM]
+        totalDetected: 0,
+        upperDetected: 0,
+        lowerDetected: 0,
+        emissionAccumulator: 0
+      };
+
+      // =========================================================================
+      // 3. EXACT KINEMATICS & QUANTUM PROBABILITY ENGINE
+      // =========================================================================
+      function getMeanSpeed(T) {
+        return Math.sqrt((3 * K_B * T) / M_AG);
+      }
+
+      // Box-Muller Gaussian sample for realistic thermal spread around v_rms
+      function sampleSpeed(T, useSpread) {
+        const vMean = getMeanSpeed(T);
+        if (!useSpread) return vMean;
+        const u1 = Math.max(1e-7, Math.random());
+        const u2 = Math.random();
+        const z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+        // Thermal longitudinal beam dispersion (~14% RMS spread)
+        const v = vMean * (1 + 0.14 * z0);
+        return Math.max(vMean * 0.45, Math.min(vMean * 1.85, v));
+      }
+
+      /**
+       * Computes exact deflection Δz (in meters) for an atom with magnetic moment component muZ,
+       * longitudinal velocity vx, magnet length lMag (m), and drift length lDrift (m).
+       * Formula: Δz = 0.5 * (Fz / m) * t1^2 + (Fz / m) * t1 * t2 = 0.5 * a_z * t1 * (t1 + 2*t2)
+       */
+      function computeDeflectionMeters(muZ, grad, vx, lMag, lDrift) {
+        const Fz = muZ * grad;
+        const az = Fz / M_AG;
+        const t1 = lMag / vx;
+        const t2 = lDrift / vx;
+        return 0.5 * az * t1 * (t1 + 2 * t2);
+      }
+
+      function computePeakDeflectionMM() {
+        const vx = getMeanSpeed(state.temperature);
+        const lMag = state.lMagCm / 100;
+        const dzMeters = computeDeflectionMeters(MU_B, state.gradient, vx, lMag, L_DRIFT);
+        return dzMeters * 1000;
+      }
+
+      // =========================================================================
+      // 4. ATOM PARTICLE FACTORY & STEPPER
+      // =========================================================================
+      function createAtom(initialProgress = 0) {
+        const vx = sampleSpeed(state.temperature, state.thermalSpread);
+        const lMag = state.lMagCm / 100;
+
+        // Initial collimated slit vertical jitter (mm)
+        const z0_mm = (Math.random() - 0.5) * 0.24;
+
+        // Stage 1 spin projection
+        let spin1 = 1; // +1 for spin-up |+>, -1 for spin-down |->
+        let muZ1 = MU_B;
+        let classicalCos = 1;
+
+        if (state.physicsMode === "quantum") {
+          spin1 = Math.random() < 0.5 ? 1 : -1;
+          muZ1 = spin1 * MU_B;
+        } else {
+          classicalCos = Math.random() * 2 - 1; // Uniform in [-1, 1]
+          muZ1 = classicalCos * MU_B;
+        }
+
+        // Stage 2 spin projection (used when stageMode === "sequential")
+        const alphaRad = (state.alphaDeg * Math.PI) / 180;
+        let spin2 = spin1;
+        let muZ2 = muZ1;
+
+        if (state.stageMode === "sequential") {
+          if (state.physicsMode === "quantum") {
+            // Malus's law for spin-1/2: P(+_alpha | +_z) = cos^2(alpha/2)
+            const pPlus = Math.pow(Math.cos(alphaRad / 2), 2);
+            spin2 = Math.random() < pPlus ? 1 : -1;
+            muZ2 = spin2 * MU_B;
+          } else {
+            // Classical projection of dipole along analyzer axis tilted by alpha
+            // Incoming upper beam had cos(theta) > 0; simplified classical projection
+            const phi = Math.random() * 2 * Math.PI;
+            const sinTheta = Math.sqrt(Math.max(0, 1 - classicalCos * classicalCos));
+            const cosAlphaProj =
+              classicalCos * Math.cos(alphaRad) + sinTheta * Math.cos(phi) * Math.sin(alphaRad);
+            muZ2 = cosAlphaProj * MU_B;
+            spin2 = cosAlphaProj >= 0 ? 1 : -1;
+          }
+        }
+
+        return {
+          u: initialProgress, // Normalized horizontal progress [0 .. 1] across chamber
+          vx,
+          lMag,
+          z0_mm,
+          spin1,
+          muZ1,
+          spin2,
+          muZ2,
+          blocked: false,
+          recorded: false
+        };
+      }
+
+      /**
+       * Evaluates vertical position z (in mm) at normalized chamber coordinate u in [0, 1]
+       */
+      function evaluateAtomZ_MM(atom, u) {
+        if (state.stageMode === "single") {
+          // Chamber layout:
+          // u in [0.00, 0.14]: Oven -> Collimator
+          // u in [0.14, 0.48]: Inside SG-1 Magnet (length L_mag)
+          // u in [0.48, 1.00]: Drift space to Collector Plate (length L_drift)
+          const uMagStart = 0.14;
+          const uMagEnd = 0.48;
+          if (u <= uMagStart) {
+            return atom.z0_mm;
+          }
+          const Fz = atom.muZ1 * state.gradient;
+          const az = Fz / M_AG;
+          const t1 = atom.lMag / atom.vx;
+          const t2 = L_DRIFT / atom.vx;
+
+          if (u <= uMagEnd) {
+            const frac = (u - uMagStart) / (uMagEnd - uMagStart);
+            const t = frac * t1;
+            const dz_m = 0.5 * az * t * t;
+            return atom.z0_mm + dz_m * 1000;
+          } else {
+            const fracDrift = (u - uMagEnd) / (1.0 - uMagEnd);
+            const td = fracDrift * t2;
+            const dz_m = 0.5 * az * t1 * t1 + az * t1 * td;
+            return atom.z0_mm + dz_m * 1000;
+          }
+        } else {
+          // Sequential Mode Layout (SG-1 -> Blocker -> SG-2 -> Detector):
+          // u in [0.00, 0.10]: Oven -> Collimator
+          // u in [0.10, 0.32]: SG-1 Magnet
+          // u in [0.32, 0.44]: Drift to Spin-Down Blocker Slit at u = 0.44
+          // u in [0.44, 0.68]: SG-2 Rotated Magnet (angle alpha)
+          // u in [0.68, 1.00]: Drift to Collector Plate
+          const u1Start = 0.10;
+          const u1End = 0.32;
+          const uBlocker = 0.44;
+          const u2Start = 0.46;
+          const u2End = 0.68;
+
+          const Fz1 = atom.muZ1 * state.gradient;
+          const az1 = Fz1 / M_AG;
+          const t1 = atom.lMag / atom.vx;
+          const tGap = (L_DRIFT * 0.35) / atom.vx;
+
+          if (u <= u1Start) {
+            return atom.z0_mm;
+          }
+          if (u <= u1End) {
+            const frac = (u - u1Start) / (u1End - u1Start);
+            const t = frac * t1;
+            return atom.z0_mm + 0.5 * az1 * t * t * 1000;
+          }
+          if (u <= uBlocker) {
+            const frac = (u - u1End) / (uBlocker - u1End);
+            const tg = frac * tGap;
+            return atom.z0_mm + (0.5 * az1 * t1 * t1 + az1 * t1 * tg) * 1000;
+          }
+
+          // Re-collimated upper beam enters SG-2 along central axis of SG-2
+          const zEntry2 = 0;
+          const Fz2 = atom.muZ2 * state.gradient;
+          const az2 = Fz2 / M_AG;
+          const t2 = L_DRIFT / atom.vx;
+
+          if (u <= u2Start) {
+            return zEntry2;
+          }
+          if (u <= u2End) {
+            const frac = (u - u2Start) / (u2End - u2Start);
+            const t = frac * t1;
+            return zEntry2 + 0.5 * az2 * t * t * 1000;
+          }
+          const fracDrift = (u - u2End) / (1.0 - u2End);
+          const td = fracDrift * t2;
+          return zEntry2 + (0.5 * az2 * t1 * t1 + az2 * t1 * td) * 1000;
+        }
+      }
+
+      function recordDeposit(z_mm, spinSign) {
+        state.totalDetected++;
+        if (z_mm > 0.05) state.upperDetected++;
+        else if (z_mm < -0.05) state.lowerDetected++;
+        else {
+          if (spinSign >= 0) state.upperDetected++;
+          else state.lowerDetected++;
+        }
+
+        const norm = (z_mm + Z_MAX_DISPLAY_MM) / (2 * Z_MAX_DISPLAY_MM);
+        const idx = Math.floor(norm * state.bins.length);
+        if (idx >= 0 && idx < state.bins.length) {
+          state.bins[idx] += 1;
+          // Subtle Gaussian kernel deposit width representing finite slit collimation
+          if (idx > 0) state.bins[idx - 1] += 0.35;
+          if (idx < state.bins.length - 1) state.bins[idx + 1] += 0.35;
+        }
+      }
+
+      function clearCollectorPlate() {
+        state.bins.fill(0);
+        state.totalDetected = 0;
+        state.upperDetected = 0;
+        state.lowerDetected = 0;
+      }
+
+      function seedInitialAtoms() {
+        state.atoms = [];
+        const count = 48;
+        for (let i = 0; i < count; i++) {
+          const u = (i / count) * 0.98;
+          const atom = createAtom(u);
+          // Mark atoms past blocker in sequential mode appropriately
+          if (state.stageMode === "sequential" && u > 0.44) {
+            const isLower = state.physicsMode === "quantum" ? atom.spin1 < 0 : atom.muZ1 < 0;
+            if (isLower) continue;
+          }
+          state.atoms.push(atom);
+        }
+        // Pre-populate a clean initial statistical sample so Plot A & telemetry are active immediately
+        for (let i = 0; i < 160; i++) {
+          const simAtom = createAtom(1.0);
+          if (state.stageMode === "sequential") {
+            const isLower = state.physicsMode === "quantum" ? simAtom.spin1 < 0 : simAtom.muZ1 < 0;
+            if (isLower) continue;
+          }
+          const zFinal = evaluateAtomZ_MM(simAtom, 1.0);
+          recordDeposit(zFinal, state.stageMode === "sequential" ? simAtom.spin2 : simAtom.spin1);
+        }
+      }
+
+      // =========================================================================
+      // 5. CANVAS DPR & RESPONSIVE SIZING HELPER
+      // =========================================================================
+      const apparatusCanvas = document.getElementById("apparatusCanvas");
+      const plotACanvas = document.getElementById("plotACanvas");
+      const plotBCanvas = document.getElementById("plotBCanvas");
+
+      function syncCanvasResolution(canvas, fallbackW, fallbackH) {
+        if (!canvas) return null;
+        const rect = canvas.getBoundingClientRect();
+        const cssW = rect.width > 10 ? rect.width : fallbackW;
+        const aspect = fallbackH / fallbackW;
+        const cssH = rect.height > 10 ? rect.height : cssW * aspect;
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const targetW = Math.round(cssW * dpr);
+        const targetH = Math.round(cssH * dpr);
+
+        if (canvas.width !== targetW || canvas.height !== targetH) {
+          canvas.width = targetW;
+          canvas.height = targetH;
+        }
+        const ctx = canvas.getContext("2d");
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        return { ctx, width: cssW, height: cssH };
+      }
+
+      // =========================================================================
+      // 6. PANEL 1 RENDERER: APPARATUS CHAMBER
+      // =========================================================================
+      function renderApparatus() {
+        const res = syncCanvasResolution(apparatusCanvas, 1040, 430);
+        if (!res) return;
+        const { ctx, width: W, height: H } = res;
+
+        // Background chamber grid
+        ctx.fillStyle = "#070b12";
+        ctx.fillRect(0, 0, W, H);
+
+        // Subtle vacuum chamber engineering grid
+        ctx.strokeStyle = "rgba(36, 50, 77, 0.32)";
+        ctx.lineWidth = 1;
+        const gridStep = 28;
+        for (let x = 0; x < W; x += gridStep) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, H);
+          ctx.stroke();
+        }
+        for (let y = 0; y < H; y += gridStep) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(W, y);
+          ctx.stroke();
+        }
+
+        const centerY = H * 0.52;
+        const plateX = W - 110;
+        const plateHalfH = H * 0.36;
+        const mmToPx = plateHalfH / Z_MAX_DISPLAY_MM;
+
+        // Optical / Beamline centerline (z = 0)
+        ctx.save();
+        ctx.setLineDash([5, 5]);
+        ctx.strokeStyle = "rgba(148, 163, 184, 0.25)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(30, centerY);
+        ctx.lineTo(plateX, centerY);
+        ctx.stroke();
+        ctx.restore();
+
+        // 1. THERMAL OVEN (Left)
+        const ovenX = 24;
+        const ovenW = 66;
+        const ovenH = 88;
+        const tempNorm = (state.temperature - 300) / 1500;
+        const ovenGlow = ctx.createRadialGradient(
+          ovenX + ovenW * 0.5,
+          centerY,
+          6,
+          ovenX + ovenW * 0.5,
+          centerY,
+          56
+        );
+        ovenGlow.addColorStop(0, `rgba(251, 146, 60, ${0.35 + 0.45 * tempNorm})`);
+        ovenGlow.addColorStop(1, "rgba(251, 146, 60, 0)");
+        ctx.fillStyle = ovenGlow;
+        ctx.fillRect(ovenX - 15, centerY - 65, ovenW + 30, 130);
+
+        ctx.fillStyle = "#1e293b";
+        ctx.strokeStyle = "#475569";
+        ctx.lineWidth = 1.5;
+        roundRect(ctx, ovenX, centerY - ovenH / 2, ovenW, ovenH, 8);
+        ctx.fill();
+        ctx.stroke();
+
+        // Heating coils inside oven
+        ctx.fillStyle = `rgb(${Math.round(180 + 75 * tempNorm)}, ${Math.round(70 + 70 * tempNorm)}, 30)`;
+        roundRect(ctx, ovenX + 10, centerY - 24, ovenW - 22, 48, 4);
+        ctx.fill();
+
+        ctx.fillStyle = "#f8fafc";
+        ctx.font = "700 11px system-ui, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("Ag OVEN", ovenX + ovenW / 2, centerY - ovenH / 2 - 18);
+        ctx.font = "600 11px ui-monospace, monospace";
+        ctx.fillStyle = "#fbbf24";
+        ctx.fillText(`${state.temperature} K`, ovenX + ovenW / 2, centerY - ovenH / 2 - 5);
+
+        // 2. COLLIMATOR SLITS
+        const slitX = state.stageMode === "single" ? ovenX + ovenW + 38 : ovenX + ovenW + 24;
+        drawCollimator(ctx, slitX, centerY, 54, 7);
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = "600 10px system-ui, sans-serif";
+        ctx.fillText("SLIT", slitX, centerY - 62);
+
+        // 3. INHOMOGENEOUS MAGNET(S)
+        const uToX = (u) => slitX + u * (plateX - slitX);
+
+        if (state.stageMode === "single") {
+          const magX1 = uToX(0.14);
+          const magX2 = uToX(0.48);
+          drawSternGerlachMagnet(
+            ctx,
+            magX1,
+            magX2,
+            centerY,
+            "SG-1 MAGNET",
+            `∂Bz/∂z = ${state.gradient} T/m`,
+            0,
+            state.gradient,
+            state.showVectors
+          );
+        } else {
+          // SG-1 Magnet
+          const m1X1 = uToX(0.10);
+          const m1X2 = uToX(0.32);
+          drawSternGerlachMagnet(
+            ctx,
+            m1X1,
+            m1X2,
+            centerY,
+            "SG-1 (z-axis)",
+            `${state.gradient} T/m`,
+            0,
+            state.gradient,
+            state.showVectors
+          );
+
+          // Spin-Down Beam Blocker at u = 0.44
+          const blockX = uToX(0.44);
+          drawSpinDownBlocker(ctx, blockX, centerY);
+
+          // SG-2 Rotated Analyzer Magnet
+          const m2X1 = uToX(0.46);
+          const m2X2 = uToX(0.68);
+          drawSternGerlachMagnet(
+            ctx,
+            m2X1,
+            m2X2,
+            centerY,
+            `SG-2 (α = ${state.alphaDeg}°)`,
+            "Rotated Analyzer",
+            state.alphaDeg,
+            state.gradient,
+            state.showVectors
+          );
+        }
+
+        // 4. GUIDE ENVELOPE TRAJECTORY CURVES (Subtle theoretical envelope)
+        drawTheoreticalEnvelope(ctx, uToX, centerY, mmToPx);
+
+        // 5. LIVE SILVER ATOMS IN FLIGHT
+        for (let i = 0; i < state.atoms.length; i++) {
+          const atom = state.atoms[i];
+          if (atom.blocked) continue;
+          const x = uToX(atom.u);
+          const z_mm = evaluateAtomZ_MM(atom, atom.u);
+          const y = centerY - z_mm * mmToPx;
+
+          // Color encoding: Spin-up cyan/teal, Spin-down rose/amber, Classical gold
+          let color = "#38bdf8";
+          if (state.physicsMode === "classical") {
+            color = "#fbbf24";
+          } else {
+            const activeSpin =
+              state.stageMode === "sequential" && atom.u > 0.44 ? atom.spin2 : atom.spin1;
+            color = activeSpin > 0 ? "#2dd4bf" : "#fb7185";
+          }
+
+          ctx.beginPath();
+          ctx.arc(x, y, 2.8, 0, Math.PI * 2);
+          ctx.fillStyle = color;
+          ctx.fill();
+
+          if (state.showVectors && i % 3 === 0) {
+            // Tiny spin magnetic moment vector arrow on representative atoms
+            const activeSpin =
+              state.stageMode === "sequential" && atom.u > 0.44 ? atom.spin2 : atom.spin1;
+            const dir = state.physicsMode === "quantum" ? (activeSpin > 0 ? -1 : 1) : atom.muZ1 > 0 ? -0.7 : 0.7;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.moveTo(x, y + dir * 6);
+            ctx.lineTo(x, y - dir * 6);
+            ctx.stroke();
+          }
+        }
+
+        // 6. COLLECTOR GLASS PLATE & ACCUMULATED SILVER DEPOSIT HISTOGRAM (Right)
+        drawCollectorPlate(ctx, plateX, centerY, plateHalfH, mmToPx);
+      }
+
+      function drawCollimator(ctx, x, centerY, halfH, gapHalf) {
+        ctx.fillStyle = "#334155";
+        ctx.strokeStyle = "#64748b";
+        ctx.lineWidth = 1.2;
+        // Top plate
+        ctx.fillRect(x - 4, centerY - halfH, 8, halfH - gapHalf);
+        ctx.strokeRect(x - 4, centerY - halfH, 8, halfH - gapHalf);
+        // Bottom plate
+        ctx.fillRect(x - 4, centerY + gapHalf, 8, halfH - gapHalf);
+        ctx.strokeRect(x - 4, centerY + gapHalf, 8, halfH - gapHalf);
+      }
+
+      function drawSternGerlachMagnet(ctx, x1, x2, centerY, title, subtitle, angleDeg, gradient, showVectors) {
+        const w = x2 - x1;
+        const poleGap = 32;
+
+        // Top Sharp Knife-Edge North Pole (creates strong concentrated field near top)
+        ctx.fillStyle = "rgba(239, 68, 68, 0.22)";
+        ctx.strokeStyle = "#f87171";
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(x1, centerY - 96);
+        ctx.lineTo(x2, centerY - 96);
+        ctx.lineTo(x2, centerY - poleGap - 18);
+        ctx.lineTo((x1 + x2) / 2, centerY - poleGap);
+        ctx.lineTo(x1, centerY - poleGap - 18);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Bottom Grooved South Pole (creates weaker diverging field near bottom)
+        ctx.fillStyle = "rgba(59, 130, 246, 0.22)";
+        ctx.strokeStyle = "#60a5fa";
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(x1, centerY + 96);
+        ctx.lineTo(x2, centerY + 96);
+        ctx.lineTo(x2, centerY + poleGap);
+        ctx.lineTo((x1 + x2) / 2, centerY + poleGap + 16);
+        ctx.lineTo(x1, centerY + poleGap);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Pole labels N / S
+        ctx.font = "700 12px ui-monospace, monospace";
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#fca5a5";
+        ctx.fillText("N", (x1 + x2) / 2, centerY - 62);
+        ctx.fillStyle = "#93c5fd";
+        ctx.fillText("S", (x1 + x2) / 2, centerY + 72);
+
+        // Magnet title above
+        ctx.fillStyle = "#e2e8f0";
+        ctx.font = "700 11px system-ui, sans-serif";
+        ctx.fillText(title, (x1 + x2) / 2, centerY - 116);
+        ctx.fillStyle = "#38bdf8";
+        ctx.font = "600 10px ui-monospace, monospace";
+        ctx.fillText(subtitle, (x1 + x2) / 2, centerY - 103);
+
+        // Inhomogeneous Field Lines & ∇B Gradient Vector Arrows
+        if (showVectors && gradient > 0) {
+          const numLines = 5;
+          for (let i = 1; i <= numLines; i++) {
+            const frac = i / (numLines + 1);
+            const lx = x1 + frac * w;
+            // Converging field lines toward sharp top pole
+            ctx.strokeStyle = "rgba(56, 189, 248, 0.35)";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo((x1 + x2) / 2 + (frac - 0.5) * w * 0.45, centerY - poleGap + 2);
+            ctx.quadraticCurveTo(lx, centerY, lx, centerY + poleGap - 2);
+            ctx.stroke();
+          }
+
+          // Bold ∇B upward arrow indicating stronger field toward top pole
+          const arrowX = x2 + 12;
+          ctx.strokeStyle = "#38bdf8";
+          ctx.fillStyle = "#38bdf8";
+          ctx.lineWidth = 1.6;
+          ctx.beginPath();
+          ctx.moveTo(arrowX, centerY + 18);
+          ctx.lineTo(arrowX, centerY - 18);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(arrowX, centerY - 22);
+          ctx.lineTo(arrowX - 4, centerY - 14);
+          ctx.lineTo(arrowX + 4, centerY - 14);
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.font = "700 10px ui-monospace, monospace";
+          ctx.textAlign = "left";
+          ctx.fillText("∇B", arrowX + 5, centerY - 8);
+        }
+
+        // Rotation dial badge for SG-2
+        if (angleDeg !== 0 || title.includes("SG-2")) {
+          const dialX = (x1 + x2) / 2;
+          const dialY = centerY + 114;
+          ctx.beginPath();
+          ctx.arc(dialX, dialY, 13, 0, Math.PI * 2);
+          ctx.fillStyle = "#162033";
+          ctx.fill();
+          ctx.strokeStyle = "#818cf8";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          const rad = (angleDeg * Math.PI) / 180;
+          ctx.beginPath();
+          ctx.moveTo(dialX, dialY);
+          ctx.lineTo(dialX + Math.sin(rad) * 11, dialY - Math.cos(rad) * 11);
+          ctx.strokeStyle = "#fbbf24";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+      }
+
+      function drawSpinDownBlocker(ctx, x, centerY) {
+        // Absorber block stopping the lower |->_z beam while letting |+>_z pass through upper aperture
+        ctx.fillStyle = "rgba(251, 113, 133, 0.25)";
+        ctx.strokeStyle = "#fb7185";
+        ctx.lineWidth = 1.5;
+        ctx.fillRect(x - 6, centerY + 2, 12, 62);
+        ctx.strokeRect(x - 6, centerY + 2, 12, 62);
+
+        ctx.fillStyle = "#fda4af";
+        ctx.font = "700 9.5px ui-monospace, monospace";
+        ctx.textAlign = "center";
+        ctx.fillText("BLOCK |−⟩", x, centerY + 76);
+      }
+
+      function drawTheoreticalEnvelope(ctx, uToX, centerY, mmToPx) {
+        if (state.gradient <= 0) return;
+        const vx = getMeanSpeed(state.temperature);
+        const lMag = state.lMagCm / 100;
+
+        const upSample = { u: 0, vx, lMag, z0_mm: 0, spin1: 1, muZ1: MU_B, spin2: 1, muZ2: MU_B };
+        const dnSample = { u: 0, vx, lMag, z0_mm: 0, spin1: -1, muZ1: -MU_B, spin2: -1, muZ2: -MU_B };
+
+        ctx.save();
+        ctx.setLineDash([4, 4]);
+        ctx.lineWidth = 1.2;
+
+        // Upper envelope
+        ctx.strokeStyle =
+          state.physicsMode === "quantum" ? "rgba(45, 212, 191, 0.35)" : "rgba(251, 191, 36, 0.35)";
+        ctx.beginPath();
+        for (let s = 0; s <= 40; s++) {
+          const u = s / 40;
+          const x = uToX(u);
+          const y = centerY - evaluateAtomZ_MM(upSample, u) * mmToPx;
+          if (s === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // Lower envelope
+        ctx.strokeStyle =
+          state.physicsMode === "quantum" ? "rgba(251, 113, 133, 0.35)" : "rgba(251, 191, 36, 0.35)";
+        ctx.beginPath();
+        const maxS = state.stageMode === "sequential" ? 18 : 40;
+        for (let s = 0; s <= maxS; s++) {
+          const u = s / 40;
+          const x = uToX(u);
+          const y = centerY - evaluateAtomZ_MM(dnSample, u) * mmToPx;
+          if (s === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // In sequential mode, draw lower branch emerging from SG-2
+        if (state.stageMode === "sequential") {
+          const seqDown = { u: 0, vx, lMag, z0_mm: 0, spin1: 1, muZ1: MU_B, spin2: -1, muZ2: -MU_B };
+          ctx.beginPath();
+          for (let s = 18; s <= 40; s++) {
+            const u = s / 40;
+            const x = uToX(u);
+            const y = centerY - evaluateAtomZ_MM(seqDown, u) * mmToPx;
+            if (s === 18) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      function drawCollectorPlate(ctx, plateX, centerY, plateHalfH, mmToPx) {
+        // Glass plate substrate
+        ctx.fillStyle = "rgba(148, 163, 184, 0.12)";
+        ctx.strokeStyle = "#64748b";
+        ctx.lineWidth = 2;
+        ctx.fillRect(plateX, centerY - plateHalfH, 10, plateHalfH * 2);
+        ctx.strokeRect(plateX, centerY - plateHalfH, 10, plateHalfH * 2);
+
+        // Millimeter ruler ticks along collector plate
+        ctx.font = "600 9.5px ui-monospace, monospace";
+        ctx.fillStyle = "#94a3b8";
+        ctx.textAlign = "right";
+        for (let mm = -8; mm <= 8; mm += 2) {
+          const y = centerY - mm * mmToPx;
+          ctx.beginPath();
+          ctx.moveTo(plateX - 5, y);
+          ctx.lineTo(plateX, y);
+          ctx.strokeStyle = "#475569";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          if (mm % 4 === 0) {
+            ctx.fillText(`${mm > 0 ? "+" : ""}${mm}`, plateX - 8, y + 3);
+          }
+        }
+
+        // Accumulated Silver Deposit Histogram bars extending right of glass plate
+        let maxBin = 1;
+        for (let i = 0; i < state.bins.length; i++) {
+          if (state.bins[i] > maxBin) maxBin = state.bins[i];
+        }
+
+        const maxBarW = 72;
+        const binH = (plateHalfH * 2) / state.bins.length;
+
+        for (let i = 0; i < state.bins.length; i++) {
+          const val = state.bins[i];
+          if (val <= 0.01) continue;
+          const barW = (val / maxBin) * maxBarW;
+          const z_mm = -Z_MAX_DISPLAY_MM + ((i + 0.5) / state.bins.length) * (2 * Z_MAX_DISPLAY_MM);
+          const y = centerY - z_mm * mmToPx - binH / 2;
+
+          let fill = "#38bdf8";
+          if (state.physicsMode === "classical") {
+            fill = "#fbbf24";
+          } else if (z_mm > 0.15) {
+            fill = "#2dd4bf";
+          } else if (z_mm < -0.15) {
+            fill = "#fb7185";
+          }
+
+          ctx.fillStyle = fill;
+          ctx.fillRect(plateX + 12, y, barW, Math.max(1.6, binH));
+        }
+
+        // Labels
+        ctx.fillStyle = "#e2e8f0";
+        ctx.font = "700 11px system-ui, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("DETECTOR", plateX + 32, centerY - plateHalfH - 18);
+        ctx.font = "600 10px ui-monospace, monospace";
+        ctx.fillStyle = "#94a3b8";
+        ctx.fillText("z (mm)", plateX + 32, centerY - plateHalfH - 5);
+      }
+
+      // =========================================================================
+      // 7. PANEL 3 RENDERERS: CHARACTERISTIC CURVES (PLOT A & PLOT B)
+      // =========================================================================
+      function renderPlotA() {
+        const res = syncCanvasResolution(plotACanvas, 490, 240);
+        if (!res) return;
+        const { ctx, width: W, height: H } = res;
+
+        ctx.fillStyle = "#0b111e";
+        ctx.fillRect(0, 0, W, H);
+
+        const padL = 44;
+        const padR = 16;
+        const padT = 18;
+        const padB = 34;
+        const plotW = W - padL - padR;
+        const plotH = H - padT - padB;
+
+        // Axes
+        ctx.strokeStyle = "#334155";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(padL, padT);
+        ctx.lineTo(padL, padT + plotH);
+        ctx.lineTo(padL + plotW, padT + plotH);
+        ctx.stroke();
+
+        // X-axis ticks (-8 mm to +8 mm)
+        ctx.font = "600 10px ui-monospace, monospace";
+        ctx.fillStyle = "#94a3b8";
+        ctx.textAlign = "center";
+        for (let mm = -8; mm <= 8; mm += 2) {
+          const x = padL + ((mm + Z_MAX_DISPLAY_MM) / (2 * Z_MAX_DISPLAY_MM)) * plotW;
+          ctx.beginPath();
+          ctx.moveTo(x, padT + plotH);
+          ctx.lineTo(x, padT + plotH + 4);
+          ctx.stroke();
+          ctx.fillText(`${mm}`, x, padT + plotH + 16);
+        }
+        ctx.fillStyle = "#cbd5e1";
+        ctx.fillText("Vertical Detector Position z (mm)", padL + plotW / 2, H - 5);
+
+        // Y-axis label
+        ctx.save();
+        ctx.translate(13, padT + plotH / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#cbd5e1";
+        ctx.fillText("Normalized I(z)", 0, 0);
+        ctx.restore();
+
+        // Histogram bars from detector bins
+        let maxBin = 1;
+        for (let i = 0; i < state.bins.length; i++) {
+          if (state.bins[i] > maxBin) maxBin = state.bins[i];
+        }
+
+        const barW = plotW / state.bins.length;
+        for (let i = 0; i < state.bins.length; i++) {
+          const val = state.bins[i];
+          if (val <= 0) continue;
+          const h = (val / maxBin) * (plotH * 0.88);
+          const x = padL + i * barW;
+          const y = padT + plotH - h;
+          ctx.fillStyle =
+            state.physicsMode === "quantum"
+              ? "rgba(56, 189, 248, 0.45)"
+              : "rgba(251, 191, 36, 0.45)";
+          ctx.fillRect(x, y, Math.max(1.5, barW - 0.5), h);
+        }
+
+        // Theoretical Envelope Overlay
+        const dzPeak = computePeakDeflectionMM();
+        const sigma = Math.max(0.28, dzPeak * (state.thermalSpread ? 0.14 : 0.05));
+        const alphaRad = (state.alphaDeg * Math.PI) / 180;
+        const pPlus =
+          state.stageMode === "sequential" ? Math.pow(Math.cos(alphaRad / 2), 2) : 0.5;
+        const pMinus =
+          state.stageMode === "sequential" ? Math.pow(Math.sin(alphaRad / 2), 2) : 0.5;
+
+        ctx.beginPath();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = state.physicsMode === "quantum" ? "#2dd4bf" : "#fbbf24";
+
+        const samples = 180;
+        let maxTheory = 0.001;
+        const theoryVals = new Float64Array(samples);
+
+        for (let s = 0; s < samples; s++) {
+          const z = -Z_MAX_DISPLAY_MM + (s / (samples - 1)) * (2 * Z_MAX_DISPLAY_MM);
+          let val = 0;
+          if (state.physicsMode === "quantum") {
+            const gPlus = pPlus * Math.exp(-0.5 * Math.pow((z - dzPeak) / sigma, 2));
+            const gMinus = pMinus * Math.exp(-0.5 * Math.pow((z + dzPeak) / sigma, 2));
+            val = gPlus + gMinus;
+          } else {
+            // Classical boxcar smeared by slit width
+            const bound = Math.max(0.25, dzPeak);
+            if (Math.abs(z) <= bound) {
+              val = 1.0;
+            } else {
+              val = Math.exp(-0.5 * Math.pow((Math.abs(z) - bound) / 0.28, 2));
+            }
+          }
+          theoryVals[s] = val;
+          if (val > maxTheory) maxTheory = val;
+        }
+
+        for (let s = 0; s < samples; s++) {
+          const x = padL + (s / (samples - 1)) * plotW;
+          const y = padT + plotH - (theoryVals[s] / maxTheory) * (plotH * 0.88);
+          if (s === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+
+      function renderPlotB() {
+        const res = syncCanvasResolution(plotBCanvas, 490, 240);
+        if (!res) return;
+        const { ctx, width: W, height: H } = res;
+
+        ctx.fillStyle = "#0b111e";
+        ctx.fillRect(0, 0, W, H);
+
+        const padL = 46;
+        const padR = 16;
+        const padT = 18;
+        const padB = 34;
+        const plotW = W - padL - padR;
+        const plotH = H - padT - padB;
+
+        // Axes
+        ctx.strokeStyle = "#334155";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(padL, padT);
+        ctx.lineTo(padL, padT + plotH);
+        ctx.lineTo(padL + plotW, padT + plotH);
+        ctx.stroke();
+
+        if (state.stageMode === "single") {
+          // Plot B Mode 1: Peak Deflection Δz (mm) vs Field Gradient ∂Bz/∂z (0..2000 T/m)
+          document.getElementById("plotBTitle").innerHTML = "Plot B: Peak Deflection Δz vs ∂B<sub>z</sub>/∂z";
+          document.getElementById("plotBTag").textContent = "Linear Scaling";
+
+          const maxGrad = 2000;
+          const vx = getMeanSpeed(state.temperature);
+          const lMag = state.lMagCm / 100;
+          const maxDzAt2000 = computeDeflectionMeters(MU_B, maxGrad, vx, lMag, L_DRIFT) * 1000;
+          const yMax = Math.max(4, Math.ceil(maxDzAt2000 * 1.15));
+
+          // Y ticks
+          ctx.font = "600 10px ui-monospace, monospace";
+          ctx.fillStyle = "#94a3b8";
+          ctx.textAlign = "right";
+          for (let i = 0; i <= 4; i++) {
+            const val = (yMax * i) / 4;
+            const y = padT + plotH - (i / 4) * plotH;
+            ctx.fillText(val.toFixed(1), padL - 6, y + 3);
+            ctx.strokeStyle = "rgba(51, 65, 85, 0.45)";
+            ctx.beginPath();
+            ctx.moveTo(padL, y);
+            ctx.lineTo(padL + plotW, y);
+            ctx.stroke();
+          }
+
+          // X ticks
+          ctx.textAlign = "center";
+          for (let g = 0; g <= 2000; g += 500) {
+            const x = padL + (g / maxGrad) * plotW;
+            ctx.fillText(`${g}`, x, padT + plotH + 16);
+          }
+          ctx.fillStyle = "#cbd5e1";
+          ctx.fillText("Field Gradient ∂Bz/∂z (T/m)", padL + plotW / 2, H - 5);
+
+          ctx.save();
+          ctx.translate(13, padT + plotH / 2);
+          ctx.rotate(-Math.PI / 2);
+          ctx.fillText("Deflection Δz (mm)", 0, 0);
+          ctx.restore();
+
+          // Theoretical Δz(grad) line
+          ctx.strokeStyle = "#38bdf8";
+          ctx.lineWidth = 2.2;
+          ctx.beginPath();
+          ctx.moveTo(padL, padT + plotH);
+          const endY = padT + plotH - (maxDzAt2000 / yMax) * plotH;
+          ctx.lineTo(padL + plotW, endY);
+          ctx.stroke();
+
+          // Operating point marker
+          const opX = padL + (state.gradient / maxGrad) * plotW;
+          const opDz = computePeakDeflectionMM();
+          const opY = padT + plotH - (opDz / yMax) * plotH;
+
+          ctx.beginPath();
+          ctx.arc(opX, opY, 6, 0, Math.PI * 2);
+          ctx.fillStyle = "#2dd4bf";
+          ctx.fill();
+          ctx.strokeStyle = "#090d16";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          ctx.fillStyle = "#2dd4bf";
+          ctx.textAlign = opX > padL + plotW * 0.7 ? "right" : "left";
+          ctx.fillText(
+            `(${state.gradient} T/m, ${opDz.toFixed(2)} mm)`,
+            opX + (opX > padL + plotW * 0.7 ? -10 : 10),
+            Math.max(padT + 14, opY - 8)
+          );
+        } else {
+          // Plot B Mode 2: Sequential Quantum Transition Probability P(±) vs Analyzer Angle α
+          document.getElementById("plotBTitle").innerHTML = "Plot B: Spin Probability P(±) vs Angle α";
+          document.getElementById("plotBTag").textContent = "cos²(α/2) & sin²(α/2)";
+
+          ctx.font = "600 10px ui-monospace, monospace";
+          ctx.fillStyle = "#94a3b8";
+          ctx.textAlign = "right";
+          for (let i = 0; i <= 4; i++) {
+            const p = i * 0.25;
+            const y = padT + plotH - p * plotH;
+            ctx.fillText(p.toFixed(2), padL - 6, y + 3);
+            ctx.strokeStyle = "rgba(51, 65, 85, 0.45)";
+            ctx.beginPath();
+            ctx.moveTo(padL, y);
+            ctx.lineTo(padL + plotW, y);
+            ctx.stroke();
+          }
+
+          ctx.textAlign = "center";
+          for (let a = 0; a <= 180; a += 45) {
+            const x = padL + (a / 180) * plotW;
+            ctx.fillText(`${a}°`, x, padT + plotH + 16);
+          }
+          ctx.fillStyle = "#cbd5e1";
+          ctx.fillText("SG-2 Analyzer Angle α (degrees)", padL + plotW / 2, H - 5);
+
+          ctx.save();
+          ctx.translate(13, padT + plotH / 2);
+          ctx.rotate(-Math.PI / 2);
+          ctx.fillText("Probability P(±)", 0, 0);
+          ctx.restore();
+
+          // P(+) = cos^2(alpha/2) curve
+          ctx.strokeStyle = "#2dd4bf";
+          ctx.lineWidth = 2.2;
+          ctx.beginPath();
+          for (let deg = 0; deg <= 180; deg += 2) {
+            const rad = (deg * Math.PI) / 180;
+            const p = Math.pow(Math.cos(rad / 2), 2);
+            const x = padL + (deg / 180) * plotW;
+            const y = padT + plotH - p * plotH;
+            if (deg === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+
+          // P(-) = sin^2(alpha/2) curve
+          ctx.strokeStyle = "#fb7185";
+          ctx.lineWidth = 2.2;
+          ctx.beginPath();
+          for (let deg = 0; deg <= 180; deg += 2) {
+            const rad = (deg * Math.PI) / 180;
+            const p = Math.pow(Math.sin(rad / 2), 2);
+            const x = padL + (deg / 180) * plotW;
+            const y = padT + plotH - p * plotH;
+            if (deg === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+
+          // Operating vertical cursor at current alphaDeg
+          const opX = padL + (state.alphaDeg / 180) * plotW;
+          const curRad = (state.alphaDeg * Math.PI) / 180;
+          const curPPlus = Math.pow(Math.cos(curRad / 2), 2);
+          const curPMinus = Math.pow(Math.sin(curRad / 2), 2);
+
+          ctx.save();
+          ctx.setLineDash([4, 4]);
+          ctx.strokeStyle = "#fbbf24";
+          ctx.beginPath();
+          ctx.moveTo(opX, padT);
+          ctx.lineTo(opX, padT + plotH);
+          ctx.stroke();
+          ctx.restore();
+
+          // Markers
+          ctx.fillStyle = "#2dd4bf";
+          ctx.beginPath();
+          ctx.arc(opX, padT + plotH - curPPlus * plotH, 5, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = "#fb7185";
+          ctx.beginPath();
+          ctx.arc(opX, padT + plotH - curPMinus * plotH, 5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // =========================================================================
+      // 8. PANEL 4 TELEMETRY & UI SYNCHRONIZATION
+      // =========================================================================
+      function updateTelemetryAndBadges() {
+        const vx = getMeanSpeed(state.temperature);
+        const fz = MU_B * state.gradient;
+        const dz = computePeakDeflectionMM();
+        const lMag = state.lMagCm / 100;
+        const t1_us = (lMag / vx) * 1e6;
+
+        document.getElementById("readoutVx").innerHTML = `${vx.toFixed(1)}<span class="unit">m/s</span>`;
+        document.getElementById("readoutFz").innerHTML =
+          fz === 0 ? `0.00<span class="unit">N</span>` : `${fz.toExponential(3)}<span class="unit">N</span>`;
+        document.getElementById("readoutDz").innerHTML = `${dz.toFixed(2)}<span class="unit">mm</span>`;
+        document.getElementById("readoutSep").innerHTML = `${(2 * dz).toFixed(2)}<span class="unit">mm</span>`;
+        document.getElementById("readoutT1").innerHTML = `${t1_us.toFixed(1)}<span class="unit">μs</span>`;
+
+        const totalUpDown = state.upperDetected + state.lowerDetected;
+        if (totalUpDown > 0) {
+          const upPct = ((state.upperDetected / totalUpDown) * 100).toFixed(1);
+          const dnPct = ((state.lowerDetected / totalUpDown) * 100).toFixed(1);
+          document.getElementById("readoutRatio").textContent = `${upPct}% / ${dnPct}%`;
+        } else {
+          document.getElementById("readoutRatio").textContent = `50.0% / 50.0%`;
+        }
+
+        document.getElementById("detectedCountLabel").innerHTML = `Detected: <strong>${state.totalDetected}</strong> atoms`;
+
+        // Update Regime Status Badge
+        const badge = document.getElementById("regimeBadge");
+        badge.classList.remove("classical", "sequential");
+        if (state.stageMode === "sequential") {
+          badge.classList.add("sequential");
+          const pPlus = (Math.pow(Math.cos((state.alphaDeg * Math.PI) / 360), 2) * 100).toFixed(0);
+          badge.textContent = `SEQUENTIAL ANALYZER (α = ${state.alphaDeg}°): P(+) = cos²(α/2) = ${pPlus}%`;
+        } else if (state.physicsMode === "classical") {
+          badge.classList.add("classical");
+          badge.textContent = "CLASSICAL CONTINUUM PREDICTION: CONTINUOUS μz ∈ [−μB, +μB]";
+        } else if (state.gradient === 0) {
+          badge.textContent = "ZERO FIELD GRADIENT (∂Bz/∂z = 0): UNDEFLECTED CENTRAL BEAM";
+        } else {
+          badge.textContent = "QUANTUM SPACE QUANTIZATION: 2 DISCRETE EIGENSTATES (ms = ±1/2)";
+        }
+      }
+
+      // =========================================================================
+      // 9. ANIMATION LOOP
+      // =========================================================================
+      let lastTimestamp = 0;
+
+      function stepSimulation(timestamp) {
+        if (!lastTimestamp) lastTimestamp = timestamp;
+        const dt = Math.min(0.05, (timestamp - lastTimestamp) / 1000);
+        lastTimestamp = timestamp;
+
+        if (!state.paused) {
+          // Emit atoms continuously if continuous mode is enabled
+          if (state.continuousBeam) {
+            state.emissionAccumulator += dt * 36; // ~36 atoms/sec visual stream
+            while (state.emissionAccumulator >= 1) {
+              state.emissionAccumulator -= 1;
+              state.atoms.push(createAtom(0));
+            }
+          }
+
+          // Advance atoms across the vacuum chamber
+          for (let i = state.atoms.length - 1; i >= 0; i--) {
+            const atom = state.atoms[i];
+            const speedScale = atom.vx / 500; // Visual transit normalized around ~500 m/s
+            atom.u += dt * 0.42 * speedScale;
+
+            // Check blocker in sequential mode at u = 0.44
+            if (state.stageMode === "sequential" && !atom.blocked && atom.u >= 0.44) {
+              const isLower = state.physicsMode === "quantum" ? atom.spin1 < 0 : atom.muZ1 < 0;
+              if (isLower) {
+                atom.blocked = true;
+                state.atoms.splice(i, 1);
+                continue;
+              }
+            }
+
+            if (atom.u >= 1.0) {
+              if (!atom.recorded) {
+                atom.recorded = true;
+                const zFinal = evaluateAtomZ_MM(atom, 1.0);
+                recordDeposit(zFinal, state.stageMode === "sequential" ? atom.spin2 : atom.spin1);
+              }
+              state.atoms.splice(i, 1);
+            }
+          }
+        }
+
+        renderApparatus();
+        renderPlotA();
+        renderPlotB();
+        updateTelemetryAndBadges();
+
+        requestAnimationFrame(stepSimulation);
+      }
+
+      // =========================================================================
+      // 10. EVENT BINDINGS & CLASSROOM PRESETS
+      // =========================================================================
+      function syncControlsUI() {
+        document.getElementById("sliderGrad").value = state.gradient;
+        document.getElementById("valGrad").textContent = `${state.gradient} T/m`;
+
+        document.getElementById("sliderTemp").value = state.temperature;
+        document.getElementById("valTemp").textContent = `${state.temperature} K`;
+
+        document.getElementById("sliderLmag").value = state.lMagCm.toFixed(1);
+        document.getElementById("valLmag").textContent = `${state.lMagCm.toFixed(1)} cm`;
+
+        document.getElementById("sliderAlpha").value = state.alphaDeg;
+        document.getElementById("valAlpha").textContent = `${state.alphaDeg}°`;
+
+        document.getElementById("modeQuantum").classList.toggle("active", state.physicsMode === "quantum");
+        document.getElementById("modeClassical").classList.toggle("active", state.physicsMode === "classical");
+
+        document.getElementById("stageSingle").classList.toggle("active", state.stageMode === "single");
+        document.getElementById("stageSequential").classList.toggle("active", state.stageMode === "sequential");
+
+        const alphaGroup = document.getElementById("alphaControlGroup");
+        alphaGroup.classList.toggle("disabled", state.stageMode !== "sequential");
+
+        document.getElementById("toggleThermalSpread").checked = state.thermalSpread;
+        document.getElementById("toggleVectors").checked = state.showVectors;
+
+        const btnBeam = document.getElementById("btnBeamMode");
+        btnBeam.classList.toggle("active", state.continuousBeam);
+        btnBeam.innerHTML = state.continuousBeam
+          ? "<span>● Continuous Beam</span>"
+          : "<span>○ Single-Atom Mode</span>";
+
+        document.querySelectorAll(".preset-btn").forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.preset === state.activePreset);
+        });
+      }
+
+      function applyPreset(name) {
+        state.activePreset = name;
+        if (name === "classic1922") {
+          state.physicsMode = "quantum";
+          state.stageMode = "single";
+          state.gradient = 1400;
+          state.temperature = 1000;
+          state.lMagCm = 5.0;
+          state.alphaDeg = 90;
+        } else if (name === "classical") {
+          state.physicsMode = "classical";
+          state.stageMode = "single";
+          state.gradient = 1400;
+          state.temperature = 1000;
+          state.lMagCm = 5.0;
+        } else if (name === "zeroField") {
+          state.physicsMode = "quantum";
+          state.stageMode = "single";
+          state.gradient = 0;
+          state.temperature = 1000;
+          state.lMagCm = 5.0;
+        } else if (name === "highTemp") {
+          state.physicsMode = "quantum";
+          state.stageMode = "single";
+          state.gradient = 1400;
+          state.temperature = 1750;
+          state.lMagCm = 5.0;
+        } else if (name === "sequential90") {
+          state.physicsMode = "quantum";
+          state.stageMode = "sequential";
+          state.gradient = 1400;
+          state.temperature = 1000;
+          state.lMagCm = 5.0;
+          state.alphaDeg = 90;
+        }
+        clearCollectorPlate();
+        seedInitialAtoms();
+        syncControlsUI();
+      }
+
+      function bindUIEvents() {
+        document.getElementById("modeQuantum").addEventListener("click", () => {
+          state.physicsMode = "quantum";
+          state.activePreset = "";
+          clearCollectorPlate();
+          seedInitialAtoms();
+          syncControlsUI();
+        });
+
+        document.getElementById("modeClassical").addEventListener("click", () => {
+          state.physicsMode = "classical";
+          state.activePreset = "";
+          clearCollectorPlate();
+          seedInitialAtoms();
+          syncControlsUI();
+        });
+
+        document.getElementById("stageSingle").addEventListener("click", () => {
+          state.stageMode = "single";
+          state.activePreset = "";
+          clearCollectorPlate();
+          seedInitialAtoms();
+          syncControlsUI();
+        });
+
+        document.getElementById("stageSequential").addEventListener("click", () => {
+          state.stageMode = "sequential";
+          state.activePreset = "";
+          clearCollectorPlate();
+          seedInitialAtoms();
+          syncControlsUI();
+        });
+
+        document.getElementById("sliderGrad").addEventListener("input", (e) => {
+          state.gradient = Number(e.target.value);
+          state.activePreset = "";
+          clearCollectorPlate();
+          syncControlsUI();
+        });
+
+        document.getElementById("sliderTemp").addEventListener("input", (e) => {
+          state.temperature = Number(e.target.value);
+          state.activePreset = "";
+          clearCollectorPlate();
+          syncControlsUI();
+        });
+
+        document.getElementById("sliderLmag").addEventListener("input", (e) => {
+          state.lMagCm = Number(e.target.value);
+          state.activePreset = "";
+          clearCollectorPlate();
+          syncControlsUI();
+        });
+
+        document.getElementById("sliderAlpha").addEventListener("input", (e) => {
+          state.alphaDeg = Number(e.target.value);
+          state.activePreset = "";
+          clearCollectorPlate();
+          syncControlsUI();
+        });
+
+        document.getElementById("toggleThermalSpread").addEventListener("change", (e) => {
+          state.thermalSpread = e.target.checked;
+          clearCollectorPlate();
+        });
+
+        document.getElementById("toggleVectors").addEventListener("change", (e) => {
+          state.showVectors = e.target.checked;
+        });
+
+        document.getElementById("btnBeamMode").addEventListener("click", () => {
+          state.continuousBeam = !state.continuousBeam;
+          syncControlsUI();
+        });
+
+        document.getElementById("btnFireSingle").addEventListener("click", () => {
+          state.atoms.push(createAtom(0));
+        });
+
+        document.getElementById("btnPause").addEventListener("click", (e) => {
+          state.paused = !state.paused;
+          e.currentTarget.innerHTML = state.paused ? "<span>▶ Resume</span>" : "<span>⏸ Pause</span>";
+        });
+
+        document.getElementById("btnClearPlate").addEventListener("click", () => {
+          clearCollectorPlate();
+          updateTelemetryAndBadges();
+        });
+
+        document.querySelectorAll(".preset-btn").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            applyPreset(btn.dataset.preset);
+          });
+        });
+      }
+
+      // Utility rounded rectangle path
+      function roundRect(ctx, x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+      }
+
+      // =========================================================================
+      // 11. GUARANTEED INITIALIZATION & RESIZE OBSERVER
+      // =========================================================================
+      function initSimulator() {
+        bindUIEvents();
+        applyPreset("classic1922");
+
+        if (typeof ResizeObserver !== "undefined") {
+          const ro = new ResizeObserver(() => {
+            renderApparatus();
+            renderPlotA();
+            renderPlotB();
+          });
+          ro.observe(apparatusCanvas);
+          ro.observe(plotACanvas);
+          ro.observe(plotBCanvas);
+        }
+
+        renderApparatus();
+        renderPlotA();
+        renderPlotB();
+        updateTelemetryAndBadges();
+        requestAnimationFrame(stepSimulation);
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initSimulator);
+      } else {
+        initSimulator();
+      }
+      window.addEventListener("load", () => {
+        renderApparatus();
+        renderPlotA();
+        renderPlotB();
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,2097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Black-Body Radiation Simulator — Quantum Thermal Physics Lab</title>
+  <style>
+    /* =========================================================================
+       1. SELF-CONTAINED LABORATORY DESIGN SYSTEM (ZERO EXTERNAL DEPENDENCIES)
+       ========================================================================= */
+    :root {
+      --bg-base: #060a13;
+      --bg-panel: #0d1424;
+      --bg-card: #111a2e;
+      --bg-input: #080d1a;
+      --border-subtle: #1e293b;
+      --border-strong: #334155;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-sky: #38bdf8;
+      --accent-cyan: #22d3ee;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --accent-violet: #a855f7;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.45;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Header Bar */
+    .lab-header {
+      background: rgba(8, 13, 25, 0.96);
+      border-bottom: 1px solid var(--border-subtle);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      padding: 12px 20px;
+    }
+
+    .header-inner {
+      max-width: 1620px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: rgba(245, 158, 11, 0.14);
+      border: 1px solid rgba(245, 158, 11, 0.38);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-amber);
+      flex-shrink: 0;
+    }
+
+    .brand-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .formula-pill {
+      font-family: var(--font-mono);
+      font-size: 0.71rem;
+      font-weight: 600;
+      padding: 2px 9px;
+      border-radius: 999px;
+      background: rgba(245, 158, 11, 0.14);
+      color: #fcd34d;
+      border: 1px solid rgba(245, 158, 11, 0.34);
+    }
+
+    .brand-sub {
+      font-size: 0.76rem;
+      color: var(--text-secondary);
+    }
+
+    .preset-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .preset-label {
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+      margin-right: 2px;
+    }
+
+    .btn {
+      font-family: var(--font-sans);
+      font-size: 0.73rem;
+      font-weight: 600;
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border-strong);
+      background: #141e33;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .btn:hover {
+      background: #1d2b47;
+      border-color: #475569;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-rose { color: #fda4af; }
+    .btn-amber { color: #fcd34d; }
+    .btn-yellow { color: #fef08a; }
+    .btn-sky { color: #7dd3fc; }
+    .btn-cyan { color: #67e8f9; }
+    .btn-violet { color: #d8b4fe; }
+    .btn-emerald { color: #6ee7b7; }
+
+    .btn-active {
+      background: rgba(56, 189, 248, 0.18);
+      border-color: rgba(56, 189, 248, 0.45);
+      color: #7dd3fc;
+    }
+
+    .dot-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-amber);
+      display: inline-block;
+    }
+
+    /* Main Workspace Grid */
+    .workspace {
+      max-width: 1620px;
+      margin: 0 auto;
+      padding: 18px 20px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .grid-top {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .grid-curves {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    @media (max-width: 1140px) {
+      .grid-top,
+      .grid-curves {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: linear-gradient(180deg, #0f172a 0%, #0a101f 100%);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 12px 28px -12px rgba(0, 0, 0, 0.75);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .panel-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .panel-title {
+      font-size: 0.79rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-banner {
+      font-family: var(--font-mono);
+      font-size: 0.73rem;
+      font-weight: 600;
+      padding: 4px 11px;
+      border-radius: 999px;
+      background: rgba(245, 158, 11, 0.14);
+      color: #fcd34d;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+    }
+
+    /* Canvas Wrappers with Explicit Non-Zero Dimensions */
+    .canvas-box {
+      position: relative;
+      width: 100%;
+      height: 365px;
+      min-height: 340px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #050811;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .graph-box {
+      position: relative;
+      width: 100%;
+      height: 320px;
+      min-height: 290px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #050811;
+      border: 1px solid var(--border-subtle);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .canvas-overlay-bottom-left {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      background: rgba(6, 10, 19, 0.9);
+      border: 1px solid var(--border-subtle);
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 0.7rem;
+      color: #cbd5e1;
+      pointer-events: none;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .canvas-overlay-bottom-right {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      display: flex;
+      gap: 6px;
+    }
+
+    /* Control Cards */
+    .control-card {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .control-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .color-swatch {
+      width: 16px;
+      height: 16px;
+      border-radius: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      display: inline-block;
+      box-shadow: 0 0 10px rgba(255, 220, 150, 0.5);
+    }
+
+    .badge {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+    }
+
+    .badge-sky {
+      background: rgba(56, 189, 248, 0.14);
+      color: #7dd3fc;
+      border-color: rgba(56, 189, 248, 0.32);
+    }
+
+    .badge-violet {
+      background: rgba(168, 85, 247, 0.15);
+      color: #d8b4fe;
+      border-color: rgba(168, 85, 247, 0.35);
+    }
+
+    .badge-amber {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fcd34d;
+      border-color: rgba(245, 158, 11, 0.35);
+    }
+
+    .badge-rose {
+      background: rgba(244, 63, 94, 0.15);
+      color: #fda4af;
+      border-color: rgba(244, 63, 94, 0.35);
+    }
+
+    /* Range Sliders */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 7px;
+      border-radius: 999px;
+      background: #1e293b;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #f8fafc;
+      border: 3px solid #f59e0b;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.65);
+      cursor: pointer;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #f8fafc;
+      border: 3px solid #f59e0b;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.65);
+      cursor: pointer;
+    }
+
+    #tempSlider {
+      background: linear-gradient(
+        to right,
+        #450a0a 0%,
+        #b91c1c 16%,
+        #ea580c 30%,
+        #facc15 44%,
+        #fef9c3 55%,
+        #e0f2fe 75%,
+        #93c5fd 100%
+      );
+    }
+
+    #probeSlider {
+      background: linear-gradient(
+        to right,
+        #6b21a8 0%,
+        #3b82f6 10%,
+        #06b6d4 13%,
+        #22c55e 16%,
+        #eab308 18%,
+        #ef4444 22%,
+        #7f1d1d 32%,
+        #1e293b 100%
+      );
+    }
+
+    .slider-axis-labels {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--text-secondary);
+    }
+
+    .toggle-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    @media (max-width: 540px) {
+      .toggle-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .toggle-btn {
+      justify-content: space-between;
+      padding: 8px 10px;
+      font-size: 0.73rem;
+    }
+
+    /* Digital Telemetry Cards Grid (6 Cards) */
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+    }
+
+    @media (max-width: 1380px) {
+      .telemetry-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 720px) {
+      .telemetry-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .telemetry-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .meter-card {
+      background: #080d1a;
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 11px 13px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .meter-card.highlight-amber {
+      border-color: rgba(245, 158, 11, 0.42);
+      box-shadow: inset 0 0 18px rgba(245, 158, 11, 0.06);
+    }
+
+    .meter-card.highlight-sky {
+      border-color: rgba(56, 189, 248, 0.42);
+      box-shadow: inset 0 0 18px rgba(56, 189, 248, 0.06);
+    }
+
+    .meter-label {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .meter-value {
+      margin-top: 4px;
+      font-family: var(--font-mono);
+      font-size: 1.12rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .meter-unit {
+      font-size: 0.72rem;
+      font-weight: 400;
+      color: var(--text-secondary);
+    }
+
+    .meter-sub {
+      margin-top: 3px;
+      font-family: var(--font-mono);
+      font-size: 0.67rem;
+      color: var(--text-muted);
+    }
+
+    .graph-legends {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Laboratory Header -->
+  <header class="lab-header">
+    <div class="header-inner">
+      <div class="brand-group">
+        <div class="brand-icon" aria-hidden="true">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <path d="M12 1v2"></path><path d="M12 21v2"></path>
+            <path d="M4.22 4.22l1.42 1.42"></path><path d="M18.36 18.36l1.42 1.42"></path>
+            <path d="M1 12h2"></path><path d="M21 12h2"></path>
+            <path d="M4.22 19.78l1.42-1.42"></path><path d="M18.36 5.64l1.42-1.42"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title">
+            <span>Black-Body Radiation Simulator</span>
+            <span class="formula-pill">B_λ(T) = (2hc² / λ⁵) / (e^(hc/λk_BT) − 1)</span>
+          </div>
+          <div class="brand-sub">Planck Spectral Radiance, Wien's Displacement Law, Stefan–Boltzmann T⁴ &amp; Ultraviolet Catastrophe</div>
+        </div>
+      </div>
+
+      <div class="preset-bar">
+        <span class="preset-label">Objects:</span>
+        <button id="presetBodyBtn" class="btn btn-rose">Human Skin (310 K)</button>
+        <button id="presetBulbBtn" class="btn btn-amber">Incandescent Bulb (2,800 K)</button>
+        <button id="presetHalogenBtn" class="btn btn-yellow">Halogen / Melt (3,500 K)</button>
+        <button id="presetSunBtn" class="btn btn-emerald">Sun Photosphere (5,778 K)</button>
+        <button id="presetSiriusBtn" class="btn btn-sky">Sirius A Star (9,940 K)</button>
+        <button id="presetBlueBtn" class="btn btn-violet">Blue Supergiant (12,000 K)</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="workspace">
+
+    <!-- Top Row: Isothermal Hohlraum Cavity + Controls -->
+    <section class="grid-top">
+
+      <!-- Left: Hohlraum Cavity & Dispersive Spectrometer -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="dot-indicator" id="regimeDot"></span>
+            <span>Isothermal Black-Body Cavity (Hohlraum) &amp; Prism Spectrometer</span>
+          </div>
+          <div id="regimeBanner" class="status-banner tabular-nums">
+            Visible Peak (Solar) • λ_max = 502 nm
+          </div>
+        </div>
+
+        <div id="simCanvasWrapper" class="canvas-box">
+          <canvas id="simCanvas" width="840" height="365"></canvas>
+
+          <div class="canvas-overlay-bottom-left">
+            <span class="legend-item">
+              <span id="legendCoreSwatch" style="width:10px;height:10px;border-radius:50%;background:#fff4e4;display:inline-block;"></span>
+              <span>Thermal Core Glow</span>
+            </span>
+            <span class="legend-item">
+              <span style="width:12px;height:5px;border-radius:3px;background:#38bdf8;display:inline-block;"></span>
+              <span>Planck Cavity Modes</span>
+            </span>
+            <span class="legend-item">
+              <span style="width:12px;height:5px;border-radius:3px;background:#f59e0b;display:inline-block;"></span>
+              <span>Dispersed Spectrum</span>
+            </span>
+          </div>
+
+          <div class="canvas-overlay-bottom-right">
+            <button id="pauseBtn" class="btn">Pause</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Parameter Controls -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line>
+              <line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line>
+              <line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line>
+              <line x1="17" y1="16" x2="23" y2="16"></line>
+            </svg>
+            <span>Thermal &amp; Spectral Controls</span>
+          </div>
+          <span style="font-family:var(--font-mono);font-size:0.7rem;color:#94a3b8;">b = 2.898 mm·K</span>
+        </div>
+
+        <!-- 1. Equilibrium Temperature T -->
+        <div class="control-card">
+          <div class="control-row">
+            <label for="tempSlider" class="control-label">
+              <span>Equilibrium Temperature (T)</span>
+              <span id="tempColorSwatch" class="color-swatch" style="background:#fff4e4;"></span>
+              <span id="tempClassBadge" class="badge badge-amber">G2V Solar</span>
+            </label>
+            <div style="font-family:var(--font-mono);font-size:0.78rem;" class="tabular-nums">
+              <strong style="color:#fcd34d;"><span id="tempKVal">5,778</span> K</strong>
+              <span style="color:#475569;"> | </span>
+              <span style="color:#cbd5e1;"><span id="tempCVal">5,505</span> °C</span>
+            </div>
+          </div>
+
+          <input type="range" id="tempSlider" min="300" max="12000" step="10" value="5778" />
+
+          <div class="slider-axis-labels">
+            <span>300 K (Room / Body)</span>
+            <span>Wien Peak: λ_max = <span id="wienSliderHint" style="color:#6ee7b7;">502 nm</span></span>
+            <span>12,000 K (Blue Star)</span>
+          </div>
+        </div>
+
+        <!-- 2. Probe Wavelength lambda_probe -->
+        <div class="control-card">
+          <div class="control-row">
+            <label for="probeSlider" class="control-label">
+              <span>Probe Wavelength (λ<sub>probe</sub>)</span>
+              <span id="probeBandBadge" class="badge badge-sky">Visible (Green)</span>
+            </label>
+            <div style="font-family:var(--font-mono);font-size:0.76rem;" class="tabular-nums">
+              <strong style="color:#7dd3fc;"><span id="probeNmVal">550</span> nm</strong>
+              <span style="color:#475569;"> | </span>
+              <span style="color:#d8b4fe;">E = <span id="probeEvVal">2.25</span> eV</span>
+            </div>
+          </div>
+
+          <input type="range" id="probeSlider" min="100" max="3000" step="5" value="550" />
+
+          <div class="slider-axis-labels">
+            <span>100 nm (UV-C)</span>
+            <button id="snapProbeToPeakBtn" class="btn" style="padding:2px 8px;font-size:0.67rem;">Snap Probe to λ_max</button>
+            <span>3,000 nm (Mid-IR)</span>
+          </div>
+        </div>
+
+        <!-- 3. Classical & Spectral Overlays -->
+        <div class="control-card">
+          <div class="control-row">
+            <span class="control-label">Quantum vs. Classical Overlays</span>
+            <span style="font-family:var(--font-mono);font-size:0.68rem;color:#94a3b8;">B_RJ = 2ck_BT / λ⁴</span>
+          </div>
+
+          <div class="toggle-grid">
+            <button id="toggleRJBtn" class="btn btn-active toggle-btn">
+              <span>Rayleigh–Jeans (UV Catastrophe)</span>
+              <span id="rjStateText" style="font-family:var(--font-mono);font-size:0.68rem;">ON</span>
+            </button>
+            <button id="toggleWienBtn" class="btn btn-active toggle-btn">
+              <span>Wien's Peak Locus (λ_max)</span>
+              <span id="wienStateText" style="font-family:var(--font-mono);font-size:0.68rem;">ON</span>
+            </button>
+            <button id="toggleVisBandBtn" class="btn btn-active toggle-btn">
+              <span>Visible Band (380–750 nm)</span>
+              <span id="visBandStateText" style="font-family:var(--font-mono);font-size:0.68rem;">ON</span>
+            </button>
+            <button id="toggleAutoScaleBtn" class="btn btn-active toggle-btn">
+              <span>Y-Axis Scale Mode</span>
+              <span id="autoScaleStateText" style="font-family:var(--font-mono);font-size:0.68rem;">AUTO</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Middle Row: Two Live Characteristic Curves -->
+    <section class="grid-curves">
+
+      <!-- Plot 1: Spectral Radiance B_lambda(T) vs. Wavelength -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="dot-indicator" style="background:#38bdf8;"></span>
+            <span>Spectral Radiance B_λ(T) vs. Wavelength λ</span>
+          </div>
+          <div class="graph-legends">
+            <span class="legend-item">
+              <span style="width:12px;height:3px;background:#38bdf8;display:inline-block;"></span>
+              <span>Planck Law</span>
+            </span>
+            <span id="rjLegendItem" class="legend-item">
+              <span style="width:12px;height:0;border-top:2px dashed #f43f5e;display:inline-block;"></span>
+              <span>Rayleigh–Jeans</span>
+            </span>
+            <span class="legend-item">
+              <span style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;"></span>
+              <span>Probe λ</span>
+            </span>
+          </div>
+        </div>
+
+        <div id="planckCanvasWrapper" class="graph-box">
+          <canvas id="planckCanvas" width="800" height="320"></canvas>
+        </div>
+      </div>
+
+      <!-- Plot 2: Stefan-Boltzmann Total Radiant Exitance M(T) = sigma T^4 -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="dot-indicator" style="background:#f59e0b;"></span>
+            <span>Stefan–Boltzmann Exitance M(T) = σT⁴</span>
+          </div>
+          <div class="graph-legends">
+            <span class="legend-item">
+              <span style="width:8px;height:8px;border-radius:50%;background:#f59e0b;display:inline-block;"></span>
+              <span>Current State (T, M)</span>
+            </span>
+          </div>
+        </div>
+
+        <div id="stefanCanvasWrapper" class="graph-box">
+          <canvas id="stefanCanvas" width="620" height="320"></canvas>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Bottom Row: 6 Digital Instrumentation Telemetry Cards -->
+    <section class="panel" style="padding:14px 16px;">
+      <div class="panel-header" style="padding-bottom:8px;">
+        <div class="panel-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+            <line x1="8" y1="21" x2="16" y2="21"></line>
+            <line x1="12" y1="17" x2="12" y2="21"></line>
+          </svg>
+          <span>Quantum Thermal Telemetry</span>
+        </div>
+        <span style="font-family:var(--font-mono);font-size:0.7rem;color:#34d399;">● SIMPSON SPECTRAL INTEGRATION ACTIVE</span>
+      </div>
+
+      <div class="telemetry-grid">
+        <!-- Card 1: Peak Wavelength -->
+        <div class="meter-card highlight-amber">
+          <div class="meter-label" style="color:#fcd34d;">Peak Wavelength (λ_max)</div>
+          <div class="meter-value tabular-nums" style="color:#fbbf24;">
+            <span id="readoutPeakWl">501.5</span> <span class="meter-unit" id="readoutPeakWlUnit">nm</span>
+          </div>
+          <div class="meter-sub tabular-nums">
+            Wien's Law: λ_max = b / T
+          </div>
+        </div>
+
+        <!-- Card 2: Peak Spectral Radiance -->
+        <div class="meter-card">
+          <div class="meter-label">Peak Spectral Radiance</div>
+          <div class="meter-value tabular-nums" style="color:#38bdf8;">
+            <span id="readoutPeakB">26.35</span> <span class="meter-unit" id="readoutPeakBUnit">kW/(m²·sr·nm)</span>
+          </div>
+          <div class="meter-sub tabular-nums">
+            B_λ(λ_max, T) ∝ T⁵
+          </div>
+        </div>
+
+        <!-- Card 3: Total Radiant Exitance -->
+        <div class="meter-card highlight-amber">
+          <div class="meter-label" style="color:#fcd34d;">Total Exitance (M = σT⁴)</div>
+          <div class="meter-value tabular-nums" style="color:#f59e0b;">
+            <span id="readoutExitance">63.20</span> <span class="meter-unit" id="readoutExitanceUnit">MW/m²</span>
+          </div>
+          <div class="meter-sub tabular-nums">
+            Hemispherical flux ∫₀^∞ πB_λ dλ
+          </div>
+        </div>
+
+        <!-- Card 4: Peak Photon Energy -->
+        <div class="meter-card">
+          <div class="meter-label">Peak Photon Energy (E_peak)</div>
+          <div class="meter-value tabular-nums" style="color:#d8b4fe;">
+            <span id="readoutPeakEv">2.47</span> <span class="meter-unit">eV</span>
+          </div>
+          <div class="meter-sub tabular-nums">
+            E = hc / λ_max (f = <span id="readoutPeakTHz">598</span> THz)
+          </div>
+        </div>
+
+        <!-- Card 5: Probe Radiance -->
+        <div class="meter-card highlight-sky">
+          <div class="meter-label" style="color:#7dd3fc;">Probe Radiance B_λ(λ_probe)</div>
+          <div class="meter-value tabular-nums" style="color:#22d3ee;">
+            <span id="readoutProbeB">25.81</span> <span class="meter-unit" id="readoutProbeBUnit">kW/(m²·sr·nm)</span>
+          </div>
+          <div class="meter-sub tabular-nums">
+            At λ_probe = <span id="readoutProbeWlSub">550</span> nm
+          </div>
+        </div>
+
+        <!-- Card 6: UV / Visible / IR Power Split -->
+        <div class="meter-card">
+          <div class="meter-label">UV / Visible / IR Power Split</div>
+          <div class="meter-value tabular-nums" style="font-size:0.95rem;color:#6ee7b7;">
+            <span id="readoutUvPct" style="color:#c084fc;">10.0</span>% /
+            <span id="readoutVisPct" style="color:#6ee7b7;">43.3</span>% /
+            <span id="readoutIrPct" style="color:#fda4af;">46.7</span>%
+          </div>
+          <div class="meter-sub tabular-nums">
+            UV (&lt;380) • Vis • IR (&gt;750 nm)
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // =========================================================================
+      // 1. EXACT CODATA PHYSICAL CONSTANTS
+      // =========================================================================
+      const H = 6.62607015e-34;          // Planck constant (J·s)
+      const C = 2.99792458e8;            // Speed of light in vacuum (m/s)
+      const K_B = 1.380649e-23;          // Boltzmann constant (J/K)
+      const B_WIEN = 2.897771955e-3;     // Wien's displacement constant (m·K)
+      const SIGMA = 5.670374419e-8;      // Stefan-Boltzmann constant (W·m^-2·K^-4)
+      const E_CHARGE = 1.602176634e-19;  // Elementary charge (J/eV)
+
+      const TWO_HC2 = 2 * H * C * C;
+      const HC_OVER_KB = (H * C) / K_B;
+      const TWO_C_KB = 2 * C * K_B;
+
+      // =========================================================================
+      // 2. SIMULATION STATE
+      // =========================================================================
+      const state = {
+        tempK: 5778,
+        probeNm: 550,
+
+        // Display Toggles
+        showRayleighJeans: true,
+        showWienLocus: true,
+        showVisibleBand: true,
+        autoScaleY: true,
+        paused: false,
+
+        // Computed Physical Quantities
+        peakWlNm: 501.5,
+        peakRadiancePerNm: 26350, // W / (m^2 * sr * nm)
+        totalExitanceWm2: 63.20e6,
+        peakPhotonEv: 2.47,
+        peakFreqTHz: 598,
+        probeRadiancePerNm: 25810,
+        uvFraction: 0.100,
+        visFraction: 0.433,
+        irFraction: 0.467,
+        coreColor: { r: 255, g: 244, b: 228, rgb: 'rgb(255, 244, 228)' },
+
+        // Cavity Photon Mode Particles
+        cavityPhotons: [],
+        beamPackets: [],
+        beamTimer: 0
+      };
+
+      // =========================================================================
+      // 3. DOM REFERENCES
+      // =========================================================================
+      const dom = {
+        simCanvas: document.getElementById('simCanvas'),
+        simWrapper: document.getElementById('simCanvasWrapper'),
+        planckCanvas: document.getElementById('planckCanvas'),
+        planckWrapper: document.getElementById('planckCanvasWrapper'),
+        stefanCanvas: document.getElementById('stefanCanvas'),
+        stefanWrapper: document.getElementById('stefanCanvasWrapper'),
+
+        tempSlider: document.getElementById('tempSlider'),
+        tempKVal: document.getElementById('tempKVal'),
+        tempCVal: document.getElementById('tempCVal'),
+        tempColorSwatch: document.getElementById('tempColorSwatch'),
+        tempClassBadge: document.getElementById('tempClassBadge'),
+        wienSliderHint: document.getElementById('wienSliderHint'),
+
+        probeSlider: document.getElementById('probeSlider'),
+        probeNmVal: document.getElementById('probeNmVal'),
+        probeEvVal: document.getElementById('probeEvVal'),
+        probeBandBadge: document.getElementById('probeBandBadge'),
+        snapProbeToPeakBtn: document.getElementById('snapProbeToPeakBtn'),
+
+        regimeDot: document.getElementById('regimeDot'),
+        regimeBanner: document.getElementById('regimeBanner'),
+        legendCoreSwatch: document.getElementById('legendCoreSwatch'),
+
+        // Toggles & Presets
+        toggleRJBtn: document.getElementById('toggleRJBtn'),
+        rjStateText: document.getElementById('rjStateText'),
+        rjLegendItem: document.getElementById('rjLegendItem'),
+        toggleWienBtn: document.getElementById('toggleWienBtn'),
+        wienStateText: document.getElementById('wienStateText'),
+        toggleVisBandBtn: document.getElementById('toggleVisBandBtn'),
+        visBandStateText: document.getElementById('visBandStateText'),
+        toggleAutoScaleBtn: document.getElementById('toggleAutoScaleBtn'),
+        autoScaleStateText: document.getElementById('autoScaleStateText'),
+        pauseBtn: document.getElementById('pauseBtn'),
+
+        presetBodyBtn: document.getElementById('presetBodyBtn'),
+        presetBulbBtn: document.getElementById('presetBulbBtn'),
+        presetHalogenBtn: document.getElementById('presetHalogenBtn'),
+        presetSunBtn: document.getElementById('presetSunBtn'),
+        presetSiriusBtn: document.getElementById('presetSiriusBtn'),
+        presetBlueBtn: document.getElementById('presetBlueBtn'),
+
+        // Telemetry Readouts
+        readoutPeakWl: document.getElementById('readoutPeakWl'),
+        readoutPeakWlUnit: document.getElementById('readoutPeakWlUnit'),
+        readoutPeakB: document.getElementById('readoutPeakB'),
+        readoutPeakBUnit: document.getElementById('readoutPeakBUnit'),
+        readoutExitance: document.getElementById('readoutExitance'),
+        readoutExitanceUnit: document.getElementById('readoutExitanceUnit'),
+        readoutPeakEv: document.getElementById('readoutPeakEv'),
+        readoutPeakTHz: document.getElementById('readoutPeakTHz'),
+        readoutProbeB: document.getElementById('readoutProbeB'),
+        readoutProbeBUnit: document.getElementById('readoutProbeBUnit'),
+        readoutProbeWlSub: document.getElementById('readoutProbeWlSub'),
+        readoutUvPct: document.getElementById('readoutUvPct'),
+        readoutVisPct: document.getElementById('readoutVisPct'),
+        readoutIrPct: document.getElementById('readoutIrPct')
+      };
+
+      const simCtx = dom.simCanvas.getContext('2d');
+      const planckCtx = dom.planckCanvas.getContext('2d');
+      const stefanCtx = dom.stefanCanvas.getContext('2d');
+
+      // =========================================================================
+      // 4. EXACT PLANCK, RAYLEIGH-JEANS & NUMERICAL SPECTRAL INTEGRATION
+      // =========================================================================
+
+      /**
+       * Planck spectral radiance B_lambda(T) returned in W / (m^2 * sr * nm).
+       * Guards against floating-point overflow for small lambda * T.
+       */
+      function planckRadiancePerNm(lambdaNm, tempK) {
+        if (lambdaNm <= 0 || tempK <= 0) return 0;
+        const lamM = lambdaNm * 1e-9;
+        const exponent = HC_OVER_KB / (lamM * tempK);
+        if (exponent > 700) return 0; // exp(700) ~ 1e304 -> B_lambda -> 0 safely
+        const denom = Math.expm1(exponent);
+        if (denom <= 0) return 0;
+        const bPerMeter = (TWO_HC2 / Math.pow(lamM, 5)) / denom;
+        return bPerMeter * 1e-9; // Convert per-meter to per-nanometer
+      }
+
+      /**
+       * Classical Rayleigh-Jeans spectral radiance B_RJ(lambda, T) in W / (m^2 * sr * nm).
+       */
+      function rayleighJeansPerNm(lambdaNm, tempK) {
+        if (lambdaNm <= 0 || tempK <= 0) return 0;
+        const lamM = lambdaNm * 1e-9;
+        const bPerMeter = (TWO_C_KB * tempK) / Math.pow(lamM, 4);
+        return bPerMeter * 1e-9;
+      }
+
+      /**
+       * Numerically integrates Planck radiance across a wavelength interval [aNm, bNm]
+       * using composite Simpson's rule to compute exact UV, Visible, and IR power fractions.
+       */
+      function integrateBand(aNm, bNm, tempK, steps) {
+        const n = steps % 2 === 0 ? steps : steps + 1;
+        const hStep = (bNm - aNm) / n;
+        let sum = planckRadiancePerNm(aNm, tempK) + planckRadiancePerNm(bNm, tempK);
+        for (let i = 1; i < n; i++) {
+          const wl = aNm + i * hStep;
+          const weight = i % 2 === 0 ? 2 : 4;
+          sum += weight * planckRadiancePerNm(wl, tempK);
+        }
+        return (hStep / 3) * sum;
+      }
+
+      /**
+       * Computes exact UV (<380 nm), Visible (380-750 nm), and IR (>750 nm) fractions
+       * normalized against total hemispherical radiance M(T) / pi = sigma * T^4 / pi.
+       */
+      function computeSpectralFractions(tempK) {
+        const totalHemisphericalRadiance = (SIGMA * Math.pow(tempK, 4)) / Math.PI;
+        if (totalHemisphericalRadiance <= 0) {
+          return { uv: 0, vis: 0, ir: 1 };
+        }
+
+        // Adapt lower bound to capture deep UV at high T cleanly
+        const uvStart = Math.max(15, (B_WIEN / tempK) * 1e9 * 0.08);
+        const uvInt = uvStart < 380 ? integrateBand(uvStart, 380, tempK, 160) : 0;
+        const visInt = integrateBand(380, 750, tempK, 180);
+
+        let uv = Math.max(0, Math.min(1, uvInt / totalHemisphericalRadiance));
+        let vis = Math.max(0, Math.min(1, visInt / totalHemisphericalRadiance));
+        let ir = Math.max(0, 1 - uv - vis);
+
+        return { uv, vis, ir };
+      }
+
+      /**
+       * Converts black-body temperature (300 K to 12,000 K) into perceptual RGB color
+       * based on Tanner Helland / CIE Planckian locus chromaticity approximation,
+       * blended smoothly to dark ember red below 1000 K so infrared cavities remain legible.
+       */
+      function temperatureToBlackbodyColor(tempK) {
+        if (tempK < 1000) {
+          const t = Math.max(0, (tempK - 300) / 700);
+          const r = Math.round(58 + t * 197);
+          const g = Math.round(12 + t * 44);
+          const b = Math.round(16 + t * 14);
+          return { r, g, b, rgb: `rgb(${r}, ${g}, ${b})` };
+        }
+
+        const temp = tempK / 100;
+        let r, g, b;
+
+        if (temp <= 66) {
+          r = 255;
+          g = 99.4708025861 * Math.log(temp) - 161.1195681661;
+          if (temp <= 19) {
+            b = 0;
+          } else {
+            b = 138.5177312231 * Math.log(temp - 10) - 305.0447927307;
+          }
+        } else {
+          r = 329.698727446 * Math.pow(temp - 60, -0.1332047592);
+          g = 288.1221695283 * Math.pow(temp - 60, -0.0755148492);
+          b = 255;
+        }
+
+        r = Math.max(0, Math.min(255, Math.round(r)));
+        g = Math.max(0, Math.min(255, Math.round(g)));
+        b = Math.max(0, Math.min(255, Math.round(b)));
+        return { r, g, b, rgb: `rgb(${r}, ${g}, ${b})` };
+      }
+
+      /**
+       * Maps wavelength (nm) to RGB color for spectrum bars and photon modes.
+       */
+      function wavelengthToColor(wlNm) {
+        let r = 0, g = 0, b = 0;
+        if (wlNm < 380) {
+          r = 168; g = 85; b = 247; // UV indicator
+        } else if (wlNm > 750) {
+          const fade = Math.max(0.35, 1 - (wlNm - 750) / 2250);
+          r = Math.round(220 * fade); g = Math.round(38 * fade); b = Math.round(38 * fade);
+        } else {
+          if (wlNm < 440) {
+            r = -(wlNm - 440) / 60; g = 0; b = 1;
+          } else if (wlNm < 490) {
+            r = 0; g = (wlNm - 440) / 50; b = 1;
+          } else if (wlNm < 510) {
+            r = 0; g = 1; b = -(wlNm - 510) / 20;
+          } else if (wlNm < 580) {
+            r = (wlNm - 510) / 70; g = 1; b = 0;
+          } else if (wlNm < 645) {
+            r = 1; g = -(wlNm - 645) / 65; b = 0;
+          } else {
+            r = 1; g = 0; b = 0;
+          }
+          r = Math.round(255 * Math.pow(r, 0.85));
+          g = Math.round(255 * Math.pow(g, 0.85));
+          b = Math.round(255 * Math.pow(b, 0.85));
+        }
+        return { r, g, b, rgb: `rgb(${r}, ${g}, ${b})`, rgba: (a) => `rgba(${r}, ${g}, ${b}, ${a})` };
+      }
+
+      function recalcPhysics() {
+        const T = state.tempK;
+        state.peakWlNm = (B_WIEN / T) * 1e9;
+        state.peakRadiancePerNm = planckRadiancePerNm(state.peakWlNm, T);
+        state.totalExitanceWm2 = SIGMA * Math.pow(T, 4);
+        state.peakPhotonEv = (H * C) / (state.peakWlNm * 1e-9 * E_CHARGE);
+        state.peakFreqTHz = (C / (state.peakWlNm * 1e-9)) / 1e12;
+        state.probeRadiancePerNm = planckRadiancePerNm(state.probeNm, T);
+
+        const fracs = computeSpectralFractions(T);
+        state.uvFraction = fracs.uv;
+        state.visFraction = fracs.vis;
+        state.irFraction = fracs.ir;
+        state.coreColor = temperatureToBlackbodyColor(T);
+
+        updateDOMReadouts();
+      }
+
+      function formatPeakWavelength(nm) {
+        if (nm >= 1000) {
+          return { val: (nm / 1000).toFixed(2), unit: 'μm', compact: `${(nm / 1000).toFixed(2)} μm` };
+        }
+        return { val: nm.toFixed(1), unit: 'nm', compact: `${Math.round(nm)} nm` };
+      }
+
+      function formatRadiance(wPerM2SrNm) {
+        if (wPerM2SrNm >= 1e6) return { val: (wPerM2SrNm / 1e6).toFixed(2), unit: 'MW/(m²·sr·nm)' };
+        if (wPerM2SrNm >= 1e3) return { val: (wPerM2SrNm / 1e3).toFixed(2), unit: 'kW/(m²·sr·nm)' };
+        if (wPerM2SrNm >= 1) return { val: wPerM2SrNm.toFixed(2), unit: 'W/(m²·sr·nm)' };
+        if (wPerM2SrNm >= 1e-3) return { val: (wPerM2SrNm * 1e3).toFixed(2), unit: 'mW/(m²·sr·nm)' };
+        return { val: wPerM2SrNm.toExponential(2), unit: 'W/(m²·sr·nm)' };
+      }
+
+      function formatExitance(wm2) {
+        if (wm2 >= 1e9) return { val: (wm2 / 1e9).toFixed(2), unit: 'GW/m²' };
+        if (wm2 >= 1e6) return { val: (wm2 / 1e6).toFixed(2), unit: 'MW/m²' };
+        if (wm2 >= 1e3) return { val: (wm2 / 1e3).toFixed(2), unit: 'kW/m²' };
+        return { val: wm2.toFixed(1), unit: 'W/m²' };
+      }
+
+      function updateDOMReadouts() {
+        const T = state.tempK;
+        dom.tempKVal.textContent = T.toLocaleString();
+        dom.tempCVal.textContent = Math.round(T - 273.15).toLocaleString();
+        dom.tempColorSwatch.style.background = state.coreColor.rgb;
+        dom.legendCoreSwatch.style.background = state.coreColor.rgb;
+
+        const peakFmt = formatPeakWavelength(state.peakWlNm);
+        dom.wienSliderHint.textContent = peakFmt.compact;
+
+        // Regime & Classification Badges
+        if (state.peakWlNm > 750) {
+          dom.tempClassBadge.textContent = T < 500 ? 'Thermal Infrared' : 'Red-Hot / IR';
+          dom.tempClassBadge.className = 'badge badge-rose';
+          dom.regimeDot.style.background = '#f43f5e';
+          dom.regimeBanner.textContent = `Infrared Dominated (${(state.irFraction * 100).toFixed(1)}% IR) • λ_max = ${peakFmt.compact}`;
+          dom.regimeBanner.style.background = 'rgba(244, 63, 94, 0.14)';
+          dom.regimeBanner.style.color = '#fda4af';
+          dom.regimeBanner.style.borderColor = 'rgba(244, 63, 94, 0.35)';
+        } else if (state.peakWlNm >= 380) {
+          dom.tempClassBadge.textContent = 'Visible Peak (Solar)';
+          dom.tempClassBadge.className = 'badge badge-amber';
+          dom.regimeDot.style.background = '#f59e0b';
+          dom.regimeBanner.textContent = `Visible Peak (Solar) • λ_max = ${peakFmt.compact}`;
+          dom.regimeBanner.style.background = 'rgba(245, 158, 11, 0.14)';
+          dom.regimeBanner.style.color = '#fcd34d';
+          dom.regimeBanner.style.borderColor = 'rgba(245, 158, 11, 0.35)';
+        } else {
+          dom.tempClassBadge.textContent = 'UV Dominated (O/B Star)';
+          dom.tempClassBadge.className = 'badge badge-violet';
+          dom.regimeDot.style.background = '#a855f7';
+          dom.regimeBanner.textContent = `UV Dominated (${(state.uvFraction * 100).toFixed(1)}% UV) • λ_max = ${peakFmt.compact}`;
+          dom.regimeBanner.style.background = 'rgba(168, 85, 247, 0.14)';
+          dom.regimeBanner.style.color = '#d8b4fe';
+          dom.regimeBanner.style.borderColor = 'rgba(168, 85, 247, 0.35)';
+        }
+
+        // Probe Controls
+        const probeEv = (H * C) / (state.probeNm * 1e-9 * E_CHARGE);
+        dom.probeNmVal.textContent = state.probeNm;
+        dom.probeEvVal.textContent = probeEv.toFixed(2);
+
+        if (state.probeNm < 380) {
+          dom.probeBandBadge.textContent = 'Ultraviolet (UV)';
+          dom.probeBandBadge.className = 'badge badge-violet';
+        } else if (state.probeNm <= 750) {
+          dom.probeBandBadge.textContent = 'Visible Spectrum';
+          dom.probeBandBadge.className = 'badge badge-sky';
+        } else {
+          dom.probeBandBadge.textContent = 'Infrared (IR)';
+          dom.probeBandBadge.className = 'badge badge-rose';
+        }
+
+        // 6 Digital Telemetry Cards
+        dom.readoutPeakWl.textContent = peakFmt.val;
+        dom.readoutPeakWlUnit.textContent = peakFmt.unit;
+
+        const radFmt = formatRadiance(state.peakRadiancePerNm);
+        dom.readoutPeakB.textContent = radFmt.val;
+        dom.readoutPeakBUnit.textContent = radFmt.unit;
+
+        const exitFmt = formatExitance(state.totalExitanceWm2);
+        dom.readoutExitance.textContent = exitFmt.val;
+        dom.readoutExitanceUnit.textContent = exitFmt.unit;
+
+        dom.readoutPeakEv.textContent = state.peakPhotonEv.toFixed(2);
+        dom.readoutPeakTHz.textContent = Math.round(state.peakFreqTHz).toLocaleString();
+
+        const probeRadFmt = formatRadiance(state.probeRadiancePerNm);
+        dom.readoutProbeB.textContent = probeRadFmt.val;
+        dom.readoutProbeBUnit.textContent = probeRadFmt.unit;
+        dom.readoutProbeWlSub.textContent = state.probeNm;
+
+        dom.readoutUvPct.textContent = (state.uvFraction * 100).toFixed(1);
+        dom.readoutVisPct.textContent = (state.visFraction * 100).toFixed(1);
+        dom.readoutIrPct.textContent = (state.irFraction * 100).toFixed(1);
+      }
+
+      // =========================================================================
+      // 5. GUARANTEED CANVAS SIZING & RESIZE OBSERVER
+      // =========================================================================
+      let simW = 840, simH = 365;
+      let planckW = 800, planckH = 320;
+      let stefanW = 620, stefanH = 320;
+
+      function resizeCanvases() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+        const r1 = dom.simWrapper.getBoundingClientRect();
+        simW = r1.width > 50 ? r1.width : (dom.simWrapper.clientWidth || 840);
+        simH = r1.height > 50 ? r1.height : (dom.simWrapper.clientHeight || 365);
+        dom.simCanvas.width = Math.round(simW * dpr);
+        dom.simCanvas.height = Math.round(simH * dpr);
+        simCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        const r2 = dom.planckWrapper.getBoundingClientRect();
+        planckW = r2.width > 50 ? r2.width : (dom.planckWrapper.clientWidth || 800);
+        planckH = r2.height > 50 ? r2.height : (dom.planckWrapper.clientHeight || 320);
+        dom.planckCanvas.width = Math.round(planckW * dpr);
+        dom.planckCanvas.height = Math.round(planckH * dpr);
+        planckCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        const r3 = dom.stefanWrapper.getBoundingClientRect();
+        stefanW = r3.width > 50 ? r3.width : (dom.stefanWrapper.clientWidth || 620);
+        stefanH = r3.height > 50 ? r3.height : (dom.stefanWrapper.clientHeight || 320);
+        dom.stefanCanvas.width = Math.round(stefanW * dpr);
+        dom.stefanCanvas.height = Math.round(stefanH * dpr);
+        stefanCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        renderSimulation(performance.now() / 1000);
+        renderPlanckPlot();
+        renderStefanPlot();
+      }
+
+      window.addEventListener('resize', resizeCanvases);
+      if (typeof ResizeObserver !== 'undefined') {
+        const ro = new ResizeObserver(() => resizeCanvases());
+        ro.observe(dom.simWrapper);
+        ro.observe(dom.planckWrapper);
+        ro.observe(dom.stefanWrapper);
+      }
+
+      // =========================================================================
+      // 6. HOHLRAUM CAVITY & DISPERSIVE SPECTROMETER ANIMATION
+      // =========================================================================
+      function samplePlanckWavelengthNm(tempK) {
+        // Sample around Wien peak using log-normal approximation matching Planck distribution shape
+        const peak = (B_WIEN / tempK) * 1e9;
+        const u1 = Math.max(1e-6, Math.random());
+        const u2 = Math.random();
+        const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+        return Math.max(120, Math.min(2800, peak * Math.exp(0.45 * z)));
+      }
+
+      function seedCavityPhotons() {
+        state.cavityPhotons = [];
+        for (let i = 0; i < 24; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = 75 + Math.random() * 65;
+          state.cavityPhotons.push({
+            rx: (Math.random() - 0.5) * 0.65,
+            ry: (Math.random() - 0.5) * 0.65,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            wlNm: samplePlanckWavelengthNm(state.tempK),
+            phase: Math.random() * Math.PI * 2
+          });
+        }
+
+        state.beamPackets = [];
+        for (let j = 0; j < 4; j++) {
+          state.beamPackets.push({
+            progress: j / 4,
+            wlNm: samplePlanckWavelengthNm(state.tempK),
+            phase: Math.random() * Math.PI * 2
+          });
+        }
+      }
+
+      function updateSimulation(dt) {
+        if (state.paused) return;
+
+        const cavityRadius = Math.min(simW * 0.17, simH * 0.34, 118);
+        const innerR = cavityRadius * 0.78;
+
+        for (const p of state.cavityPhotons) {
+          let x = p.rx * innerR + p.vx * dt;
+          let y = p.ry * innerR + p.vy * dt;
+          const dist = Math.hypot(x, y);
+
+          if (dist >= innerR) {
+            // Specular reflection inside spherical hohlraum + thermal re-equilibration
+            const nx = x / dist;
+            const ny = y / dist;
+            const dot = p.vx * nx + p.vy * ny;
+            p.vx -= 2 * dot * nx;
+            p.vy -= 2 * dot * ny;
+            x = nx * (innerR - 1);
+            y = ny * (innerR - 1);
+            p.wlNm = samplePlanckWavelengthNm(state.tempK);
+          }
+
+          p.rx = x / innerR;
+          p.ry = y / innerR;
+          p.phase += dt * 22;
+        }
+
+        const rate = 1.6 + Math.min(4.0, (state.tempK / 3000) * 1.4);
+        state.beamTimer += dt * rate;
+        if (state.beamTimer >= 1) {
+          state.beamTimer -= 1;
+          if (state.beamPackets.length < 10) {
+            state.beamPackets.push({
+              progress: 0,
+              wlNm: samplePlanckWavelengthNm(state.tempK),
+              phase: Math.random() * Math.PI * 2
+            });
+          }
+        }
+
+        for (let i = state.beamPackets.length - 1; i >= 0; i--) {
+          const bp = state.beamPackets[i];
+          bp.progress += dt * 0.75;
+          bp.phase += dt * 24;
+          if (bp.progress >= 1.0) {
+            state.beamPackets.splice(i, 1);
+          }
+        }
+      }
+
+      function drawRoundedRect(ctx, x, y, w, h, r) {
+        const radius = Math.min(r, w * 0.5, h * 0.5);
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + w - radius, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
+        ctx.lineTo(x + w, y + h - radius);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+        ctx.lineTo(x + radius, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
+        ctx.lineTo(x, y + radius);
+        ctx.quadraticCurveTo(x, y, x + radius, y);
+        ctx.closePath();
+      }
+
+      function renderSimulation(nowSec) {
+        const ctx = simCtx;
+        const w = simW;
+        const h = simH;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // Background Grid
+        ctx.save();
+        ctx.strokeStyle = 'rgba(30, 41, 59, 0.32)';
+        ctx.lineWidth = 1;
+        for (let gx = 0; gx < w; gx += 28) {
+          ctx.beginPath();
+          ctx.moveTo(gx, 0);
+          ctx.lineTo(gx, h);
+          ctx.stroke();
+        }
+        for (let gy = 0; gy < h; gy += 28) {
+          ctx.beginPath();
+          ctx.moveTo(0, gy);
+          ctx.lineTo(w, gy);
+          ctx.stroke();
+        }
+        ctx.restore();
+
+        // Key Geometry Coordinates
+        const cavX = w * 0.23;
+        const cavY = h * 0.48;
+        const outerR = Math.min(w * 0.17, h * 0.34, 118);
+        const innerR = outerR * 0.78;
+        const apertureHalfH = 11;
+
+        const slitX = w * 0.45;
+        const prismX = w * 0.58;
+        const detectorX = w * 0.87;
+        const detectorTop = cavY - outerR * 0.92;
+        const detectorH = outerR * 1.84;
+
+        const core = state.coreColor;
+
+        // 1. Ambient Thermal Halo Around Cavity
+        ctx.save();
+        const haloGrad = ctx.createRadialGradient(cavX, cavY, innerR * 0.3, cavX, cavY, outerR * 1.55);
+        haloGrad.addColorStop(0, `rgba(${core.r}, ${core.g}, ${core.b}, 0.36)`);
+        haloGrad.addColorStop(0.6, `rgba(${core.r}, ${core.g}, ${core.b}, 0.10)`);
+        haloGrad.addColorStop(1, 'rgba(5, 8, 17, 0)');
+        ctx.fillStyle = haloGrad;
+        ctx.beginPath();
+        ctx.arc(cavX, cavY, outerR * 1.55, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // 2. Hohlraum Insulated Cavity Wall with Right-Side Aperture
+        ctx.save();
+        const apertureAngle = Math.asin(apertureHalfH / outerR);
+
+        // Glowing interior core fill
+        const coreGrad = ctx.createRadialGradient(cavX, cavY, 4, cavX, cavY, innerR);
+        coreGrad.addColorStop(0, `rgba(${core.r}, ${core.g}, ${core.b}, 0.72)`);
+        coreGrad.addColorStop(0.75, `rgba(${core.r}, ${core.g}, ${core.b}, 0.32)`);
+        coreGrad.addColorStop(1, `rgba(${core.r}, ${core.g}, ${core.b}, 0.14)`);
+        ctx.fillStyle = coreGrad;
+        ctx.beginPath();
+        ctx.arc(cavX, cavY, innerR, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Thick refractory cavity wall with opening on right (+x)
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = outerR - innerR;
+        ctx.lineCap = 'butt';
+        ctx.beginPath();
+        ctx.arc(cavX, cavY, (outerR + innerR) * 0.5, apertureAngle, Math.PI * 2 - apertureAngle);
+        ctx.stroke();
+
+        // Inner incandescent wall lining
+        ctx.strokeStyle = core.rgb;
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.arc(cavX, cavY, innerR, apertureAngle * 1.15, Math.PI * 2 - apertureAngle * 1.15);
+        ctx.stroke();
+
+        // Outer metallic casing rim
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.arc(cavX, cavY, outerR, apertureAngle * 0.9, Math.PI * 2 - apertureAngle * 0.9);
+        ctx.stroke();
+
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = '600 11px -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Isothermal Hohlraum (${state.tempK.toLocaleString()} K)`, cavX, cavY - outerR - 12);
+        ctx.restore();
+
+        // 3. Internal Thermal Equilibrium Photon Modes
+        for (const p of state.cavityPhotons) {
+          const px = cavX + p.rx * innerR;
+          const py = cavY + p.ry * innerR;
+          const pCol = wavelengthToColor(p.wlNm);
+          const ang = Math.atan2(p.vy, p.vx);
+
+          ctx.save();
+          ctx.translate(px, py);
+          ctx.rotate(ang);
+          ctx.strokeStyle = pCol.rgb;
+          ctx.lineWidth = 1.7;
+          ctx.beginPath();
+          for (let lx = -10; lx <= 10; lx += 2) {
+            const ly = Math.sin(lx * 0.55 - p.phase) * 2.8;
+            if (lx === -10) ctx.moveTo(lx, ly);
+            else ctx.lineTo(lx, ly);
+          }
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // 4. Emitted Radiation Beam -> Collimator Slit -> Dispersive Prism -> Spectral Screen
+        ctx.save();
+        // Beam from Cavity Aperture to Collimator Slit
+        const beamGrad = ctx.createLinearGradient(cavX + innerR, cavY, prismX, cavY);
+        beamGrad.addColorStop(0, `rgba(${core.r}, ${core.g}, ${core.b}, 0.65)`);
+        beamGrad.addColorStop(1, `rgba(${core.r}, ${core.g}, ${core.b}, 0.35)`);
+        ctx.fillStyle = beamGrad;
+        ctx.beginPath();
+        ctx.moveTo(cavX + innerR * 0.95, cavY - apertureHalfH * 0.75);
+        ctx.lineTo(slitX, cavY - 5);
+        ctx.lineTo(prismX - 18, cavY - 5);
+        ctx.lineTo(prismX - 18, cavY + 5);
+        ctx.lineTo(slitX, cavY + 5);
+        ctx.lineTo(cavX + innerR * 0.95, cavY + apertureHalfH * 0.75);
+        ctx.closePath();
+        ctx.fill();
+
+        // Collimator Slit Plates
+        ctx.fillStyle = '#1e293b';
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 1.4;
+        drawRoundedRect(ctx, slitX - 4, cavY - 52, 8, 44, 2);
+        ctx.fill();
+        ctx.stroke();
+        drawRoundedRect(ctx, slitX - 4, cavY + 8, 8, 44, 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '10px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('Slit', slitX, cavY - 58);
+
+        // Dispersed Spectral Fan from Prism to Detector Screen (UV top -> Visible -> IR bottom)
+        const dispGrad = ctx.createLinearGradient(prismX, detectorTop, prismX, detectorTop + detectorH);
+        const uvAlpha = Math.min(0.65, 0.1 + state.uvFraction * 1.4);
+        const visAlpha = Math.min(0.75, 0.12 + state.visFraction * 1.5);
+        const irAlpha = Math.min(0.65, 0.14 + state.irFraction * 0.8);
+
+        dispGrad.addColorStop(0.0, `rgba(168, 85, 247, ${uvAlpha})`);
+        dispGrad.addColorStop(0.24, `rgba(59, 130, 246, ${visAlpha})`);
+        dispGrad.addColorStop(0.42, `rgba(16, 185, 129, ${visAlpha})`);
+        dispGrad.addColorStop(0.58, `rgba(234, 179, 8, ${visAlpha})`);
+        dispGrad.addColorStop(0.74, `rgba(239, 68, 68, ${visAlpha})`);
+        dispGrad.addColorStop(1.0, `rgba(153, 27, 27, ${irAlpha})`);
+
+        ctx.fillStyle = dispGrad;
+        ctx.beginPath();
+        ctx.moveTo(prismX + 12, cavY - 4);
+        ctx.lineTo(detectorX, detectorTop);
+        ctx.lineTo(detectorX, detectorTop + detectorH);
+        ctx.lineTo(prismX + 12, cavY + 4);
+        ctx.closePath();
+        ctx.fill();
+
+        // Dispersive Quartz Prism Triangle
+        const pSize = 36;
+        ctx.fillStyle = 'rgba(148, 163, 184, 0.18)';
+        ctx.strokeStyle = 'rgba(186, 230, 253, 0.65)';
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.moveTo(prismX, cavY - pSize);
+        ctx.lineTo(prismX + pSize * 0.9, cavY + pSize * 0.72);
+        ctx.lineTo(prismX - pSize * 0.9, cavY + pSize * 0.72);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillText('Prism', prismX, cavY + pSize * 0.72 + 14);
+
+        // Spectral Detector Strip on Right
+        drawRoundedRect(ctx, detectorX, detectorTop, 16, detectorH, 4);
+        ctx.fillStyle = dispGrad;
+        ctx.fill();
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 1.4;
+        ctx.stroke();
+
+        // Detector Band Labels
+        ctx.font = '600 10px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#d8b4fe';
+        ctx.fillText('UV', detectorX + 22, detectorTop + 12);
+        ctx.fillStyle = '#6ee7b7';
+        ctx.fillText('VIS', detectorX + 22, cavY);
+        ctx.fillStyle = '#fda4af';
+        ctx.fillText('IR', detectorX + 22, detectorTop + detectorH - 6);
+
+        // Peak Wavelength Pointer Arrow on Detector Screen
+        // Map peak wavelength (100 nm to 3000 nm) logarithmically onto detector height
+        const logNorm = Math.max(
+          0,
+          Math.min(1, (Math.log(state.peakWlNm) - Math.log(100)) / (Math.log(3000) - Math.log(100)))
+        );
+        const peakDetY = detectorTop + logNorm * detectorH;
+
+        ctx.fillStyle = '#fbbf24';
+        ctx.beginPath();
+        ctx.moveTo(detectorX - 3, peakDetY);
+        ctx.lineTo(detectorX - 11, peakDetY - 5);
+        ctx.lineTo(detectorX - 11, peakDetY + 5);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#fcd34d';
+        ctx.textAlign = 'right';
+        ctx.fillText(`λ_max`, detectorX - 14, peakDetY + 3);
+        ctx.restore();
+
+        // 5. Animated Escaping Wave-Packets Along Beam
+        for (const bp of state.beamPackets) {
+          const bx = (cavX + innerR) + bp.progress * (prismX - cavX - innerR);
+          const pCol = wavelengthToColor(bp.wlNm);
+          ctx.save();
+          ctx.translate(bx, cavY);
+          ctx.strokeStyle = pCol.rgb;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          for (let lx = -12; lx <= 12; lx += 2) {
+            const ly = Math.sin(lx * 0.55 - bp.phase) * 3.2;
+            if (lx === -12) ctx.moveTo(lx, ly);
+            else ctx.lineTo(lx, ly);
+          }
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+
+      // =========================================================================
+      // 7. PLOT 1: PLANCK SPECTRAL RADIANCE & RAYLEIGH-JEANS CATASTROPHE
+      // =========================================================================
+      function renderPlanckPlot() {
+        const ctx = planckCtx;
+        const w = planckW;
+        const h = planckH;
+
+        ctx.clearRect(0, 0, w, h);
+
+        const padLeft = 58;
+        const padRight = 24;
+        const padTop = 26;
+        const padBottom = 42;
+        const plotW = w - padLeft - padRight;
+        const plotH = h - padTop - padBottom;
+
+        const wlMin = 100;
+        const wlMax = 3000;
+
+        // Reference ceiling at 6500 K peak so Fixed Scale shows dramatic T^5 growth
+        const fixedMaxY = planckRadiancePerNm((B_WIEN / 6500) * 1e9, 6500) * 1.15;
+        const autoMaxY = Math.max(1e-6, state.peakRadiancePerNm * 1.18);
+        const yMax = state.autoScaleY ? autoMaxY : fixedMaxY;
+
+        const toX = (wl) => padLeft + ((wl - wlMin) / (wlMax - wlMin)) * plotW;
+        const toY = (bVal) => padTop + plotH - Math.min(1.12, bVal / yMax) * plotH;
+
+        ctx.save();
+
+        // 1. Visible Spectrum Rainbow Band (380 - 750 nm)
+        if (state.showVisibleBand) {
+          const x380 = toX(380);
+          const x750 = toX(750);
+          const visGrad = ctx.createLinearGradient(x380, 0, x750, 0);
+          visGrad.addColorStop(0.0, 'rgba(139, 92, 246, 0.22)');
+          visGrad.addColorStop(0.22, 'rgba(59, 130, 246, 0.22)');
+          visGrad.addColorStop(0.45, 'rgba(16, 185, 129, 0.22)');
+          visGrad.addColorStop(0.65, 'rgba(234, 179, 8, 0.22)');
+          visGrad.addColorStop(0.82, 'rgba(249, 115, 22, 0.22)');
+          visGrad.addColorStop(1.0, 'rgba(239, 68, 68, 0.22)');
+
+          ctx.fillStyle = visGrad;
+          ctx.fillRect(x380, padTop, x750 - x380, plotH);
+
+          ctx.fillStyle = '#94a3b8';
+          ctx.font = '600 9px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('VIS', (x380 + x750) * 0.5, padTop + 11);
+        }
+
+        // 2. Grid & Axes
+        ctx.strokeStyle = 'rgba(30, 41, 59, 0.75)';
+        ctx.lineWidth = 1;
+        ctx.font = '10px monospace';
+        ctx.fillStyle = '#94a3b8';
+
+        for (let s = 0; s <= 5; s++) {
+          const val = (yMax / 5) * s;
+          const py = padTop + plotH - (s / 5) * plotH;
+          ctx.beginPath();
+          ctx.moveTo(padLeft, py);
+          ctx.lineTo(padLeft + plotW, py);
+          ctx.stroke();
+
+          ctx.textAlign = 'right';
+          ctx.textBaseline = 'middle';
+          const label = val === 0 ? '0' : (val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val.toExponential(1));
+          ctx.fillText(label, padLeft - 7, py);
+        }
+
+        const wlTicks = [100, 500, 1000, 1500, 2000, 2500, 3000];
+        for (const wl of wlTicks) {
+          const px = toX(wl);
+          ctx.beginPath();
+          ctx.moveTo(px, padTop);
+          ctx.lineTo(px, padTop + plotH);
+          ctx.stroke();
+
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          ctx.fillText(`${wl}`, px, padTop + plotH + 8);
+        }
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '600 11px -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Wavelength λ (nm)', padLeft + plotW * 0.5, h - 12);
+
+        ctx.save();
+        ctx.translate(14, padTop + plotH * 0.5);
+        ctx.rotate(-Math.PI * 0.5);
+        ctx.fillText('Spectral Radiance B_λ (W/m²·sr·nm)', 0, 0);
+        ctx.restore();
+
+        // 3. Planck Law Curve + Thermal Area Fill
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(padLeft, padTop, plotW, plotH);
+        ctx.clip();
+
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2.8;
+        ctx.beginPath();
+        const samples = 280;
+        for (let i = 0; i <= samples; i++) {
+          const wl = wlMin + (i / samples) * (wlMax - wlMin);
+          const bVal = planckRadiancePerNm(wl, state.tempK);
+          const px = toX(wl);
+          const py = toY(bVal);
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        ctx.lineTo(toX(wlMax), padTop + plotH);
+        ctx.lineTo(toX(wlMin), padTop + plotH);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.14)';
+        ctx.fill();
+
+        // 4. Classical Rayleigh-Jeans Curve (Ultraviolet Catastrophe)
+        if (state.showRayleighJeans) {
+          ctx.strokeStyle = '#f43f5e';
+          ctx.lineWidth = 2.0;
+          ctx.setLineDash([5, 4]);
+          ctx.beginPath();
+          let started = false;
+          for (let i = 0; i <= samples; i++) {
+            const wl = wlMin + (i / samples) * (wlMax - wlMin);
+            const rjVal = rayleighJeansPerNm(wl, state.tempK);
+            const px = toX(wl);
+            const py = padTop + plotH - (rjVal / yMax) * plotH;
+            if (py >= padTop - 20) {
+              if (!started) {
+                ctx.moveTo(px, Math.max(padTop, py));
+                started = true;
+              } else {
+                ctx.lineTo(px, py);
+              }
+            }
+          }
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+        ctx.restore();
+
+        // 5. Wien's Displacement Peak Marker (lambda_max)
+        if (state.showWienLocus && state.peakWlNm >= wlMin && state.peakWlNm <= wlMax) {
+          const peakX = toX(state.peakWlNm);
+          const peakY = Math.max(padTop + 4, toY(state.peakRadiancePerNm));
+
+          ctx.strokeStyle = 'rgba(245, 158, 11, 0.65)';
+          ctx.setLineDash([3, 3]);
+          ctx.lineWidth = 1.3;
+          ctx.beginPath();
+          ctx.moveTo(peakX, padTop + plotH);
+          ctx.lineTo(peakX, peakY);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          ctx.fillStyle = '#f59e0b';
+          ctx.beginPath();
+          ctx.arc(peakX, peakY, 4.5, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#fcd34d';
+          ctx.font = '600 10px monospace';
+          ctx.textAlign = peakX > padLeft + plotW - 95 ? 'right' : 'left';
+          ctx.fillText(`λ_max=${Math.round(state.peakWlNm)}nm`, peakX + (peakX > padLeft + plotW - 95 ? -6 : 6), Math.max(padTop + 14, peakY - 4));
+        }
+
+        // 6. Probe Wavelength Crosshair
+        const probeX = toX(state.probeNm);
+        const probeY = Math.max(padTop + 4, Math.min(padTop + plotH, toY(state.probeRadiancePerNm)));
+
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.55)';
+        ctx.setLineDash([3, 3]);
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(probeX, padTop + plotH);
+        ctx.lineTo(probeX, probeY);
+        ctx.lineTo(padLeft, probeY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.shadowColor = '#10b981';
+        ctx.shadowBlur = 10;
+        ctx.fillStyle = '#10b981';
+        ctx.beginPath();
+        ctx.arc(probeX, probeY, 5.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      // =========================================================================
+      // 8. PLOT 2: STEFAN-BOLTZMANN TOTAL RADIANT EXITANCE M(T) = sigma T^4
+      // =========================================================================
+      function renderStefanPlot() {
+        const ctx = stefanCtx;
+        const w = stefanW;
+        const h = stefanH;
+
+        ctx.clearRect(0, 0, w, h);
+
+        const padLeft = 58;
+        const padRight = 24;
+        const padTop = 26;
+        const padBottom = 42;
+        const plotW = w - padLeft - padRight;
+        const plotH = h - padTop - padBottom;
+
+        const tMin = 300;
+        const tMax = 12000;
+        const mMax = SIGMA * Math.pow(tMax, 4) * 1.08; // ~1.27 GW/m^2
+
+        const toX = (tVal) => padLeft + ((tVal - tMin) / (tMax - tMin)) * plotW;
+        const toY = (mVal) => padTop + plotH - (mVal / mMax) * plotH;
+
+        ctx.save();
+        ctx.strokeStyle = 'rgba(30, 41, 59, 0.75)';
+        ctx.lineWidth = 1;
+        ctx.font = '10px monospace';
+        ctx.fillStyle = '#94a3b8';
+
+        // Y-axis grid (GW/m^2)
+        for (let s = 0; s <= 5; s++) {
+          const val = (mMax / 5) * s;
+          const py = toY(val);
+          ctx.beginPath();
+          ctx.moveTo(padLeft, py);
+          ctx.lineTo(padLeft + plotW, py);
+          ctx.stroke();
+
+          ctx.textAlign = 'right';
+          ctx.textBaseline = 'middle';
+          const label = val === 0 ? '0' : `${(val / 1e9).toFixed(2)}G`;
+          ctx.fillText(label, padLeft - 7, py);
+        }
+
+        // X-axis grid (Temperature T in K)
+        const tTicks = [300, 3000, 6000, 9000, 12000];
+        for (const tTick of tTicks) {
+          const px = toX(tTick);
+          ctx.beginPath();
+          ctx.moveTo(px, padTop);
+          ctx.lineTo(px, padTop + plotH);
+          ctx.stroke();
+
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          ctx.fillText(`${tTick / 1000}k`, px, padTop + plotH + 8);
+        }
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '600 11px -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Temperature T (Kelvin)', padLeft + plotW * 0.5, h - 12);
+
+        ctx.save();
+        ctx.translate(14, padTop + plotH * 0.5);
+        ctx.rotate(-Math.PI * 0.5);
+        ctx.fillText('Total Exitance M = σT⁴ (W/m²)', 0, 0);
+        ctx.restore();
+
+        // Quartic M(T) = sigma T^4 curve
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 2.8;
+        ctx.beginPath();
+        const samples = 200;
+        for (let i = 0; i <= samples; i++) {
+          const tVal = tMin + (i / samples) * (tMax - tMin);
+          const mVal = SIGMA * Math.pow(tVal, 4);
+          const px = toX(tVal);
+          const py = toY(mVal);
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        ctx.lineTo(toX(tMax), toY(0));
+        ctx.lineTo(toX(tMin), toY(0));
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(245, 158, 11, 0.13)';
+        ctx.fill();
+
+        // Operating Point Marker
+        const opX = toX(state.tempK);
+        const opY = toY(state.totalExitanceWm2);
+
+        ctx.strokeStyle = 'rgba(245, 158, 11, 0.5)';
+        ctx.setLineDash([3, 3]);
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(opX, padTop + plotH);
+        ctx.lineTo(opX, opY);
+        ctx.lineTo(padLeft, opY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.shadowColor = '#f59e0b';
+        ctx.shadowBlur = 12;
+        ctx.fillStyle = '#f59e0b';
+        ctx.beginPath();
+        ctx.arc(opX, opY, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.8;
+        ctx.stroke();
+
+        // Spectral Power Breakdown Bar Inset (Top-Left of Plot 2)
+        const barX = padLeft + 12;
+        const barY = padTop + 10;
+        const barW = Math.min(210, plotW * 0.56);
+        const barH = 12;
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '600 10px -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('Radiated Power Breakdown:', barX, barY - 1);
+
+        const uvW = barW * state.uvFraction;
+        const visW = barW * state.visFraction;
+        const irW = Math.max(0, barW - uvW - visW);
+
+        ctx.fillStyle = '#a855f7';
+        ctx.fillRect(barX, barY + 5, uvW, barH);
+        ctx.fillStyle = '#10b981';
+        ctx.fillRect(barX + uvW, barY + 5, visW, barH);
+        ctx.fillStyle = '#f43f5e';
+        ctx.fillRect(barX + uvW + visW, barY + 5, irW, barH);
+
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(barX, barY + 5, barW, barH);
+
+        ctx.font = '9px monospace';
+        ctx.fillStyle = '#d8b4fe';
+        ctx.fillText(`UV:${(state.uvFraction * 100).toFixed(0)}%`, barX, barY + 28);
+        ctx.fillStyle = '#6ee7b7';
+        ctx.fillText(`Vis:${(state.visFraction * 100).toFixed(0)}%`, barX + 58, barY + 28);
+        ctx.fillStyle = '#fda4af';
+        ctx.fillText(`IR:${(state.irFraction * 100).toFixed(0)}%`, barX + 120, barY + 28);
+
+        ctx.restore();
+      }
+
+      // =========================================================================
+      // 9. EVENT LISTENERS & PRESETS
+      // =========================================================================
+      function setTemperature(tempK) {
+        state.tempK = tempK;
+        dom.tempSlider.value = tempK;
+        recalcPhysics();
+        renderPlanckPlot();
+        renderStefanPlot();
+      }
+
+      dom.tempSlider.addEventListener('input', (e) => {
+        state.tempK = parseInt(e.target.value, 10);
+        recalcPhysics();
+        renderPlanckPlot();
+        renderStefanPlot();
+      });
+
+      dom.probeSlider.addEventListener('input', (e) => {
+        state.probeNm = parseInt(e.target.value, 10);
+        recalcPhysics();
+        renderPlanckPlot();
+      });
+
+      dom.snapProbeToPeakBtn.addEventListener('click', () => {
+        const clamped = Math.max(100, Math.min(3000, Math.round(state.peakWlNm / 5) * 5));
+        state.probeNm = clamped;
+        dom.probeSlider.value = clamped;
+        recalcPhysics();
+        renderPlanckPlot();
+      });
+
+      dom.presetBodyBtn.addEventListener('click', () => setTemperature(310));
+      dom.presetBulbBtn.addEventListener('click', () => setTemperature(2800));
+      dom.presetHalogenBtn.addEventListener('click', () => setTemperature(3500));
+      dom.presetSunBtn.addEventListener('click', () => setTemperature(5778));
+      dom.presetSiriusBtn.addEventListener('click', () => setTemperature(9940));
+      dom.presetBlueBtn.addEventListener('click', () => setTemperature(12000));
+
+      function updateToggleBtn(btn, textEl, active, activeLabel = 'ON', inactiveLabel = 'OFF') {
+        textEl.textContent = active ? activeLabel : inactiveLabel;
+        if (active) btn.classList.add('btn-active');
+        else btn.classList.remove('btn-active');
+      }
+
+      dom.toggleRJBtn.addEventListener('click', () => {
+        state.showRayleighJeans = !state.showRayleighJeans;
+        updateToggleBtn(dom.toggleRJBtn, dom.rjStateText, state.showRayleighJeans);
+        dom.rjLegendItem.style.display = state.showRayleighJeans ? 'inline-flex' : 'none';
+        renderPlanckPlot();
+      });
+
+      dom.toggleWienBtn.addEventListener('click', () => {
+        state.showWienLocus = !state.showWienLocus;
+        updateToggleBtn(dom.toggleWienBtn, dom.wienStateText, state.showWienLocus);
+        renderPlanckPlot();
+      });
+
+      dom.toggleVisBandBtn.addEventListener('click', () => {
+        state.showVisibleBand = !state.showVisibleBand;
+        updateToggleBtn(dom.toggleVisBandBtn, dom.visBandStateText, state.showVisibleBand);
+        renderPlanckPlot();
+      });
+
+      dom.toggleAutoScaleBtn.addEventListener('click', () => {
+        state.autoScaleY = !state.autoScaleY;
+        updateToggleBtn(dom.toggleAutoScaleBtn, dom.autoScaleStateText, state.autoScaleY, 'AUTO', 'FIXED');
+        renderPlanckPlot();
+      });
+
+      dom.pauseBtn.addEventListener('click', () => {
+        state.paused = !state.paused;
+        dom.pauseBtn.textContent = state.paused ? 'Resume' : 'Pause';
+        dom.pauseBtn.style.color = state.paused ? '#fcd34d' : '#f1f5f9';
+      });
+
+      // =========================================================================
+      // 10. IMMEDIATE INITIALIZATION & ANIMATION LOOP
+      // =========================================================================
+      let lastTimeMs = performance.now();
+      let initialized = false;
+
+      function animate(nowMs) {
+        const dt = Math.min(0.05, Math.max(0.001, (nowMs - lastTimeMs) / 1000));
+        lastTimeMs = nowMs;
+
+        updateSimulation(dt);
+        renderSimulation(nowMs / 1000);
+
+        requestAnimationFrame(animate);
+      }
+
+      function initSimulator() {
+        if (initialized) {
+          resizeCanvases();
+          return;
+        }
+        initialized = true;
+        recalcPhysics();
+        seedCavityPhotons();
+        resizeCanvases();
+        renderSimulation(performance.now() / 1000);
+        renderPlanckPlot();
+        renderStefanPlot();
+        requestAnimationFrame(animate);
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initSimulator);
+      } else {
+        initSimulator();
+      }
+      window.addEventListener('load', resizeCanvases);
+    })();
+  </script>
+</body>
+</html>
